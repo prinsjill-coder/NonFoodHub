@@ -1,0 +1,267 @@
+(function () {
+  const body = document.body;
+  const base = body.dataset.base || ".";
+  const currentPage = body.dataset.page || "home";
+
+  const href = (path) => `${base}/${path}`.replace("//", "/");
+
+  const links = [
+    { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
+    { id: "leveranciers", title: "Leveranciers", path: "pages/leveranciers.html", description: "Partners, merken en productgroepen" },
+    { id: "brochures", title: "Brochures & Catalogi", path: "pages/brochures-catalogi.html", description: "Collecties en catalogusoverzicht" },
+    { id: "showroom", title: "Virtuele Showroom", path: "pages/virtuele-showroom.html", description: "Digitale rondleiding en showroomafspraken" },
+    { id: "inspiratie", title: "Inspiratie", path: "pages/inspiratie.html", description: "Trends, kennisbank en praktische inspiratie" },
+    { id: "nieuw", title: "Nieuw", path: "pages/nieuw.html", description: "Nieuw binnen Non-Food" },
+    { id: "aanbiedingen", title: "Aanbiedingen", path: "pages/aanbiedingen.html", description: "Actuele non-food deals" },
+    { id: "personalisatie", title: "Logo's & Personalisatie", path: "pages/logos-personalisatie.html", description: "Glaswerk, servies en kleding met eigen logo" },
+    { id: "bibliotheek", title: "Bibliotheek", path: "pages/bibliotheek.html", description: "Servies leasen zonder grote investering" },
+    { id: "terras", title: "Terras & Outdoor", path: "pages/terras-outdoor.html", description: "Outdoor dining, comfort en presentatie" },
+    { id: "droogijs", title: "Droogijs Shop", path: "pages/droogijs.html", description: "Droogijs bestellen of informatie aanvragen" },
+    { id: "contact", title: "Contact", path: "pages/contact.html", description: "Non-food advies, showroom en support" }
+  ];
+
+  const navGroups = [
+    {
+      title: "Ontdek",
+      items: ["leveranciers", "brochures", "showroom", "inspiratie"]
+    },
+    {
+      title: "Actueel",
+      items: ["nieuw", "aanbiedingen", "terras", "droogijs"]
+    },
+    {
+      title: "Services",
+      items: ["personalisatie", "bibliotheek", "contact"]
+    }
+  ];
+
+  function linkById(id) {
+    return links.find((link) => link.id === id);
+  }
+
+  function renderHeader() {
+    const mount = document.querySelector("[data-site-header]");
+    if (!mount) return;
+
+    const dropdowns = navGroups.map((group) => {
+      const items = group.items.map((id) => {
+        const link = linkById(id);
+        return `
+          <li>
+            <a href="${href(link.path)}" class="${currentPage === link.id ? "is-active" : ""}">
+              ${link.title}
+              <span>${link.description}</span>
+            </a>
+          </li>
+        `;
+      }).join("");
+
+      return `
+        <li class="dropdown">
+          <button class="dropdown-toggle" type="button" aria-haspopup="true">${group.title}</button>
+          <ul class="dropdown-menu">${items}</ul>
+        </li>
+      `;
+    }).join("");
+
+    const mobileLinks = links.map((link) => `
+      <a href="${href(link.path)}" class="${currentPage === link.id ? "is-active" : ""}">
+        ${link.title}
+        <small>${link.description}</small>
+      </a>
+    `).join("");
+
+    mount.outerHTML = `
+      <header class="site-header">
+        <div class="container header-inner">
+          <a class="brand" href="${href("index.html")}" aria-label="Bidfood Non-Food Hub home">
+            <span class="brand-mark">B</span>
+            <span class="brand-text">
+              <span class="brand-title">Bidfood Non-Food Hub</span>
+              <span class="brand-subtitle">Inspiratieomgeving</span>
+            </span>
+          </a>
+          <nav class="desktop-nav" aria-label="Hoofdnavigatie">
+            <ul class="nav-list">
+              <li><a class="nav-link ${currentPage === "home" ? "is-active" : ""}" href="${href("index.html")}">Home</a></li>
+              ${dropdowns}
+            </ul>
+          </nav>
+          <div class="header-actions">
+            <button class="icon-button search-trigger" type="button" aria-label="Zoeken">
+              <span class="icon-search" aria-hidden="true"></span>
+            </button>
+            <a class="btn btn-primary" href="${href("pages/contact.html")}">Advies aanvragen</a>
+            <button class="nav-toggle" type="button" aria-label="Menu openen" aria-expanded="false">
+              <span></span><span></span><span></span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <nav class="mobile-panel" aria-label="Mobiele navigatie">${mobileLinks}</nav>
+      <div class="search-overlay" role="dialog" aria-modal="true" aria-label="Zoeken">
+        <div class="search-dialog">
+          <div class="search-head">
+            <input type="search" id="site-search" aria-label="Zoeken binnen de Non-Food Hub" placeholder="Zoek op brochures, terras, showroom of personalisatie" autocomplete="off">
+            <button class="search-close" type="button" aria-label="Zoeken sluiten">×</button>
+          </div>
+          <div class="search-results" id="search-results"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderFooter() {
+    const mount = document.querySelector("[data-site-footer]");
+    if (!mount) return;
+
+    mount.outerHTML = `
+      <footer class="site-footer">
+        <div class="container footer-inner">
+          <div>
+            <h3>Bidfood Non-Food Hub</h3>
+            <p>Een centrale inspiratieomgeving voor servies, glaswerk, buffetpresentatie, showroomadvies en non-food concepten.</p>
+          </div>
+          <div>
+            <h4>Ontdek</h4>
+            <ul class="footer-links">
+              <li><a href="${href("pages/leveranciers.html")}">Leveranciers</a></li>
+              <li><a href="${href("pages/brochures-catalogi.html")}">Brochures</a></li>
+              <li><a href="${href("pages/virtuele-showroom.html")}">Showroom</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Inspiratie</h4>
+            <ul class="footer-links">
+              <li><a href="${href("pages/inspiratie.html")}">Kennisbank</a></li>
+              <li><a href="${href("pages/terras-outdoor.html")}">Terras & Outdoor</a></li>
+              <li><a href="${href("pages/bibliotheek.html")}">Bibliotheek</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <ul class="footer-links">
+              <li><a href="tel:+31135812712">013-5812712</a></li>
+              <li><a href="mailto:nonfood@bidfood.nl">nonfood@bidfood.nl</a></li>
+              <li><a href="https://wa.me/31135812712" target="_blank" rel="noreferrer">WhatsApp</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="container">Fase 1 statische website. Broncontent: openbare Bidfood Non-Food Notion-pagina.</div>
+        </div>
+      </footer>
+    `;
+  }
+
+  function setupNavigation() {
+    const toggle = document.querySelector(".nav-toggle");
+    if (toggle) {
+      toggle.addEventListener("click", () => {
+        const isOpen = body.classList.toggle("nav-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+
+    document.querySelectorAll(".mobile-panel a").forEach((link) => {
+      link.addEventListener("click", () => {
+        body.classList.remove("nav-open");
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+  }
+
+  function setupSearch() {
+    const openButtons = document.querySelectorAll(".search-trigger");
+    const closeButton = document.querySelector(".search-close");
+    const input = document.querySelector("#site-search");
+    const results = document.querySelector("#search-results");
+    if (!input || !results) return;
+
+    function renderResults(query) {
+      const normalized = query.trim().toLowerCase();
+      const matched = links.filter((link) => {
+        const haystack = `${link.title} ${link.description}`.toLowerCase();
+        return !normalized || haystack.includes(normalized);
+      }).slice(0, 8);
+
+      results.innerHTML = matched.map((link) => `
+        <a class="search-result" href="${href(link.path)}">
+          <strong>${link.title}</strong>
+          <span>${link.description}</span>
+        </a>
+      `).join("");
+    }
+
+    function openSearch() {
+      body.classList.add("search-open");
+      renderResults("");
+      window.setTimeout(() => input.focus(), 30);
+    }
+
+    function closeSearch() {
+      body.classList.remove("search-open");
+      input.value = "";
+    }
+
+    openButtons.forEach((button) => button.addEventListener("click", openSearch));
+    closeButton.addEventListener("click", closeSearch);
+    input.addEventListener("input", () => renderResults(input.value));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        body.classList.remove("nav-open");
+        closeSearch();
+      }
+    });
+  }
+
+  function setupFilters() {
+    const filterBars = document.querySelectorAll("[data-filter-bar]");
+    filterBars.forEach((bar) => {
+      const scope = document.querySelector(bar.dataset.filterBar);
+      if (!scope) return;
+      const cards = Array.from(scope.querySelectorAll("[data-categories]"));
+
+      bar.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-filter]");
+        if (!button) return;
+        const filter = button.dataset.filter.toLowerCase();
+
+        bar.querySelectorAll("[data-filter]").forEach((item) => item.classList.remove("is-active"));
+        button.classList.add("is-active");
+
+        cards.forEach((card) => {
+          const categories = card.dataset.categories.toLowerCase();
+          const visible = filter === "all" || categories.includes(filter);
+          card.classList.toggle("is-hidden", !visible);
+        });
+      });
+    });
+  }
+
+  function setupAnimations() {
+    const items = document.querySelectorAll(".fade-in");
+    if (!items.length) return;
+    if (!("IntersectionObserver" in window)) {
+      items.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    items.forEach((item) => observer.observe(item));
+  }
+
+  renderHeader();
+  renderFooter();
+  setupNavigation();
+  setupSearch();
+  setupFilters();
+  setupAnimations();
+})();
