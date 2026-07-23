@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Editor and temporary files
+*~
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+.#*
+\#*\#
+.history/
+
+# IDE folders
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local caches and tooling output
+.cache/
+.parcel-cache/
+.sass-cache/
+.eslintcache
+.stylelintcache
+.http-server/
+.serve/
+node_modules/
+
+# Local OS metadata from archives or external drives
+__MACOSX/
+Thumbs.db
+Desktop.ini
