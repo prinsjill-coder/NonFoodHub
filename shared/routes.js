@@ -15,7 +15,8 @@ export const STUDIO_ROUTES = [
     id: "suppliers",
     path: "/leveranciers",
     title: "Leveranciers",
-    enabled: false
+    enabled: true,
+    sectionId: "suppliers"
   },
   {
     id: "brochures",
@@ -81,5 +82,43 @@ export const STUDIO_ROUTES = [
 
 export function routeFromHash(hash) {
   const cleaned = hash.replace(/^#/, "") || "/dashboard";
-  return STUDIO_ROUTES.find((route) => route.path === cleaned) || STUDIO_ROUTES[0];
+  const exactRoute = STUDIO_ROUTES.find((route) => route.path === cleaned);
+  if (exactRoute) return exactRoute;
+
+  if (cleaned === "/leveranciers/nieuw") {
+    return {
+      id: "supplierNew",
+      path: cleaned,
+      title: "Nieuwe leverancier",
+      enabled: true,
+      sectionId: "suppliers",
+      params: {}
+    };
+  }
+
+  const supplierEditMatch = cleaned.match(/^\/leveranciers\/([^/]+)\/bewerken$/);
+  if (supplierEditMatch) {
+    return {
+      id: "supplierEdit",
+      path: cleaned,
+      title: "Leverancier bewerken",
+      enabled: true,
+      sectionId: "suppliers",
+      params: { slug: supplierEditMatch[1] }
+    };
+  }
+
+  const supplierDetailMatch = cleaned.match(/^\/leveranciers\/([^/]+)$/);
+  if (supplierDetailMatch) {
+    return {
+      id: "supplierDetail",
+      path: cleaned,
+      title: "Leverancier bekijken",
+      enabled: true,
+      sectionId: "suppliers",
+      params: { slug: supplierDetailMatch[1] }
+    };
+  }
+
+  return STUDIO_ROUTES[0];
 }

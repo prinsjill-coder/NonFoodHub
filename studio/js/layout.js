@@ -3,7 +3,7 @@ import { classNames, escapeHtml } from "../../shared/utils.js";
 import { renderAuthPlaceholder } from "./auth.js";
 
 function renderSidebarItem(item, currentRoute) {
-  const active = item.route === `#${currentRoute.path}`;
+  const active = item.id === currentRoute.sectionId || item.route === `#${currentRoute.path}`;
   return `
     <a
       class="${classNames("studio-nav-link", active && "is-active", !item.enabled && "is-disabled")}"
@@ -25,14 +25,14 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
       <aside class="studio-sidebar">
         <a class="studio-brand" href="#/dashboard" aria-label="${escapeHtml(STUDIO_CONFIG.appName)} dashboard">
           <span class="studio-brand-mark">B</span>
-          <span class="studio-brand-text">
-            <span class="studio-brand-title">${escapeHtml(STUDIO_CONFIG.appName)}</span>
-            <span class="studio-brand-subtitle">Framework Sprint 1</span>
-          </span>
-        </a>
+            <span class="studio-brand-text">
+              <span class="studio-brand-title">${escapeHtml(STUDIO_CONFIG.appName)}</span>
+              <span class="studio-brand-subtitle">Studio prototype</span>
+            </span>
+          </a>
         <nav class="studio-nav" aria-label="Studio navigatie">${navItems}</nav>
         <p class="studio-sidebar-note">
-          Sprint 1 is alleen een Studio-framework. Contentbeheer, uploads en publicatie-acties zijn nog niet actief.
+          Sprint 2 bevat leveranciersbeheer als statisch prototype. Uploads en publicatie-acties zijn nog niet actief.
         </p>
       </aside>
       <main class="studio-main">

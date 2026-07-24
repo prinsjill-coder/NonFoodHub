@@ -1,13 +1,13 @@
 {
   "status": "foundation",
-  "summary": "Sprint 1 bevat alleen het Studio-framework. Er is nog geen contentbeheer, geen echte authenticatie en geen koppeling met publieke contentdata.",
+  "summary": "Sprint 2 voegt leveranciersbeheer toe als statische Studio-prototypemodule. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
     {
       "id": "suppliers",
       "label": "Leveranciers",
       "value": null,
       "state": "not_connected",
-      "note": "Nog niet gekoppeld aan contentdata."
+      "note": "Wordt in Studio berekend uit data/suppliers.json."
     },
     {
       "id": "brochures",
@@ -42,7 +42,7 @@
       "id": "drafts",
       "title": "Concepten",
       "state": "empty",
-      "message": "Concepten worden pas zichtbaar zodra contentbeheer in een volgende sprint wordt gebouwd."
+      "message": "Concepten bestaan als leveranciersstatus, maar er is nog geen publicatie- of auditworkflow."
     },
     {
       "id": "missingFiles",
@@ -55,8 +55,9 @@
     {
       "id": "newSupplier",
       "label": "Nieuwe leverancier",
-      "enabled": false,
-      "message": "Beschikbaar vanaf leveranciersbeheer."
+      "enabled": true,
+      "route": "#/leveranciers/nieuw",
+      "message": "Open het prototypeformulier voor leveranciersbeheer."
     },
     {
       "id": "newBrochure",

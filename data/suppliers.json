@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "0.1.0",
+  "prototype": true,
+  "storage": {
+    "mode": "static-json",
+    "writeEnabled": false,
+    "message": "Leveranciers worden in Sprint 2 alleen gelezen uit data/suppliers.json. Opslaan naar bestanden is in deze statische prototypefase nog niet beschikbaar."
+  },
+  "statuses": [
+    "concept",
+    "review",
+    "published",
+    "hidden",
+    "archived"
+  ],
+  "types": [
+    {
+      "id": "leverancier",
+      "label": "Leverancier"
+    },
+    {
+      "id": "partner",
+      "label": "Partner"
+    },
+    {
+      "id": "servicepartner",
+      "label": "Servicepartner"
+    }
+  ],
+  "categories": [
+    "Bestek",
+    "Buffet & presentatie",
+    "Glaswerk",
+    "Keukengerei",
+    "Servies",
+    "Tafelpresentatie"
+  ],
+  "items": [
+    {
+      "id": "supplier-amefa",
+      "name": "Amefa",
+      "slug": "amefa",
+      "type": "leverancier",
+      "summary": "Demo-leverancier voor bestek en tafelpresentatie.",
+      "description": "Amefa is opgenomen als demo-record om het leveranciersoverzicht, de detailweergave en formulierflow in Studio te testen. Deze data voedt de publieke website nog niet.",
+      "categories": [
+        "Bestek",
+        "Tafelpresentatie"
+      ],
+      "logo": "assets/images/supplier-amefa.jpg",
+      "image": "assets/images/supplier-amefa.jpg",
+      "brochureIds": [],
+      "relatedArticleIds": [],
+      "featured": true,
+      "sortOrder": 10,
+      "status": "published"
+    },
+    {
+      "id": "supplier-churchill",
+      "name": "Churchill",
+      "slug": "churchill",
+      "type": "leverancier",
+      "summary": "Demo-leverancier voor servies en hospitality-presentatie.",
+      "description": "Churchill is opgenomen als tweede demo-record zodat filters, statussen en bewerkvalidatie met meerdere leveranciers kunnen worden getest.",
+      "categories": [
+        "Servies",
+        "Buffet & presentatie"
+      ],
+      "logo": "assets/images/supplier-churchill.jpg",
+      "image": "assets/images/supplier-churchill.jpg",
+      "brochureIds": [],
+      "relatedArticleIds": [],
+      "featured": false,
+      "sortOrder": 20,
+      "status": "review"
+    }
+  ]
+}

@@ -2,22 +2,23 @@ import { STUDIO_CONFIG } from "../../shared/config.js";
 import { fetchJson } from "../../shared/utils.js";
 import { getAuthPlaceholder } from "./auth.js";
 import { renderLayout } from "./layout.js";
-import { getCurrentRoute, renderRoute } from "./router.js";
+import { getCurrentRoute, renderRoute, setupRoute } from "./router.js";
 
 const app = document.querySelector("#studio-app");
 
 async function loadStudioData() {
-  const [navigation, dashboard] = await Promise.all([
+  const [navigation, dashboard, suppliers] = await Promise.all([
     fetchJson(STUDIO_CONFIG.data.navigation),
-    fetchJson(STUDIO_CONFIG.data.dashboard)
+    fetchJson(STUDIO_CONFIG.data.dashboard),
+    fetchJson(STUDIO_CONFIG.data.suppliers)
   ]);
 
-  return { navigation, dashboard };
+  return { navigation, dashboard, suppliers };
 }
 
 function renderStudio(state) {
   const currentRoute = getCurrentRoute();
-  const content = renderRoute(currentRoute, state.dashboard);
+  const content = renderRoute(currentRoute, state);
   const authState = getAuthPlaceholder();
 
   app.innerHTML = renderLayout({
@@ -26,6 +27,7 @@ function renderStudio(state) {
     authState,
     content
   });
+  setupRoute(currentRoute, state);
 }
 
 async function initStudio() {

@@ -19,8 +19,8 @@
       "id": "suppliers",
       "label": "Leveranciers",
       "route": "#/leveranciers",
-      "description": "Placeholder voor toekomstig leveranciersbeheer",
-      "enabled": false
+      "description": "Leveranciers beheren in de Studio-prototypefase",
+      "enabled": true
     },
     {
       "id": "brochures",

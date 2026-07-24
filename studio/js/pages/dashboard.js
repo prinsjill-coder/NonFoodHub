@@ -3,9 +3,24 @@ import { renderMetricCard, renderPanelCard } from "../../../components/card.js";
 import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
+import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 
+function hydrateMetrics(dashboardData, supplierData) {
+  const supplierCounts = getSupplierCounts(supplierData);
+  return dashboardData.metrics.map((metric) => {
+    if (metric.id !== "suppliers") return metric;
+    return {
+      ...metric,
+      value: supplierCounts.total,
+      state: "foundation",
+      note: "Gelezen uit data/suppliers.json demo-data; nog niet gekoppeld aan de publieke website."
+    };
+  });
+}
+
 function renderQuickAction(action) {
+  const href = action.enabled ? action.route : "";
   return `
     <article class="studio-card">
       <div class="studio-card-head">
@@ -15,6 +30,7 @@ function renderQuickAction(action) {
       <p class="studio-muted">${escapeHtml(action.message)}</p>
       ${renderButton({
         label: action.enabled ? "Openen" : "Niet actief",
+        href,
         variant: "secondary",
         disabled: !action.enabled
       })}
@@ -22,8 +38,8 @@ function renderQuickAction(action) {
   `;
 }
 
-export function renderDashboard(dashboardData) {
-  const metrics = dashboardData.metrics.map(renderMetricCard).join("");
+export function renderDashboard(dashboardData, supplierData) {
+  const metrics = hydrateMetrics(dashboardData, supplierData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
 
@@ -62,7 +78,7 @@ export function renderRoutePlaceholder(route) {
   return renderEmptyState({
     title: `${route.title} is nog niet actief`,
     message:
-      "Deze route is bewust als placeholder opgenomen in Sprint 1. CRUD, formulieren, uploads en contentbeheer worden pas in een latere sprint gebouwd.",
+      "Deze route is bewust als placeholder opgenomen. Beheer voor dit onderdeel wordt pas in een latere sprint gebouwd.",
     label: "Placeholder"
   });
 }

@@ -3,7 +3,8 @@ export const STUDIO_CONFIG = {
   projectName: "NonFoodHub",
   data: {
     navigation: "../data/studio-navigation.json",
-    dashboard: "../data/studio-dashboard.json"
+    dashboard: "../data/studio-dashboard.json",
+    suppliers: "../data/suppliers.json"
   },
   authPlaceholder: {
     title: "Authentication placeholder",
@@ -18,5 +19,11 @@ export const STATUS_LABELS = {
   empty: "Leeg",
   not_connected: "Niet gekoppeld",
   placeholder: "Placeholder",
-  disabled: "Nog niet actief"
+  disabled: "Nog niet actief",
+  concept: "Concept",
+  review: "Ter controle",
+  published: "Gepubliceerd",
+  hidden: "Verborgen",
+  archived: "Gearchiveerd",
+  success: "Geslaagd"
 };
