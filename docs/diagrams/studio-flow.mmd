@@ -1,0 +1,11 @@
+flowchart TD
+  Login["Inloggen"] --> Dashboard["Dashboard"]
+  Dashboard --> Create["Nieuwe content"]
+  Create --> Form["Formulier invullen"]
+  Form --> Validate["Validatie"]
+  Validate -->|Fouten| Fix["Corrigeren"]
+  Fix --> Form
+  Validate -->|Goed| Draft["Opslaan als concept"]
+  Draft --> Review["Controleren"]
+  Review --> Publish["Publiceren"]
+  Publish --> Live["Zichtbaar op website"]

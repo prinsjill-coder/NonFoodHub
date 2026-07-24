@@ -22,11 +22,17 @@ De website is gebaseerd op de openbare Notion-omgeving en is omgezet naar een on
 ```text
 NonFoodHub/
 ├── index.html
+├── AI_INSTRUCTIONS.md
 ├── README.md
 ├── CHANGELOG.md
 ├── WORKFLOW.md
 ├── .gitignore
 ├── .gitattributes
+├── docs/
+│   ├── MASTERPLAN.md
+│   ├── decisions/
+│   ├── diagrams/
+│   └── wireframes/
 ├── assets/
 │   ├── css/
 │   │   └── styles.css
@@ -75,6 +81,14 @@ Je kunt `index.html` ook rechtstreeks openen, maar de previewserver is aanbevole
 6. Controleer de live website kort nadat GitHub Pages opnieuw gepubliceerd heeft.
 
 Zie ook [WORKFLOW.md](WORKFLOW.md).
+
+## Projectdocumentatie
+
+De volledige projectblauwdruk staat in [docs/MASTERPLAN.md](docs/MASTERPLAN.md).
+
+Gebruik dit document als leidende bron voor toekomstige ontwikkeling, waaronder Fase 1A, NonFood Hub Studio, contentbeheer, navigatie, PDF-beheer en Codex-opdrachten.
+
+AI-assistenten gebruiken [AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md) als operationele startinstructie en lezen daarna de volledige `docs/`-map.
 
 ## Publicatie via GitHub Pages
 

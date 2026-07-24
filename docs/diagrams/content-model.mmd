@@ -1,0 +1,12 @@
+erDiagram
+  SUPPLIER ||--o{ BROCHURE : has
+  SUPPLIER }o--o{ KNOWLEDGE_ARTICLE : related
+  SUPPLIER }o--o{ MEDIA_ASSET : uses
+  BROCHURE }o--|| MEDIA_ASSET : pdf
+  BROCHURE }o--|| MEDIA_ASSET : thumbnail
+  KNOWLEDGE_ARTICLE }o--o{ BROCHURE : recommends
+  KNOWLEDGE_ARTICLE }o--o{ SPECIALIST : references
+  LIBRARY_ITEM }o--|| MEDIA_ASSET : file
+  CONTACT_ROUTE }o--o| SPECIALIST : belongs_to
+  CTA }o--o{ SUPPLIER : used_by
+  CTA }o--o{ KNOWLEDGE_ARTICLE : used_by

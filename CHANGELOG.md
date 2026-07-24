@@ -6,6 +6,10 @@ Het formaat is gebaseerd op [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ## [Unreleased]
 
+### Added
+
+- Repository-ready documentatieset toegevoegd onder `docs/`, inclusief Masterplan, detaildocumenten, ADR's, Mermaid-diagrammen en wireframes.
+
 ### Planned
 
 - Voorbereiding van Fase 2A.

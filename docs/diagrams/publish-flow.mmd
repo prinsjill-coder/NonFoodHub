@@ -1,0 +1,8 @@
+flowchart LR
+  Codex["Codex wijzigt lokaal"] --> Local["Lokale repository"]
+  Local --> Test["Lokale test"]
+  Test --> Desktop["GitHub Desktop"]
+  Desktop --> Commit["Commit"]
+  Commit --> Push["Push naar main"]
+  Push --> Pages["GitHub Pages build"]
+  Pages --> Live["Live website"]

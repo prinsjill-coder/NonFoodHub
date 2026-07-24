@@ -1,0 +1,9 @@
+flowchart LR
+  Visitor["Bezoeker"] --> Website["Publieke website"]
+  Website --> Content["Gepubliceerde contentdata"]
+  Studio["NonFood Hub Studio"] --> Content
+  Studio --> Media["Media en PDF's"]
+  Website --> Media
+  Desktop["GitHub Desktop"] --> Repo["GitHub repository"]
+  Repo --> Pages["GitHub Pages"]
+  Pages --> Website

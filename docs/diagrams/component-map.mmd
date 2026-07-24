@@ -1,0 +1,14 @@
+flowchart TB
+  Page["Pagina"] --> Header["SiteHeader"]
+  Page --> Hero["Hero"]
+  Page --> Content["ContentSection"]
+  Page --> CTA["CTA"]
+  Page --> Footer["SiteFooter"]
+
+  Content --> SupplierCard["SupplierTile"]
+  Content --> BrochureCard["BrochureCard"]
+  Content --> ArticleCard["ArticleCard"]
+  Content --> ContactCard["ContactCard"]
+  Content --> Embed["ResponsiveEmbed"]
+  Content --> Filter["FilterBar"]
+  Content --> Search["SearchOverlay"]
