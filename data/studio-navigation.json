@@ -1,0 +1,96 @@
+{
+  "label": "NonFood Hub Studio",
+  "items": [
+    {
+      "id": "dashboard",
+      "label": "Dashboard",
+      "route": "#/dashboard",
+      "description": "Overzicht van Studio-statussen",
+      "enabled": true
+    },
+    {
+      "id": "homepage",
+      "label": "Homepage",
+      "route": "#/homepage",
+      "description": "Placeholder voor toekomstig homepagebeheer",
+      "enabled": false
+    },
+    {
+      "id": "suppliers",
+      "label": "Leveranciers",
+      "route": "#/leveranciers",
+      "description": "Placeholder voor toekomstig leveranciersbeheer",
+      "enabled": false
+    },
+    {
+      "id": "brochures",
+      "label": "Brochures",
+      "route": "#/brochures",
+      "description": "Placeholder voor toekomstig brochurebeheer",
+      "enabled": false
+    },
+    {
+      "id": "knowledge",
+      "label": "Kennisbank",
+      "route": "#/kennisbank",
+      "description": "Placeholder voor toekomstig kennisbankbeheer",
+      "enabled": false
+    },
+    {
+      "id": "library",
+      "label": "Bibliotheek",
+      "route": "#/bibliotheek",
+      "description": "Placeholder voor toekomstig bibliotheekbeheer",
+      "enabled": false
+    },
+    {
+      "id": "showroom",
+      "label": "Virtuele Showroom",
+      "route": "#/showroom",
+      "description": "Placeholder voor toekomstig showroombeheer",
+      "enabled": false
+    },
+    {
+      "id": "dryice",
+      "label": "Droogijsshop",
+      "route": "#/droogijsshop",
+      "description": "Placeholder voor toekomstig droogijsbeheer",
+      "enabled": false
+    },
+    {
+      "id": "specialists",
+      "label": "Specialisten",
+      "route": "#/specialisten",
+      "description": "Placeholder voor toekomstig specialistenbeheer",
+      "enabled": false
+    },
+    {
+      "id": "media",
+      "label": "Media",
+      "route": "#/media",
+      "description": "Placeholder voor toekomstig mediabeheer",
+      "enabled": false
+    },
+    {
+      "id": "ctas",
+      "label": "CTA's",
+      "route": "#/ctas",
+      "description": "Placeholder voor toekomstig CTA-beheer",
+      "enabled": false
+    },
+    {
+      "id": "navigation",
+      "label": "Navigatie",
+      "route": "#/navigatie",
+      "description": "Placeholder voor toekomstig navigatiebeheer",
+      "enabled": false
+    },
+    {
+      "id": "settings",
+      "label": "Instellingen",
+      "route": "#/instellingen",
+      "description": "Placeholder voor toekomstige instellingen",
+      "enabled": false
+    }
+  ]
+}

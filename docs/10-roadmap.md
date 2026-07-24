@@ -4,6 +4,13 @@
 
 De website staat online als Fase 1-basis. De volgende stappen moeten dubbel werk voorkomen.
 
+Aanvullend besluit: het fundament van NonFood Hub Studio mag nu worden gebouwd
+als technische basis, terwijl de publieke contentcorrecties uit Fase 1A later
+worden afgerond. Dit Studio-fundament bevat alleen routing, layout, sidebar,
+dashboard, navigatiestructuur, authentication placeholder, gedeelde componenten
+en basisarchitectuur. Het bevat nog geen CRUD, leveranciersbeheer,
+brochurebeheer, homepage-editor, media- of contentbeheer.
+
 Aanbevolen volgorde:
 
 1. Fase 1A: framework en informatiearchitectuur corrigeren.

@@ -1,0 +1,86 @@
+{
+  "status": "foundation",
+  "summary": "Sprint 1 bevat alleen het Studio-framework. Er is nog geen contentbeheer, geen echte authenticatie en geen koppeling met publieke contentdata.",
+  "metrics": [
+    {
+      "id": "suppliers",
+      "label": "Leveranciers",
+      "value": null,
+      "state": "not_connected",
+      "note": "Nog niet gekoppeld aan contentdata."
+    },
+    {
+      "id": "brochures",
+      "label": "Brochures",
+      "value": null,
+      "state": "not_connected",
+      "note": "Nog niet gekoppeld aan PDF- of brochuredata."
+    },
+    {
+      "id": "articles",
+      "label": "Kennisbankartikelen",
+      "value": null,
+      "state": "not_connected",
+      "note": "Nog niet gekoppeld aan artikeldata."
+    },
+    {
+      "id": "library",
+      "label": "Bibliotheekitems",
+      "value": null,
+      "state": "not_connected",
+      "note": "Nog niet gekoppeld aan bibliotheekdata."
+    }
+  ],
+  "panels": [
+    {
+      "id": "recentChanges",
+      "title": "Recente wijzigingen",
+      "state": "empty",
+      "message": "Nog geen audit trail of wijzigingshistorie beschikbaar."
+    },
+    {
+      "id": "drafts",
+      "title": "Concepten",
+      "state": "empty",
+      "message": "Concepten worden pas zichtbaar zodra contentbeheer in een volgende sprint wordt gebouwd."
+    },
+    {
+      "id": "missingFiles",
+      "title": "Ontbrekende bestanden",
+      "state": "not_connected",
+      "message": "Bestandscontrole is nog niet gekoppeld aan media- of PDF-data."
+    }
+  ],
+  "quickActions": [
+    {
+      "id": "newSupplier",
+      "label": "Nieuwe leverancier",
+      "enabled": false,
+      "message": "Beschikbaar vanaf leveranciersbeheer."
+    },
+    {
+      "id": "newBrochure",
+      "label": "Nieuwe brochure",
+      "enabled": false,
+      "message": "Beschikbaar vanaf brochurebeheer."
+    },
+    {
+      "id": "newArticle",
+      "label": "Nieuw artikel",
+      "enabled": false,
+      "message": "Beschikbaar vanaf kennisbankbeheer."
+    },
+    {
+      "id": "newLibraryItem",
+      "label": "Nieuw bibliotheekitem",
+      "enabled": false,
+      "message": "Beschikbaar vanaf bibliotheekbeheer."
+    },
+    {
+      "id": "newSpecialist",
+      "label": "Specialist toevoegen",
+      "enabled": false,
+      "message": "Beschikbaar vanaf specialistenbeheer."
+    }
+  ]
+}
