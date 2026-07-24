@@ -2,9 +2,9 @@
   "schemaVersion": "0.1.0",
   "prototype": true,
   "storage": {
-    "mode": "static-json",
+    "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Leveranciers worden in Sprint 2 alleen gelezen uit data/suppliers.json. Opslaan naar bestanden is in deze statische prototypefase nog niet beschikbaar."
+    "message": "Leveranciers worden in Sprint 3 in browsergeheugen gewijzigd. Export downloadt alleen suppliers.json; vervang /data/suppliers.json handmatig en commit en push daarna zelf via GitHub Desktop."
   },
   "statuses": [
     "concept",

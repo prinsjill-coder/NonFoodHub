@@ -94,6 +94,32 @@ Nieuwe leverancier
 -> opslaan als concept of publiceren
 ```
 
+### Leveranciers import/export in statische Studio
+
+Zolang Studio statisch op GitHub Pages draait, schrijft Studio niet rechtstreeks
+naar repositorybestanden, GitHub of de live website. `data/suppliers.json` wordt
+als gebundelde bron geladen. Daarna bestaan wijzigingen alleen in het actieve
+browsergeheugen.
+
+Sprint 3 gebruikt deze werksessie:
+
+```text
+data/suppliers.json laden
+-> in-memory workingData maken
+-> leveranciers aanmaken of bewerken in workingData
+-> volledig valideren
+-> suppliers.json exporteren als download
+-> bestand handmatig vervangen in /data
+-> commit en push via GitHub Desktop
+```
+
+Een geldige import van een bestaand `suppliers.json`-bestand vervangt alleen de
+actieve werksessiebron. Importeren publiceert niets en schrijft niets terug naar
+de repository. Een browserrefresh wist niet-geexporteerde werksessiewijzigingen.
+
+De status `published` is alleen een contentstatus binnen data. Deze status
+betekent niet dat Studio automatisch publiceert of de live website wijzigt.
+
 ## Brochurebeheer
 
 Workflow:

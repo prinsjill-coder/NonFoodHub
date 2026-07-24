@@ -43,8 +43,9 @@ export function renderSupplierDetail({ supplierData, supplier }) {
     </div>
 
     ${renderNotice({
-      title: "Alleen Studio-preview",
-      message: "Deze detailweergave leest demo-data uit data/suppliers.json en wijzigt de publieke website nog niet.",
+      title: "Alleen Studio-werksessie",
+      message:
+        "Deze detailweergave leest de actieve browserdata. Dit schrijft niet naar /data/suppliers.json en wijzigt de publieke website niet.",
       tone: "info"
     })}
 
@@ -82,16 +83,15 @@ export function renderSupplierDetail({ supplierData, supplier }) {
       <div class="studio-grid studio-grid-2">
         <article class="studio-card">
           <h2>Brochures</h2>
-          <p class="studio-muted">Relaties met brochures zijn voorbereid via <code>brochureIds</code>, maar brochurebeheer valt buiten Sprint 2.</p>
+          <p class="studio-muted">Relaties met brochures zijn voorbereid via <code>brochureIds</code>, maar brochurebeheer valt buiten Sprint 3.</p>
           <p class="studio-meta">${escapeHtml((supplier.brochureIds || []).join(", ") || "Geen brochures gekoppeld")}</p>
         </article>
         <article class="studio-card">
           <h2>Kennisbank</h2>
-          <p class="studio-muted">Relaties met kennisbankartikelen zijn voorbereid via <code>relatedArticleIds</code>, maar kennisbankbeheer valt buiten Sprint 2.</p>
+          <p class="studio-muted">Relaties met kennisbankartikelen zijn voorbereid via <code>relatedArticleIds</code>, maar kennisbankbeheer valt buiten Sprint 3.</p>
           <p class="studio-meta">${escapeHtml((supplier.relatedArticleIds || []).join(", ") || "Geen artikelen gekoppeld")}</p>
         </article>
       </div>
     </section>
   `;
 }
-

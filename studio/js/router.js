@@ -8,18 +8,18 @@ export function getCurrentRoute() {
 
 export function renderRoute(route, state) {
   if (route.id === "dashboard") {
-    return renderDashboard(state.dashboard, state.suppliers);
+    return renderDashboard(state.dashboard, state.supplierSession.getWorkingData());
   }
 
   if (route.sectionId === "suppliers") {
-    return renderSuppliersRoute(route, state.suppliers);
+    return renderSuppliersRoute(route, state.supplierSession);
   }
 
   return renderRoutePlaceholder(route);
 }
 
-export function setupRoute(route, state) {
+export function setupRoute(route, state, options = {}) {
   if (route.sectionId === "suppliers") {
-    setupSuppliersRoute(route, state.suppliers);
+    setupSuppliersRoute(route, state.supplierSession, options);
   }
 }

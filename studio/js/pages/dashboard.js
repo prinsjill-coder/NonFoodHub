@@ -14,7 +14,7 @@ function hydrateMetrics(dashboardData, supplierData) {
       ...metric,
       value: supplierCounts.total,
       state: "foundation",
-      note: "Gelezen uit data/suppliers.json demo-data; nog niet gekoppeld aan de publieke website."
+      note: "Gelezen uit de actieve Studio-werksessie; nog niet gekoppeld aan de publieke website."
     };
   });
 }

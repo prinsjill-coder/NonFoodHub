@@ -61,6 +61,23 @@ Voorstel
 -> live controle
 ```
 
+Voor statische Studio-import/export geldt aanvullend:
+
+```text
+Suppliers-data laden of importeren
+-> wijzigen in browsergeheugen
+-> volledig valideren
+-> suppliers.json exporteren
+-> /data/suppliers.json handmatig vervangen
+-> lokaal testen
+-> commit en push via GitHub Desktop
+-> live controle
+```
+
+Een exportbestand is pas onderdeel van het project nadat het handmatig in de
+repository is geplaatst. Downloaden vanuit Studio geldt niet als opslaan,
+publiceren, committen of pushen.
+
 ## Acceptatiecriteria
 
 Een onderdeel is gereed wanneer:

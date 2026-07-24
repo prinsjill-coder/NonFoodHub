@@ -40,6 +40,8 @@ Doel:
 
 - centrale datafiles;
 - leveranciersbeheer;
+- leveranciers importeren, in de Studio-werksessie wijzigen en als
+  gevalideerde `suppliers.json` exporteren;
 - brochurebeheer;
 - PDF-upload of PDF-koppeling;
 - kennisbankbeheer;
@@ -48,6 +50,11 @@ Doel:
 - navigatiebeheer.
 
 De eerste versie mag lokaal werken met GitHub Desktop als publicatiestap.
+
+Aanvullend Sprint 3-besluit: leverancierswijzigingen bestaan in deze fase alleen
+in browsergeheugen totdat een beheerder `suppliers.json` exporteert. Exporteren
+is geen opslag, publicatie of commit. Het gedownloade bestand wordt handmatig in
+`/data` geplaatst en daarna via GitHub Desktop gecommit en gepusht.
 
 ## Fase 1B - Content vullen
 

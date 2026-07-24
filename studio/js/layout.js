@@ -32,7 +32,7 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
           </a>
         <nav class="studio-nav" aria-label="Studio navigatie">${navItems}</nav>
         <p class="studio-sidebar-note">
-          Sprint 2 bevat leveranciersbeheer als statisch prototype. Uploads en publicatie-acties zijn nog niet actief.
+          Sprint 3 bevat leveranciersbeheer met een tijdelijke import/export-werksessie. Uploads, echte opslag en publicatie-acties zijn niet actief.
         </p>
       </aside>
       <main class="studio-main">

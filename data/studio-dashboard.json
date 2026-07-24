@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Sprint 2 voegt leveranciersbeheer toe als statische Studio-prototypemodule. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Sprint 3 voegt import, werksessiewijzigingen en export voor leveranciers toe binnen een statische Studio-prototypemodule. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
     {
       "id": "suppliers",
@@ -42,7 +42,7 @@
       "id": "drafts",
       "title": "Concepten",
       "state": "empty",
-      "message": "Concepten bestaan als leveranciersstatus, maar er is nog geen publicatie- of auditworkflow."
+      "message": "Concepten bestaan als leveranciersstatus, maar er is nog geen publicatie-, opslag- of auditworkflow."
     },
     {
       "id": "missingFiles",

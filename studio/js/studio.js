@@ -3,6 +3,7 @@ import { fetchJson } from "../../shared/utils.js";
 import { getAuthPlaceholder } from "./auth.js";
 import { renderLayout } from "./layout.js";
 import { getCurrentRoute, renderRoute, setupRoute } from "./router.js";
+import { createSupplierSession } from "./state/supplier-session.js";
 
 const app = document.querySelector("#studio-app");
 
@@ -13,7 +14,7 @@ async function loadStudioData() {
     fetchJson(STUDIO_CONFIG.data.suppliers)
   ]);
 
-  return { navigation, dashboard, suppliers };
+  return { navigation, dashboard, supplierSession: createSupplierSession(suppliers) };
 }
 
 function renderStudio(state) {
@@ -27,7 +28,7 @@ function renderStudio(state) {
     authState,
     content
   });
-  setupRoute(currentRoute, state);
+  setupRoute(currentRoute, state, { rerender: () => renderStudio(state) });
 }
 
 async function initStudio() {
@@ -35,6 +36,11 @@ async function initStudio() {
     const state = await loadStudioData();
     renderStudio(state);
     window.addEventListener("hashchange", () => renderStudio(state));
+    window.addEventListener("beforeunload", (event) => {
+      if (!state.supplierSession?.snapshot().hasUnexportedChanges) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
   } catch (error) {
     app.innerHTML = `
       <main class="studio-noscript">

@@ -1,4 +1,5 @@
 import { renderButton } from "../../../../components/button.js";
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import {
   renderCheckboxField,
   renderCheckboxGroup,
@@ -36,8 +37,8 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
   const isEdit = mode === "edit";
   const title = isEdit ? `${supplier.name} bewerken` : "Nieuwe leverancier";
   const description = isEdit
-    ? "Pas leveranciersdata aan en controleer de validatie. Opslaan naar bestanden is nog niet actief."
-    : "Maak een nieuwe leverancier klaar als prototype. De invoer wordt gevalideerd, maar nog niet opgeslagen.";
+    ? "Pas leveranciersdata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website."
+    : "Maak een nieuwe leverancier klaar binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website.";
 
   return `
     ${renderPageHeader({
@@ -52,8 +53,10 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
     </div>
 
     ${renderNotice({
-      title: "Opslaan nog niet beschikbaar",
-      message: supplierData.storage?.message || "Dit formulier schrijft nog niet naar data/suppliers.json.",
+      title: "Opslaan in werksessie",
+      message:
+        supplierData.storage?.message ||
+        "Opslaan past alleen de actieve browserdata aan. Exporteer daarna suppliers.json en vervang /data/suppliers.json handmatig.",
       tone: "warning"
     })}
 
@@ -91,7 +94,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             value: supplier.status,
             options: getStatusOptions(supplierData),
             required: true,
-            help: "Contentstatus; dit publiceert nog niets naar de publieke website."
+            help: "Contentstatus; dit publiceert niets automatisch naar de publieke website."
           })}
           ${renderTextField({
             name: "sortOrder",
@@ -157,18 +160,27 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
         <div class="studio-grid studio-grid-2">
           <article class="studio-card">
             <h3>Brochures</h3>
-            <p class="studio-muted">Voorbereid via <code>brochureIds</code>. Koppelen valt buiten Sprint 2.</p>
+            <p class="studio-muted">Voorbereid via <code>brochureIds</code>. Koppelen valt buiten Sprint 3.</p>
           </article>
           <article class="studio-card">
             <h3>Kennisbankartikelen</h3>
-            <p class="studio-muted">Voorbereid via <code>relatedArticleIds</code>. Koppelen valt buiten Sprint 2.</p>
+            <p class="studio-muted">Voorbereid via <code>relatedArticleIds</code>. Koppelen valt buiten Sprint 3.</p>
           </article>
         </div>
       </section>
 
+      <p class="studio-form-state" data-form-dirty-notice hidden>
+        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+      </p>
+
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Valideer formulier</button>
-        ${renderButton({ label: "Annuleren", href: "#/leveranciers", variant: "secondary" })}
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        ${renderButton({
+          label: "Annuleren",
+          href: "#/leveranciers",
+          variant: "secondary",
+          attributes: { "data-supplier-form-cancel": true }
+        })}
       </div>
     </form>
   `;
@@ -202,23 +214,60 @@ function showErrors(form, errors) {
   });
 }
 
-export function setupSupplierForm({ supplierData }) {
+function formSignature(form) {
+  return JSON.stringify(Array.from(new FormData(form).entries()));
+}
+
+export function setupSupplierForm({ supplierSession }) {
   const form = document.querySelector("[data-supplier-form]");
   if (!form) return;
 
+  const supplierData = supplierSession.getWorkingData();
   const feedback = form.querySelector("#supplier-form-feedback");
+  const dirtyNotice = form.querySelector("[data-form-dirty-notice]");
+  const cancelLink = form.querySelector("[data-supplier-form-cancel]");
   const nameInput = form.elements.name;
   const slugInput = form.elements.slug;
   let slugTouched = Boolean(slugInput.value);
+  const initialSignature = formSignature(form);
+
+  function hasUnappliedChanges() {
+    return formSignature(form) !== initialSignature;
+  }
+
+  function updateDirtyNotice() {
+    if (dirtyNotice) {
+      dirtyNotice.hidden = !hasUnappliedChanges();
+    }
+  }
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;
     slugInput.value = normalizeSlug(slugInput.value);
+    updateDirtyNotice();
   });
 
   nameInput.addEventListener("input", () => {
     if (!slugTouched) {
       slugInput.value = normalizeSlug(nameInput.value);
+    }
+    updateDirtyNotice();
+  });
+
+  form.addEventListener("input", updateDirtyNotice);
+  form.addEventListener("change", updateDirtyNotice);
+
+  cancelLink?.addEventListener("click", (event) => {
+    if (!hasUnappliedChanges()) return;
+
+    const confirmed = confirmStudioAction({
+      title: "Formulierwijzigingen verwerpen",
+      message:
+        "Deze wijzigingen zijn nog niet toegepast op de werksessie. Annuleren verlaat het formulier zonder workingData te wijzigen."
+    });
+
+    if (!confirmed) {
+      event.preventDefault();
     }
   });
 
@@ -238,12 +287,13 @@ export function setupSupplierForm({ supplierData }) {
       return;
     }
 
+    supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
     feedback.innerHTML = renderNotice({
-      title: "Validatie geslaagd",
+      title: "Opgeslagen in werksessie",
       message:
-        "De leveranciersdata is geldig, maar wordt nog niet opgeslagen. Sprint 2 gebruikt alleen data/suppliers.json als leesbare prototypebron.",
+        "De leverancier is toegepast op workingData in browsergeheugen. Exporteer suppliers.json om de wijziging handmatig over te dragen.",
       tone: "success"
     });
+    window.location.hash = `#/leveranciers/${supplier.slug}`;
   });
 }
-

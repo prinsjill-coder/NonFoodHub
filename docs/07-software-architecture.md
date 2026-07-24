@@ -144,3 +144,20 @@ Studio is niet publiek toegankelijk zonder authenticatie. Voor een eerste lokale
 3. Website uit data laten renderen waar mogelijk.
 4. Eerste Studio-formulieren bouwen voor data en uploads.
 5. Pas daarna overwegen of een framework of backend nodig is.
+
+## Statische Studio-werksessie
+
+Voor de lokale en GitHub Pages-vriendelijke fase gebruikt Studio geen backend,
+geen GitHub API en geen browseropslag zoals `localStorage` of `sessionStorage`.
+Studio laadt centrale JSON-data, maakt een kopie in browsergeheugen en laat
+beheerders wijzigingen voorbereiden binnen die actieve werksessie.
+
+Export is een overdrachtsstap, geen publicatie. Studio genereert een volledig
+gevalideerd en genormaliseerd JSON-bestand als download. De beheerder vervangt
+het betreffende bestand daarna handmatig in de repository en gebruikt GitHub
+Desktop voor commit en push. Pas na push naar `main` publiceert GitHub Pages de
+wijziging.
+
+Deze architectuur houdt de contentlaag vervangbaar. Een toekomstige backend kan
+de in-memory sessieadapter vervangen door een persistente adapter zonder dat de
+formuliercomponenten of validatieregels opnieuw ontworpen hoeven te worden.
