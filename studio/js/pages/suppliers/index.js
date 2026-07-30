@@ -1,5 +1,4 @@
-import { renderButton } from "../../../../components/button.js";
-import { renderEmptyState } from "../../../../components/empty-state.js";
+import { renderNotFoundState } from "../../shared/not-found.js";
 import { renderSupplierDetail } from "./detail.js";
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
 import { renderSuppliersList, setupSupplierList } from "./list.js";
@@ -18,12 +17,13 @@ export function renderSuppliersRoute(route, supplierSession) {
   const supplier = supplierSession.findBySlug(route.params?.slug);
 
   if (!supplier) {
-    return renderEmptyState({
+    return renderNotFoundState({
       title: "Leverancier niet gevonden",
       message:
         "Deze leverancier staat niet in de actieve Studio-werksessie. Mogelijk is de slug gewijzigd of is de leverancier niet aanwezig in de laatst geladen bron.",
       label: "Niet gevonden",
-      actions: renderButton({ label: "Terug naar leveranciers", href: "#/leveranciers", variant: "primary" })
+      backHref: "#/leveranciers",
+      backLabel: "Terug naar leveranciers"
     });
   }
 

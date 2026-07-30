@@ -1,22 +1,29 @@
 import { routeFromHash } from "../../shared/routes.js";
 import { renderDashboard, renderRouteNotFound, renderRoutePlaceholder } from "./pages/dashboard.js";
 import { renderSuppliersRoute, setupSuppliersRoute } from "./pages/suppliers/index.js";
+import { getBaseRouteTitle, getItemRouteTitle } from "./shared/route-metadata.js";
 
 export function getCurrentRoute() {
   return routeFromHash(window.location.hash);
 }
 
 export function getRouteTitle(route, state) {
-  if (route.id === "notFound") return "Pagina niet gevonden";
   if (route.id === "supplierNew") return "Nieuwe leverancier";
 
   if (route.id === "supplierEdit" || route.id === "supplierDetail") {
     const supplier = state.supplierSession.findBySlug(route.params?.slug);
-    if (!supplier) return "Leverancier niet gevonden";
-    return route.id === "supplierEdit" ? `${supplier.name} bewerken` : supplier.name;
+    return getItemRouteTitle({
+      route,
+      item: supplier,
+      detailRouteId: "supplierDetail",
+      editRouteId: "supplierEdit",
+      missingTitle: "Leverancier niet gevonden",
+      detailTitle: (item) => item.name,
+      editTitle: (item) => `${item.name} bewerken`
+    });
   }
 
-  return route.title || "Studio";
+  return getBaseRouteTitle(route);
 }
 
 export function renderRoute(route, state) {

@@ -1,4 +1,5 @@
-import { SUPPLIER_STATUSES, SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
+import { isContentStatus } from "./content-status.js";
+import { SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
@@ -54,7 +55,7 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
     errors.type = "Kies een geldig type.";
   }
 
-  if (!SUPPLIER_STATUSES.includes(supplier.status)) {
+  if (!isContentStatus(supplier.status)) {
     errors.status = "Kies een geldige status.";
   }
 

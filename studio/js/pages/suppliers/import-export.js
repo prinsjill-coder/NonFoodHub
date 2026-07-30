@@ -1,6 +1,12 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { validateSupplierFile } from "../../../../shared/supplier-file-validation.js";
 import { SUPPLIERS_EXPORT_FILENAME } from "../../../../shared/supplier-normalizer.js";
+import {
+  createBusyGuard,
+  downloadTextFile,
+  readJsonFile,
+  validateFileSelection
+} from "../../shared/import-export-file.js";
 
 export const MAX_SUPPLIER_IMPORT_BYTES = 1024 * 1024;
 
@@ -32,18 +38,18 @@ function createExportReport(path, message) {
   };
 }
 
-function hasJsonExtension(file) {
-  const name = String(file.name || "").toLowerCase();
-  return name.endsWith(".json");
-}
-
 function hasJsonMimeSignal(file) {
   const type = String(file.type || "").toLowerCase();
   return type === "application/json" || type.endsWith("+json");
 }
 
 export function validateSupplierImportFile(file) {
-  if (!file) {
+  const fileValidation = validateFileSelection(file, {
+    maxBytes: MAX_SUPPLIER_IMPORT_BYTES,
+    extension: ".json"
+  });
+
+  if (fileValidation.code === "missing_file") {
     return {
       ok: false,
       report: createImportReport(
@@ -54,7 +60,7 @@ export function validateSupplierImportFile(file) {
     };
   }
 
-  if (!hasJsonExtension(file)) {
+  if (fileValidation.code === "invalid_extension") {
     return {
       ok: false,
       report: createImportReport(
@@ -65,7 +71,7 @@ export function validateSupplierImportFile(file) {
     };
   }
 
-  if (typeof file.size === "number" && file.size > MAX_SUPPLIER_IMPORT_BYTES) {
+  if (fileValidation.code === "file_too_large") {
     return {
       ok: false,
       report: createImportReport(
@@ -83,55 +89,8 @@ export function validateSupplierImportFile(file) {
   };
 }
 
-function readFileAsText(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(String(reader.result || "")));
-    reader.addEventListener("abort", () => reject(new Error("aborted")));
-    reader.addEventListener("error", () => reject(new Error("read_failed")));
-    reader.readAsText(file);
-  });
-}
-
-function downloadTextFile({ fileName, content, type }) {
-  let url = "";
-  let link = null;
-
-  try {
-    const blob = new Blob([content], { type });
-    url = URL.createObjectURL(blob);
-    link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.append(link);
-    link.click();
-  } finally {
-    link?.remove();
-    if (url) {
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    }
-  }
-}
-
 export function createSupplierExportGuard() {
-  let busy = false;
-
-  return {
-    isBusy() {
-      return busy;
-    },
-    async run(task) {
-      if (busy) return { skipped: true };
-      busy = true;
-
-      try {
-        const result = await task();
-        return { skipped: false, result };
-      } finally {
-        busy = false;
-      }
-    }
-  };
+  return createBusyGuard();
 }
 
 function focusValidationReport() {
@@ -161,7 +120,7 @@ function setButtonBusy(button, busy, label) {
 }
 
 function readErrorReport(error, fileName) {
-  if (error?.message === "aborted") {
+  if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
       "Het lezen van het bestand is afgebroken. De actieve werksessie is niet gewijzigd.",
@@ -169,7 +128,7 @@ function readErrorReport(error, fileName) {
     );
   }
 
-  if (error?.message === "read_failed") {
+  if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
       "Het bestand kon niet worden gelezen. De actieve werksessie is niet gewijzigd.",
@@ -207,7 +166,7 @@ async function handleImportFile({ file, supplierSession, rerender }) {
 
   let parsed;
   try {
-    parsed = JSON.parse(await readFileAsText(file));
+    parsed = await readJsonFile(file);
   } catch (error) {
     supplierSession.setValidationReport(readErrorReport(error, file.name));
     rerenderAndFocusReport(rerender);

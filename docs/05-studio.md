@@ -16,6 +16,18 @@ Studio is geen JSON-editor en geen technische configuratieomgeving. Het is een f
 - Relaties worden geselecteerd via keuzelijsten.
 - Media en PDF's worden beheerd vanuit een centrale bibliotheek.
 
+## Gedeelde Studio-helpers
+
+Studio gebruikt een beperkte gedeelde toolkit voor gedrag dat aantoonbaar in
+meerdere modules terugkomt. Voorbeelden zijn contentstatuslabels,
+formulierfoutgedrag, technische JSON-bestandshandelingen, routefocus en nette
+not-foundweergaven.
+
+Modules blijven zelf verantwoordelijk voor hun datamodel, validatieregels,
+normalisatie, formulierinhoud, schermteksten, sessiegedrag en import- of
+exportbestandsnaam. Er is geen generieke CMS-engine, CRUD-engine,
+modulegenerator of generieke sessiekern.
+
 ## Hoofdmenu
 
 ```text

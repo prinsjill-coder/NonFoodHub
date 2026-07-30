@@ -56,6 +56,12 @@ in browsergeheugen totdat een beheerder `suppliers.json` exporteert. Exporteren
 is geen opslag, publicatie of commit. Het gedownloade bestand wordt handmatig in
 `/data` geplaatst en daarna via GitHub Desktop gecommit en gepusht.
 
+Aanvullend Sprint 5-besluit: voordat nieuwe Studio-modules worden gebouwd,
+wordt alleen bewezen herhaalbaar Studio-gedrag gedeeld via kleine helpers.
+Leveranciersbeheer blijft de referentie-implementatie. Een generieke
+sessiekern, CRUD-engine of modulegenerator blijft buiten scope totdat minimaal
+een tweede volwaardige module concrete hergebruikspatronen bewijst.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

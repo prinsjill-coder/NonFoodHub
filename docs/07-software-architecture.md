@@ -161,3 +161,15 @@ wijziging.
 Deze architectuur houdt de contentlaag vervangbaar. Een toekomstige backend kan
 de in-memory sessieadapter vervangen door een persistente adapter zonder dat de
 formuliercomponenten of validatieregels opnieuw ontworpen hoeven te worden.
+
+## Studio contentmodule-toolkit
+
+Vanaf Sprint 5 gebruikt Studio kleine gedeelde helpers voor bewezen identiek
+gedrag: contentstatussen, formulierfouten, technische JSON-import/export,
+routefocus en eenvoudige not-foundweergaven.
+
+Deze helpers vormen geen generiek framework. Modules houden hun eigen
+datamodel, validatie, normalisatie, sessiegedrag, scherminhoud en
+bestandsworkflow. Een generieke sessiekern wordt bewust uitgesteld totdat een
+tweede volwaardige module laat zien welke sessiepatronen werkelijk gedeeld
+moeten worden.

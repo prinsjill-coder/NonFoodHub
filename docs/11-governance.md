@@ -81,6 +81,11 @@ publiceren, committen of pushen.
 De vaste handmatige QA-procedure voor Studio staat in
 [appendices/studio-qa-checklist.md](appendices/studio-qa-checklist.md).
 
+Nieuwe Studio-modules mogen gedeelde helpers gebruiken voor bewezen identiek
+gedrag. Modules moeten hun eigen datamodel, validatieregels, normalisatie,
+schermteksten en bestandsworkflow expliciet houden totdat hergebruik in
+meerdere volwaardige modules is bewezen.
+
 ## Acceptatiecriteria
 
 Een onderdeel is gereed wanneer:

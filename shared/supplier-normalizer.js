@@ -1,4 +1,5 @@
-import { SUPPLIER_STATUSES, SUPPLIER_TYPES, normalizeSlug, sortSuppliers } from "./supplier-model.js";
+import { CONTENT_STATUSES } from "./content-status.js";
+import { SUPPLIER_TYPES, normalizeSlug, sortSuppliers } from "./supplier-model.js";
 
 export const SUPPLIERS_EXPORT_FILENAME = "suppliers.json";
 
@@ -93,7 +94,7 @@ export function normalizeSupplierFileForExport(supplierData) {
       writeEnabled: false,
       message: SUPPLIER_STORAGE_NOTICE
     },
-    statuses: Array.isArray(supplierData?.statuses) && supplierData.statuses.length ? supplierData.statuses : SUPPLIER_STATUSES,
+    statuses: Array.isArray(supplierData?.statuses) && supplierData.statuses.length ? supplierData.statuses : CONTENT_STATUSES,
     types: normalizeTypes(supplierData?.types),
     categories: uniqueSortedStrings(supplierData?.categories),
     items
@@ -118,4 +119,3 @@ export function stableStringify(value) {
 export function stringifySupplierExport(supplierData) {
   return `${JSON.stringify(normalizeSupplierFileForExport(supplierData), null, 2)}\n`;
 }
-

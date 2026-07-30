@@ -1,6 +1,5 @@
 import { renderButton } from "../../../../components/button.js";
 import {
-  getFieldId,
   renderCheckboxField,
   renderCheckboxGroup,
   renderSelectField,
@@ -9,10 +8,10 @@ import {
 } from "../../../../components/form-field.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
-import { renderValidationSummary } from "../../../../components/validation-summary.js";
 import { createEmptySupplier, normalizeSlug } from "../../../../shared/supplier-model.js";
 import { hasValidationErrors, supplierFromForm, validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
 
 function optionList(items, labelMap = {}) {
   return items.map((item) => ({ value: item, label: labelMap[item] || item }));
@@ -186,64 +185,6 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
   `;
 }
 
-function clearErrors(form) {
-  form.querySelectorAll("[data-field-error]").forEach((node) => {
-    node.textContent = "";
-  });
-  form.querySelectorAll("[aria-invalid='true']").forEach((field) => {
-    field.removeAttribute("aria-invalid");
-  });
-}
-
-function showErrors(form, errors) {
-  Object.entries(errors).forEach(([fieldName, message]) => {
-    const errorNode = form.querySelector(`[data-field-error="${fieldName}"]`);
-    const field = form.elements[fieldName];
-
-    if (errorNode) {
-      errorNode.textContent = message;
-    }
-
-    if (field) {
-      if (typeof RadioNodeList !== "undefined" && field instanceof RadioNodeList) {
-        Array.from(field).forEach((input) => input.setAttribute("aria-invalid", "true"));
-      } else {
-        field.setAttribute("aria-invalid", "true");
-      }
-    }
-  });
-}
-
-function getFirstField(form, fieldName) {
-  const field = form.elements[fieldName];
-  if (!field) return null;
-  if (typeof RadioNodeList !== "undefined" && field instanceof RadioNodeList) {
-    return Array.from(field)[0] || null;
-  }
-  return field;
-}
-
-function focusFirstInvalidField(form, errors) {
-  const firstFieldName = Object.keys(errors)[0];
-  const field = getFirstField(form, firstFieldName);
-  if (field && typeof field.focus === "function") {
-    field.focus();
-  }
-}
-
-function setupErrorLinkFocus(feedback, form) {
-  feedback.addEventListener("click", (event) => {
-    const link = event.target.closest("[data-error-link]");
-    if (!link) return;
-
-    const field = getFirstField(form, link.dataset.errorLink);
-    if (!field) return;
-
-    event.preventDefault();
-    field.focus();
-  });
-}
-
 export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
   const form = document.querySelector("[data-supplier-form]");
   if (!form) return;
@@ -271,7 +212,7 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    clearErrors(form);
+    clearFieldErrors(form);
 
     const supplier = supplierFromForm(form);
     const errors = validateSupplier(supplier, supplierData.items || [], {
@@ -279,9 +220,9 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
     });
 
     if (hasValidationErrors(errors)) {
-      feedback.innerHTML = renderValidationSummary(errors, { fieldIdForName: getFieldId });
-      showErrors(form, errors);
-      focusFirstInvalidField(form, errors);
+      renderFormValidationErrors(form, feedback, errors, {
+        headingId: "supplier-form-validation-summary-title"
+      });
       return;
     }
 

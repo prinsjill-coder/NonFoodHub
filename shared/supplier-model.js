@@ -1,12 +1,8 @@
-export const SUPPLIER_STATUSES = ["concept", "review", "published", "hidden", "archived"];
+import { CONTENT_STATUSES, CONTENT_STATUS_LABELS, getContentStatusLabel } from "./content-status.js";
 
-export const SUPPLIER_STATUS_LABELS = {
-  concept: "Concept",
-  review: "Ter controle",
-  published: "Gepubliceerd",
-  hidden: "Verborgen",
-  archived: "Gearchiveerd"
-};
+export const SUPPLIER_STATUSES = [...CONTENT_STATUSES];
+
+export const SUPPLIER_STATUS_LABELS = CONTENT_STATUS_LABELS;
 
 export const SUPPLIER_TYPES = ["leverancier", "partner", "servicepartner"];
 
@@ -63,7 +59,7 @@ export function sortSuppliers(suppliers) {
 }
 
 export function getSupplierStatusLabel(status) {
-  return SUPPLIER_STATUS_LABELS[status] || status;
+  return getContentStatusLabel(status);
 }
 
 export function getSupplierTypeLabel(type) {
@@ -81,4 +77,3 @@ export function getSupplierCounts(supplierData) {
     { total: 0, statuses: {} }
   );
 }
-

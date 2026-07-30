@@ -90,6 +90,16 @@ Tijdens het testen mogen er geen rode foutmeldingen verschijnen.
 - Importeer opnieuw hetzelfde bestand.
 - Klik snel meerdere keren op Export en controleer dat er geen dubbele exportactie ontstaat.
 
+## Sprint 5 gedeelde helpers checklist
+
+- Controleer dat statuslabels in lijst, tabel, detail en formulier gelijk zijn gebleven.
+- Controleer een formulier met validatiefouten en gebruik de foutlinks.
+- Controleer dat het eerste ongeldige veld focus krijgt.
+- Controleer een onbekende algemene route, bijvoorbeeld `#/bestaat-niet`.
+- Controleer een ontbrekende leverancier, bijvoorbeeld `#/leveranciers/bestaat-niet`.
+- Controleer dat import/export nog dezelfde meldingen en bestandsnaam gebruiken.
+- Controleer dat leveranciersbeheer nog steeds visueel gelijk aan Sprint 4B oogt.
+
 ## Na publicatie
 
 Na commit en push via GitHub Desktop:

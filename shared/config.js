@@ -1,3 +1,5 @@
+import { CONTENT_STATUS_LABELS } from "./content-status.js";
+
 export const STUDIO_CONFIG = {
   appName: "NonFood Hub Studio",
   projectName: "NonFoodHub",
@@ -20,10 +22,6 @@ export const STATUS_LABELS = {
   not_connected: "Niet gekoppeld",
   placeholder: "Placeholder",
   disabled: "Nog niet actief",
-  concept: "Concept",
-  review: "Ter controle",
-  published: "Gepubliceerd",
-  hidden: "Verborgen",
-  archived: "Gearchiveerd",
+  ...CONTENT_STATUS_LABELS,
   success: "Geslaagd"
 };

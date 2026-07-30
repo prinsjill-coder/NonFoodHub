@@ -60,6 +60,7 @@ De eerstvolgende ontwikkelstap is niet het handmatig vullen van alle PDF's in HT
 - [ADR-005: Studio voor handmatige contentvulling](decisions/ADR-005-studio-before-manual-content.md)
 - [ADR-006: GitHub Desktop workflow](decisions/ADR-006-github-workflow.md)
 - [ADR-007: Studio import/export-werksessie](decisions/ADR-007-studio-import-export-session.md)
+- [ADR-008: Studio contentmodule-architectuur](decisions/ADR-008-studio-content-module-architecture.md)
 
 ## Audit
 

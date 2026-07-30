@@ -5,6 +5,7 @@ import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
+import { renderNotFoundState } from "../shared/not-found.js";
 
 function hydrateMetrics(dashboardData, supplierData) {
   const supplierCounts = getSupplierCounts(supplierData);
@@ -86,10 +87,11 @@ export function renderRoutePlaceholder(route) {
 
 export function renderRouteNotFound(route) {
   const requestedPath = route.params?.requestedPath || route.path || "onbekende route";
-  return renderEmptyState({
+  return renderNotFoundState({
     title: "Pagina niet gevonden",
     message: `De Studio-route ${requestedPath} bestaat niet of is niet beschikbaar in deze sprint.`,
     label: "Niet gevonden",
-    actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "primary" })
+    backHref: "#/dashboard",
+    backLabel: "Terug naar dashboard"
   });
 }

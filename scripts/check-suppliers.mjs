@@ -3,8 +3,10 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { CONTENT_STATUSES, CONTENT_STATUS_LABELS } from "../shared/content-status.js";
 import { validateSupplierFile } from "../shared/supplier-file-validation.js";
 import { SUPPLIERS_EXPORT_FILENAME } from "../shared/supplier-normalizer.js";
+import { validateSupplier } from "../shared/supplier-validation.js";
 import {
   MAX_SUPPLIER_IMPORT_BYTES,
   createSupplierExportGuard,
@@ -51,6 +53,20 @@ export async function runSupplierChecks() {
     const report = validateSupplierFile(suppliers);
     assert.equal(report.valid, true);
     assert.deepEqual(report.errors, []);
+  });
+
+  await runCheck("suppliervalidatie gebruikt centrale contentstatussen", () => {
+    assert.deepEqual(suppliers.statuses, CONTENT_STATUSES);
+    CONTENT_STATUSES.forEach((status) => {
+      assert.equal(typeof CONTENT_STATUS_LABELS[status], "string");
+    });
+
+    const supplier = {
+      ...firstSupplier(suppliers),
+      status: "ongeldig"
+    };
+    const errors = validateSupplier(supplier, suppliers.items, { originalSlug: supplier.slug });
+    assert.equal(errors.status, "Kies een geldige status.");
   });
 
   await runCheck("dubbele id wordt geblokkeerd", () => {
@@ -164,6 +180,7 @@ export async function runSupplierChecks() {
 
     assert.equal(exportResult.ok, true);
     assert.equal(exportResult.fileName, SUPPLIERS_EXPORT_FILENAME);
+    assert.deepEqual(exportResult.data.statuses, CONTENT_STATUSES);
     assert.equal(JSON.stringify(session.getWorkingData()), before);
   });
 
