@@ -22,12 +22,13 @@ function renderIssues(title, issues, level) {
 export function renderValidationReport(report, options = {}) {
   if (!report) return "";
   const title = options.title || "Validatierapport";
+  const hasErrors = Boolean(report.errors?.length);
   const validMessage = report.valid
     ? "Geen blokkerende fouten gevonden."
     : "Los de blokkerende fouten op voordat je importeert of exporteert.";
 
   return `
-    <article class="studio-validation-report" data-validation-report>
+    <article class="studio-validation-report" data-validation-report role="${hasErrors ? "alert" : "status"}" aria-live="${hasErrors ? "assertive" : "polite"}">
       <div class="studio-card-head">
         <div>
           <h2>${escapeHtml(title)}</h2>

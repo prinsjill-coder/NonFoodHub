@@ -11,6 +11,16 @@ export function classNames(...values) {
   return values.filter(Boolean).join(" ");
 }
 
+export function renderAttributes(attributes = {}) {
+  return Object.entries(attributes)
+    .map(([name, value]) => {
+      if (value === false || value === null || value === undefined) return "";
+      if (value === true) return ` ${name}`;
+      return ` ${name}="${escapeHtml(value)}"`;
+    })
+    .join("");
+}
+
 export function formatNullable(value, fallback = "Niet gekoppeld") {
   return value === null || value === undefined || value === "" ? fallback : String(value);
 }

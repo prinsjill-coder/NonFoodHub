@@ -1,3 +1,4 @@
+import { renderButton } from "../../../../components/button.js";
 import { renderEmptyState } from "../../../../components/empty-state.js";
 import { renderSupplierDetail } from "./detail.js";
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
@@ -19,8 +20,10 @@ export function renderSuppliersRoute(route, supplierSession) {
   if (!supplier) {
     return renderEmptyState({
       title: "Leverancier niet gevonden",
-      message: "Deze leverancier staat niet in de actieve Studio-werksessie.",
-      label: "Niet gevonden"
+      message:
+        "Deze leverancier staat niet in de actieve Studio-werksessie. Mogelijk is de slug gewijzigd of is de leverancier niet aanwezig in de laatst geladen bron.",
+      label: "Niet gevonden",
+      actions: renderButton({ label: "Terug naar leveranciers", href: "#/leveranciers", variant: "primary" })
     });
   }
 
@@ -37,6 +40,6 @@ export function setupSuppliersRoute(route, supplierSession, options = {}) {
   }
 
   if (route.id === "supplierNew" || route.id === "supplierEdit") {
-    setupSupplierForm({ route, supplierSession });
+    setupSupplierForm({ route, supplierSession, formDirtyGuard: options.formDirtyGuard });
   }
 }

@@ -79,6 +79,17 @@ export function renderRoutePlaceholder(route) {
     title: `${route.title} is nog niet actief`,
     message:
       "Deze route is bewust als placeholder opgenomen. Beheer voor dit onderdeel wordt pas in een latere sprint gebouwd.",
-    label: "Placeholder"
+    label: "Placeholder",
+    actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "secondary" })
+  });
+}
+
+export function renderRouteNotFound(route) {
+  const requestedPath = route.params?.requestedPath || route.path || "onbekende route";
+  return renderEmptyState({
+    title: "Pagina niet gevonden",
+    message: `De Studio-route ${requestedPath} bestaat niet of is niet beschikbaar in deze sprint.`,
+    label: "Niet gevonden",
+    actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "primary" })
   });
 }

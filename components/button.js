@@ -1,14 +1,4 @@
-import { classNames, escapeHtml } from "../shared/utils.js";
-
-function renderAttributes(attributes = {}) {
-  return Object.entries(attributes)
-    .map(([name, value]) => {
-      if (value === false || value === null || value === undefined) return "";
-      if (value === true) return ` ${name}`;
-      return ` ${name}="${escapeHtml(value)}"`;
-    })
-    .join("");
-}
+import { classNames, escapeHtml, renderAttributes } from "../shared/utils.js";
 
 export function renderButton({
   label,
@@ -28,5 +18,5 @@ export function renderButton({
     return `<a class="${classes}" href="${escapeHtml(href)}"${safeAria}${safeAttributes}>${safeLabel}</a>`;
   }
 
-  return `<button class="${classes}" type="${escapeHtml(type)}" ${disabled ? "disabled" : ""}${safeAria}${safeAttributes}>${safeLabel}</button>`;
+  return `<button class="${classes}" type="${escapeHtml(type)}"${disabled ? " disabled" : ""}${safeAria}${safeAttributes}>${safeLabel}</button>`;
 }

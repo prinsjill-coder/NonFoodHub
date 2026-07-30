@@ -1,8 +1,10 @@
 import { STUDIO_CONFIG } from "../../shared/config.js";
 import { fetchJson } from "../../shared/utils.js";
 import { getAuthPlaceholder } from "./auth.js";
+import { createFormDirtyGuard } from "./form-dirty-guard.js";
 import { renderLayout } from "./layout.js";
-import { getCurrentRoute, renderRoute, setupRoute } from "./router.js";
+import { focusRouteContent, applyRouteTitle } from "./route-focus.js";
+import { getCurrentRoute, getRouteTitle, renderRoute, setupRoute } from "./router.js";
 import { createSupplierSession } from "./state/supplier-session.js";
 
 const app = document.querySelector("#studio-app");
@@ -14,30 +16,106 @@ async function loadStudioData() {
     fetchJson(STUDIO_CONFIG.data.suppliers)
   ]);
 
-  return { navigation, dashboard, supplierSession: createSupplierSession(suppliers) };
+  return {
+    navigation,
+    dashboard,
+    supplierSession: createSupplierSession(suppliers),
+    formDirtyGuard: createFormDirtyGuard()
+  };
 }
 
-function renderStudio(state) {
+function renderStudio(state, options = {}) {
+  state.formDirtyGuard.clearActiveForm();
   const currentRoute = getCurrentRoute();
+  const routeTitle = getRouteTitle(currentRoute, state);
+  const displayRoute = { ...currentRoute, title: routeTitle };
   const content = renderRoute(currentRoute, state);
   const authState = getAuthPlaceholder();
 
   app.innerHTML = renderLayout({
     navigation: state.navigation,
-    currentRoute,
+    currentRoute: displayRoute,
     authState,
     content
   });
-  setupRoute(currentRoute, state, { rerender: () => renderStudio(state) });
+  setupRoute(currentRoute, state, { rerender: () => renderStudio(state), formDirtyGuard: state.formDirtyGuard });
+  applyRouteTitle(routeTitle);
+
+  if (options.focus !== false) {
+    focusRouteContent(document);
+  }
+}
+
+function setupHashLinkGuard(state) {
+  document.addEventListener("click", async (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const link = target?.closest('a[href^="#"]');
+    if (!link || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const targetHash = link.getAttribute("href");
+    if (!targetHash || targetHash === window.location.hash) return;
+    if (!state.formDirtyGuard.isDirty()) return;
+
+    event.preventDefault();
+    const confirmed = await state.formDirtyGuard.confirmDiscard({
+      title: "Formulier verlaten?",
+      message:
+        "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de werksessie."
+    });
+
+    if (!confirmed) return;
+
+    state.formDirtyGuard.markClean();
+    state.formDirtyGuard.allowNextHashNavigation();
+    window.location.hash = targetHash;
+  });
 }
 
 async function initStudio() {
   try {
     const state = await loadStudioData();
+    let currentHash = window.location.hash || "#/dashboard";
+
     renderStudio(state);
-    window.addEventListener("hashchange", () => renderStudio(state));
+    state.formDirtyGuard.setLastStableHash(currentHash);
+    setupHashLinkGuard(state);
+
+    window.addEventListener("hashchange", async () => {
+      const targetHash = window.location.hash || "#/dashboard";
+
+      if (state.formDirtyGuard.consumeIgnoredHashNavigation()) {
+        return;
+      }
+
+      if (state.formDirtyGuard.consumeAllowedHashNavigation()) {
+        currentHash = targetHash;
+        state.formDirtyGuard.setLastStableHash(currentHash);
+        renderStudio(state);
+        return;
+      }
+
+      if (state.formDirtyGuard.isDirty()) {
+        const confirmed = await state.formDirtyGuard.confirmDiscard({
+          title: "Route wijzigen?",
+          message:
+            "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de werksessie."
+        });
+
+        if (!confirmed) {
+          state.formDirtyGuard.ignoreNextHashNavigation();
+          window.location.hash = currentHash;
+          return;
+        }
+
+        state.formDirtyGuard.markClean();
+      }
+
+      currentHash = targetHash;
+      state.formDirtyGuard.setLastStableHash(currentHash);
+      renderStudio(state);
+    });
     window.addEventListener("beforeunload", (event) => {
-      if (!state.supplierSession?.snapshot().hasUnexportedChanges) return;
+      if (!state.supplierSession?.snapshot().hasUnexportedChanges && !state.formDirtyGuard.isDirty()) return;
       event.preventDefault();
       event.returnValue = "";
     });

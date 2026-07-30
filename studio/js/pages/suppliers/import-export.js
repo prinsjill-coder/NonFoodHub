@@ -42,13 +42,15 @@ function downloadTextFile({ fileName, content, type }) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function confirmReplaceUnexportedChanges(snapshot, actionLabel) {
+async function confirmReplaceUnexportedChanges(snapshot, actionLabel) {
   if (!snapshot.hasUnexportedChanges) return true;
 
   return confirmStudioAction({
     title: `${actionLabel} vervangt niet-geëxporteerde wijzigingen`,
     message:
-      "Er staan wijzigingen in de actieve werksessie die nog niet zijn geëxporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?"
+      "Er staan wijzigingen in de actieve werksessie die nog niet zijn geëxporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?",
+    confirmLabel: "Doorgaan",
+    cancelLabel: "Annuleren"
   });
 }
 
@@ -102,8 +104,8 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
   const restoreButton = document.querySelector("[data-supplier-restore]");
   let importConfirmed = false;
 
-  importButton?.addEventListener("click", () => {
-    if (!confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren")) {
+  importButton?.addEventListener("click", async () => {
+    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren"))) {
       return;
     }
 
@@ -117,7 +119,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
   importInput?.addEventListener("change", async () => {
     const file = importInput.files?.[0];
 
-    if (!importConfirmed && !confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren")) {
+    if (!importConfirmed && !(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren"))) {
       importInput.value = "";
       return;
     }
@@ -143,8 +145,8 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
     rerender();
   });
 
-  restoreButton?.addEventListener("click", () => {
-    if (!confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Sessie herstellen")) {
+  restoreButton?.addEventListener("click", async () => {
+    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Sessie herstellen"))) {
       return;
     }
 

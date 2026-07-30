@@ -8,7 +8,7 @@ function renderSidebarItem(item, currentRoute) {
     <a
       class="${classNames("studio-nav-link", active && "is-active", !item.enabled && "is-disabled")}"
       href="${escapeHtml(item.route)}"
-      aria-current="${active ? "page" : "false"}"
+      ${active ? 'aria-current="page"' : ""}
       title="${escapeHtml(item.description)}"
     >
       <span>${escapeHtml(item.label)}</span>

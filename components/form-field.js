@@ -1,42 +1,79 @@
 import { escapeHtml } from "../shared/utils.js";
 
-function renderHelp(help) {
-  return help ? `<p class="studio-field-help">${escapeHtml(help)}</p>` : "";
+function sanitizeIdPart(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "field";
 }
 
-function renderError(name) {
-  return `<p class="studio-field-error" data-field-error="${escapeHtml(name)}"></p>`;
+export function getFieldId(name, id = "") {
+  return id || `studio-field-${sanitizeIdPart(name)}`;
 }
 
-export function renderTextField({ name, label, value = "", type = "text", required = false, help = "", placeholder = "" }) {
+function describedByIds({ fieldId, help }) {
+  return [help ? `${fieldId}-help` : "", `${fieldId}-error`].filter(Boolean).join(" ");
+}
+
+function renderRequired(required) {
+  if (!required) return "";
+  return ` <span class="studio-required-label">(verplicht)</span>`;
+}
+
+function renderHelp(help, fieldId) {
+  return help ? `<p id="${escapeHtml(fieldId)}-help" class="studio-field-help">${escapeHtml(help)}</p>` : "";
+}
+
+function renderError(name, fieldId) {
+  return `<p id="${escapeHtml(fieldId)}-error" class="studio-field-error" data-field-error="${escapeHtml(name)}" aria-live="polite"></p>`;
+}
+
+export function renderTextField({ name, label, value = "", type = "text", required = false, help = "", placeholder = "", id = "" }) {
+  const fieldId = getFieldId(name, id);
+  const descriptionIds = describedByIds({ fieldId, help });
   return `
-    <label class="studio-field" data-field="${escapeHtml(name)}">
-      <span>${escapeHtml(label)}${required ? " *" : ""}</span>
+    <div class="studio-field" data-field="${escapeHtml(name)}">
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
       <input
+        id="${escapeHtml(fieldId)}"
         name="${escapeHtml(name)}"
         type="${escapeHtml(type)}"
         value="${escapeHtml(value)}"
         placeholder="${escapeHtml(placeholder)}"
+        aria-describedby="${escapeHtml(descriptionIds)}"
         ${required ? "required" : ""}
       >
-      ${renderHelp(help)}
-      ${renderError(name)}
-    </label>
+      ${renderHelp(help, fieldId)}
+      ${renderError(name, fieldId)}
+    </div>
   `;
 }
 
-export function renderTextAreaField({ name, label, value = "", required = false, help = "", rows = 5 }) {
+export function renderTextAreaField({ name, label, value = "", required = false, help = "", rows = 5, id = "" }) {
+  const fieldId = getFieldId(name, id);
+  const descriptionIds = describedByIds({ fieldId, help });
   return `
-    <label class="studio-field" data-field="${escapeHtml(name)}">
-      <span>${escapeHtml(label)}${required ? " *" : ""}</span>
-      <textarea name="${escapeHtml(name)}" rows="${rows}" ${required ? "required" : ""}>${escapeHtml(value)}</textarea>
-      ${renderHelp(help)}
-      ${renderError(name)}
-    </label>
+    <div class="studio-field" data-field="${escapeHtml(name)}">
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
+      <textarea
+        id="${escapeHtml(fieldId)}"
+        name="${escapeHtml(name)}"
+        rows="${rows}"
+        aria-describedby="${escapeHtml(descriptionIds)}"
+        ${required ? "required" : ""}
+      >${escapeHtml(value)}</textarea>
+      ${renderHelp(help, fieldId)}
+      ${renderError(name, fieldId)}
+    </div>
   `;
 }
 
-export function renderSelectField({ name, label, value = "", options = [], required = false, help = "" }) {
+export function renderSelectField({ name, label, value = "", options = [], required = false, help = "", id = "" }) {
+  const fieldId = getFieldId(name, id);
+  const descriptionIds = describedByIds({ fieldId, help });
   const optionItems = options
     .map((option) => {
       const optionValue = typeof option === "string" ? option : option.value;
@@ -46,43 +83,61 @@ export function renderSelectField({ name, label, value = "", options = [], requi
     .join("");
 
   return `
-    <label class="studio-field" data-field="${escapeHtml(name)}">
-      <span>${escapeHtml(label)}${required ? " *" : ""}</span>
-      <select name="${escapeHtml(name)}" ${required ? "required" : ""}>${optionItems}</select>
-      ${renderHelp(help)}
-      ${renderError(name)}
-    </label>
+    <div class="studio-field" data-field="${escapeHtml(name)}">
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
+      <select
+        id="${escapeHtml(fieldId)}"
+        name="${escapeHtml(name)}"
+        aria-describedby="${escapeHtml(descriptionIds)}"
+        ${required ? "required" : ""}
+      >${optionItems}</select>
+      ${renderHelp(help, fieldId)}
+      ${renderError(name, fieldId)}
+    </div>
   `;
 }
 
-export function renderCheckboxField({ name, label, checked = false, help = "" }) {
+export function renderCheckboxField({ name, label, checked = false, help = "", id = "" }) {
+  const fieldId = getFieldId(name, id);
+  const descriptionIds = describedByIds({ fieldId, help });
   return `
-    <label class="studio-check-field" data-field="${escapeHtml(name)}">
-      <input name="${escapeHtml(name)}" type="checkbox" ${checked ? "checked" : ""}>
-      <span>${escapeHtml(label)}</span>
-      ${renderHelp(help)}
-    </label>
+    <div class="studio-check-field" data-field="${escapeHtml(name)}">
+      <input
+        id="${escapeHtml(fieldId)}"
+        name="${escapeHtml(name)}"
+        type="checkbox"
+        aria-describedby="${escapeHtml(descriptionIds)}"
+        ${checked ? "checked" : ""}
+      >
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}</label>
+      ${renderHelp(help, fieldId)}
+      ${renderError(name, fieldId)}
+    </div>
   `;
 }
 
-export function renderCheckboxGroup({ name, label, values = [], options = [], help = "" }) {
+export function renderCheckboxGroup({ name, label, values = [], options = [], help = "", required = false, id = "" }) {
+  const fieldId = getFieldId(name, id);
+  const descriptionIds = describedByIds({ fieldId, help });
   const selectedValues = new Set(values);
   const items = options
-    .map((option) => `
-      <label class="studio-check-pill">
-        <input name="${escapeHtml(name)}" type="checkbox" value="${escapeHtml(option)}" ${selectedValues.has(option) ? "checked" : ""}>
+    .map((option) => {
+      const optionId = `${fieldId}-${sanitizeIdPart(option)}`;
+      return `
+      <label class="studio-check-pill" for="${escapeHtml(optionId)}">
+        <input id="${escapeHtml(optionId)}" name="${escapeHtml(name)}" type="checkbox" value="${escapeHtml(option)}" aria-describedby="${escapeHtml(descriptionIds)}" ${selectedValues.has(option) ? "checked" : ""}>
         <span>${escapeHtml(option)}</span>
       </label>
-    `)
+    `;
+    })
     .join("");
 
   return `
-    <fieldset class="studio-fieldset" data-field="${escapeHtml(name)}">
-      <legend>${escapeHtml(label)}</legend>
-      ${renderHelp(help)}
+    <fieldset id="${escapeHtml(fieldId)}" class="studio-fieldset" data-field="${escapeHtml(name)}" aria-describedby="${escapeHtml(descriptionIds)}">
+      <legend>${escapeHtml(label)}${renderRequired(required)}</legend>
+      ${renderHelp(help, fieldId)}
       <div class="studio-check-grid">${items}</div>
-      ${renderError(name)}
+      ${renderError(name, fieldId)}
     </fieldset>
   `;
 }
-

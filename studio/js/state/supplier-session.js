@@ -44,22 +44,22 @@ export function createSupplierSession(initialData) {
       exportedCurrent,
       hasUnexportedChanges: dirty && !exportedCurrent,
       exportStatus: exportedCurrent ? "exported_unconfirmed" : "not_exported",
-      lastExport,
-      lastValidationReport,
+      lastExport: deepClone(lastExport),
+      lastValidationReport: deepClone(lastValidationReport),
       supplierCount: getSuppliers(workingData).length
     };
   }
 
   function getWorkingData() {
-    return workingData;
+    return deepClone(workingData);
   }
 
   function getSourceData() {
-    return sourceData;
+    return deepClone(sourceData);
   }
 
   function setValidationReport(report) {
-    lastValidationReport = report;
+    lastValidationReport = deepClone(report);
   }
 
   function importSource(nextData, fileName, report = validateSupplierFile(nextData)) {
@@ -68,21 +68,21 @@ export function createSupplierSession(initialData) {
     sourceHash = createHash(sourceData);
     sourceFileName = fileName || "geimporteerd suppliers.json";
     sourceType = "imported";
-    lastValidationReport = {
+    lastValidationReport = deepClone({
       ...report,
       action: "import",
       sourceFileName
-    };
+    });
     lastExport = null;
   }
 
   function restoreSource() {
     workingData = deepClone(sourceData);
-    lastValidationReport = {
+    lastValidationReport = deepClone({
       ...validateSupplierFile(workingData),
       action: "restore",
       sourceFileName
-    };
+    });
     lastExport = null;
   }
 
@@ -100,15 +100,16 @@ export function createSupplierSession(initialData) {
     }
 
     workingData.items = sortSuppliers(suppliers);
-    lastValidationReport = {
+    lastValidationReport = deepClone({
       ...validateSupplierFile(workingData),
       action: "session",
       sourceFileName
-    };
+    });
   }
 
   function findBySlug(slug) {
-    return findSupplierBySlug(workingData, slug);
+    const supplier = findSupplierBySlug(workingData, slug);
+    return supplier ? deepClone(supplier) : null;
   }
 
   function prepareExport() {
@@ -117,15 +118,15 @@ export function createSupplierSession(initialData) {
       action: "export",
       sourceFileName: SUPPLIERS_EXPORT_FILENAME
     };
-    lastValidationReport = report;
+    lastValidationReport = deepClone(report);
 
     if (!report.valid) {
-      return { ok: false, report, fileName: SUPPLIERS_EXPORT_FILENAME, json: "" };
+      return { ok: false, report: deepClone(report), fileName: SUPPLIERS_EXPORT_FILENAME, json: "" };
     }
 
     return {
       ok: true,
-      report,
+      report: deepClone(report),
       fileName: SUPPLIERS_EXPORT_FILENAME,
       data: normalizeSupplierFileForExport(workingData),
       json: stringifySupplierExport(workingData)
@@ -139,7 +140,7 @@ export function createSupplierSession(initialData) {
       hash: workingHash(),
       status: "exported_unconfirmed"
     };
-    lastValidationReport = report;
+    lastValidationReport = deepClone(report);
   }
 
   return {

@@ -1,6 +1,6 @@
 import { renderButton } from "../../../../components/button.js";
-import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import {
+  getFieldId,
   renderCheckboxField,
   renderCheckboxGroup,
   renderSelectField,
@@ -169,7 +169,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
         </div>
       </section>
 
-      <p class="studio-form-state" data-form-dirty-notice hidden>
+      <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
         Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
@@ -205,7 +205,7 @@ function showErrors(form, errors) {
     }
 
     if (field) {
-      if (field instanceof RadioNodeList) {
+      if (typeof RadioNodeList !== "undefined" && field instanceof RadioNodeList) {
         Array.from(field).forEach((input) => input.setAttribute("aria-invalid", "true"));
       } else {
         field.setAttribute("aria-invalid", "true");
@@ -214,60 +214,58 @@ function showErrors(form, errors) {
   });
 }
 
-function formSignature(form) {
-  return JSON.stringify(Array.from(new FormData(form).entries()));
+function getFirstField(form, fieldName) {
+  const field = form.elements[fieldName];
+  if (!field) return null;
+  if (typeof RadioNodeList !== "undefined" && field instanceof RadioNodeList) {
+    return Array.from(field)[0] || null;
+  }
+  return field;
 }
 
-export function setupSupplierForm({ supplierSession }) {
+function focusFirstInvalidField(form, errors) {
+  const firstFieldName = Object.keys(errors)[0];
+  const field = getFirstField(form, firstFieldName);
+  if (field && typeof field.focus === "function") {
+    field.focus();
+  }
+}
+
+function setupErrorLinkFocus(feedback, form) {
+  feedback.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-error-link]");
+    if (!link) return;
+
+    const field = getFirstField(form, link.dataset.errorLink);
+    if (!field) return;
+
+    event.preventDefault();
+    field.focus();
+  });
+}
+
+export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
   const form = document.querySelector("[data-supplier-form]");
   if (!form) return;
 
   const supplierData = supplierSession.getWorkingData();
   const feedback = form.querySelector("#supplier-form-feedback");
   const dirtyNotice = form.querySelector("[data-form-dirty-notice]");
-  const cancelLink = form.querySelector("[data-supplier-form-cancel]");
   const nameInput = form.elements.name;
   const slugInput = form.elements.slug;
   let slugTouched = Boolean(slugInput.value);
-  const initialSignature = formSignature(form);
+  const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
-  function hasUnappliedChanges() {
-    return formSignature(form) !== initialSignature;
-  }
-
-  function updateDirtyNotice() {
-    if (dirtyNotice) {
-      dirtyNotice.hidden = !hasUnappliedChanges();
-    }
-  }
+  setupErrorLinkFocus(feedback, form);
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;
     slugInput.value = normalizeSlug(slugInput.value);
-    updateDirtyNotice();
   });
 
   nameInput.addEventListener("input", () => {
     if (!slugTouched) {
       slugInput.value = normalizeSlug(nameInput.value);
-    }
-    updateDirtyNotice();
-  });
-
-  form.addEventListener("input", updateDirtyNotice);
-  form.addEventListener("change", updateDirtyNotice);
-
-  cancelLink?.addEventListener("click", (event) => {
-    if (!hasUnappliedChanges()) return;
-
-    const confirmed = confirmStudioAction({
-      title: "Formulierwijzigingen verwerpen",
-      message:
-        "Deze wijzigingen zijn nog niet toegepast op de werksessie. Annuleren verlaat het formulier zonder workingData te wijzigen."
-    });
-
-    if (!confirmed) {
-      event.preventDefault();
     }
   });
 
@@ -281,13 +279,14 @@ export function setupSupplierForm({ supplierSession }) {
     });
 
     if (hasValidationErrors(errors)) {
-      feedback.innerHTML = renderValidationSummary(errors);
+      feedback.innerHTML = renderValidationSummary(errors, { fieldIdForName: getFieldId });
       showErrors(form, errors);
-      feedback.querySelector(".studio-validation-summary")?.focus();
+      focusFirstInvalidField(form, errors);
       return;
     }
 
     supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
+    dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in werksessie",
       message:

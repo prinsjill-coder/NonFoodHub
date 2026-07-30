@@ -1,14 +1,4 @@
-import { escapeHtml } from "../shared/utils.js";
-
-function renderAttributes(attributes = {}) {
-  return Object.entries(attributes)
-    .map(([name, value]) => {
-      if (value === false || value === null || value === undefined) return "";
-      if (value === true) return ` ${name}`;
-      return ` ${name}="${escapeHtml(value)}"`;
-    })
-    .join("");
-}
+import { escapeHtml, renderAttributes } from "../shared/utils.js";
 
 export function renderFileInput({ id, accept = ".json", label = "Bestand kiezen", attributes = {} }) {
   return `

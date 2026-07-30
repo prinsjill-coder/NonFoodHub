@@ -120,5 +120,11 @@ export function routeFromHash(hash) {
     };
   }
 
-  return STUDIO_ROUTES[0];
+  return {
+    id: "notFound",
+    path: cleaned,
+    title: "Pagina niet gevonden",
+    enabled: true,
+    params: { requestedPath: cleaned }
+  };
 }

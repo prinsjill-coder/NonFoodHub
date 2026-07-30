@@ -23,7 +23,7 @@ export function renderSessionBanner(snapshot) {
   const badge = snapshot.hasUnexportedChanges ? "review" : snapshot.exportedCurrent ? "success" : "foundation";
 
   return `
-    <section class="studio-session-banner is-${tone}" aria-label="Werksessiestatus">
+    <section class="studio-session-banner is-${tone}" aria-label="Werksessiestatus" role="status" aria-live="polite">
       <div>
         <p class="studio-kicker">Werksessie</p>
         <h2>${escapeHtml(statusText(snapshot))}</h2>
