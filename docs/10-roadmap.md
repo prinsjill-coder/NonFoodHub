@@ -69,6 +69,11 @@ geexporteerd en na validatie worden geimporteerd. Downloaden of importeren is
 geen opslag, publicatie, commit of push; GitHub Desktop blijft de handmatige
 publicatiestap.
 
+Aanvullend Sprint 7A-besluit: Media wordt eerst een register voor bestaande
+assets. Bestaande padvelden in leveranciers en brochures blijven voorlopig
+bestaan; er is nog geen migratie naar `mediaAssetId`, geen uploadfunctionaliteit
+en geen automatische bestandsplaatsing.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

@@ -68,8 +68,8 @@
       "id": "media",
       "label": "Media",
       "route": "#/media",
-      "description": "Placeholder voor toekomstig mediabeheer",
-      "enabled": false
+      "description": "Registry voor bestaande media-assets en padmetadata",
+      "enabled": true
     },
     {
       "id": "ctas",

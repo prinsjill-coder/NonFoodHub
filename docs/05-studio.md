@@ -266,6 +266,21 @@ Mediabeheer ondersteunt:
 
 Studio moet later helpen bij beeldverhoudingen en bestandsgrootte.
 
+### Mediaregister in statische Studio
+
+Sprint 7A introduceert Media als centraal register voor bestaande assets.
+Media-items registreren metadata en relatieve projectpaden naar bestanden die
+handmatig in de repository staan. Studio uploadt geen bestanden, plaatst geen
+bestanden in `assets/` en schrijft niet naar de repository.
+
+Bestaande padvelden zoals `pdfFile`, `thumbnail`, `logo` en `image` blijven in
+deze sprint bestaan. Er vindt nog geen migratie naar `mediaAssetId`-relaties
+plaats.
+
+De browser controleert alleen structuur, metadata en padvormen. Diepere
+bestandscontroles, zoals of een geregistreerd bestand fysiek aanwezig is, horen
+in lokale scripts en handmatige QA.
+
 ## Validatie
 
 Publiceren is niet mogelijk bij:

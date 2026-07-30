@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bevat leveranciersbeheer en een eerste brochuremodule binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Studio bevat leveranciersbeheer, brochurebeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
     {
       "id": "suppliers",
@@ -15,6 +15,13 @@
       "value": null,
       "state": "not_connected",
       "note": "Wordt in Studio berekend uit data/brochures.json."
+    },
+    {
+      "id": "media",
+      "label": "Media-assets",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit data/media.json."
     },
     {
       "id": "articles",
@@ -47,8 +54,8 @@
     {
       "id": "missingFiles",
       "title": "Ontbrekende bestanden",
-      "state": "not_connected",
-      "message": "Bestandscontrole is nog niet gekoppeld aan media- of PDF-data."
+      "state": "foundation",
+      "message": "Media registreert paden en metadata. Diepere fysieke bestandscontrole gebeurt via lokale scripts en handmatige QA."
     }
   ],
   "quickActions": [
@@ -65,6 +72,13 @@
       "enabled": true,
       "route": "#/brochures/nieuw",
       "message": "Open het prototypeformulier voor brochurebeheer."
+    },
+    {
+      "id": "newMedia",
+      "label": "Nieuw media-asset",
+      "enabled": true,
+      "route": "#/media/nieuw",
+      "message": "Registreer een bestaand media-asset in de statische werksessie."
     },
     {
       "id": "newArticle",

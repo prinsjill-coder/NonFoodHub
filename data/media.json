@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "0.1.0",
+  "prototype": true,
+  "storage": {
+    "mode": "static-session",
+    "writeEnabled": false,
+    "message": "Media-assets worden in Sprint 7A alleen als registry in browsergeheugen beheerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief."
+  },
+  "statuses": ["concept", "review", "published", "hidden", "archived"],
+  "types": [
+    {
+      "id": "image",
+      "label": "Afbeelding"
+    },
+    {
+      "id": "logo",
+      "label": "Logo"
+    },
+    {
+      "id": "thumbnail",
+      "label": "Thumbnail"
+    },
+    {
+      "id": "pdf",
+      "label": "PDF"
+    }
+  ],
+  "usageTypes": [
+    {
+      "id": "hero",
+      "label": "Hero"
+    },
+    {
+      "id": "supplier-logo",
+      "label": "Leverancierslogo"
+    },
+    {
+      "id": "supplier-image",
+      "label": "Leveranciersbeeld"
+    },
+    {
+      "id": "brochure-thumbnail",
+      "label": "Brochurethumbnail"
+    },
+    {
+      "id": "brochure-pdf",
+      "label": "Brochure PDF"
+    },
+    {
+      "id": "page-image",
+      "label": "Paginabeeld"
+    }
+  ],
+  "rightsStatuses": [
+    {
+      "id": "approved",
+      "label": "Goedgekeurd"
+    },
+    {
+      "id": "needs-review",
+      "label": "Te controleren"
+    },
+    {
+      "id": "restricted",
+      "label": "Beperkt gebruik"
+    },
+    {
+      "id": "unknown",
+      "label": "Onbekend"
+    }
+  ],
+  "items": [
+    {
+      "id": "media-supplier-amefa-logo",
+      "title": "Amefa leveranciersbeeld",
+      "file": "assets/images/supplier-amefa.jpg",
+      "type": "logo",
+      "alt": "Amefa leverancier in de NonFood Hub",
+      "caption": "Bestaand beeld uit de Fase 1-website.",
+      "width": 800,
+      "height": 600,
+      "fileSize": "Onbekend",
+      "usageType": "supplier-logo",
+      "rightsStatus": "needs-review",
+      "status": "review",
+      "sortOrder": 10
+    },
+    {
+      "id": "media-brochures-overview",
+      "title": "Brochures overzichtsbeeld",
+      "file": "assets/images/brochures.png",
+      "type": "image",
+      "alt": "Brochures en catalogi binnen de NonFood Hub",
+      "caption": "Bestaand overzichtsbeeld voor brochurecontent.",
+      "width": 1200,
+      "height": 675,
+      "fileSize": "Onbekend",
+      "usageType": "page-image",
+      "rightsStatus": "needs-review",
+      "status": "review",
+      "sortOrder": 20
+    },
+    {
+      "id": "media-showroom-overview",
+      "title": "Virtuele showroom overzichtsbeeld",
+      "file": "assets/images/showroom.png",
+      "type": "image",
+      "alt": "Virtuele showroom voor Non-Food inspiratie",
+      "caption": "Bestaand beeld voor showroomcontent.",
+      "width": 1200,
+      "height": 675,
+      "fileSize": "Onbekend",
+      "usageType": "hero",
+      "rightsStatus": "needs-review",
+      "status": "review",
+      "sortOrder": 30
+    }
+  ]
+}

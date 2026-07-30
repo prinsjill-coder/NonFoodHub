@@ -173,3 +173,14 @@ datamodel, validatie, normalisatie, sessiegedrag, scherminhoud en
 bestandsworkflow. Een generieke sessiekern wordt bewust uitgesteld totdat een
 tweede volwaardige module laat zien welke sessiepatronen werkelijk gedeeld
 moeten worden.
+
+## Mediaregister
+
+Vanaf Sprint 7A bestaat Media als centrale registry voor bestaande assets. De
+module beheert metadata, relatieve projectpaden, rechtenstatus en eenvoudige
+bestandscontrole binnen de statische Studio-werksessie.
+
+Media uploadt of verplaatst geen bestanden en schrijft niet naar de repository.
+Bestaande velden zoals `logo`, `image`, `pdfFile` en `thumbnail` blijven in hun
+eigen contentmodules bestaan. Een eventuele migratie naar `mediaAssetId`-
+relaties is een latere architectuurbeslissing.

@@ -59,7 +59,8 @@ export const STUDIO_ROUTES = [
     id: "media",
     path: "/media",
     title: "Media",
-    enabled: false
+    enabled: true,
+    sectionId: "media"
   },
   {
     id: "ctas",
@@ -153,6 +154,41 @@ export function routeFromHash(hash) {
       enabled: true,
       sectionId: "brochures",
       params: { slug: brochureDetailMatch[1] }
+    };
+  }
+
+  if (cleaned === "/media/nieuw") {
+    return {
+      id: "mediaNew",
+      path: cleaned,
+      title: "Nieuw media-asset",
+      enabled: true,
+      sectionId: "media",
+      params: {}
+    };
+  }
+
+  const mediaEditMatch = cleaned.match(/^\/media\/([^/]+)\/bewerken$/);
+  if (mediaEditMatch) {
+    return {
+      id: "mediaEdit",
+      path: cleaned,
+      title: "Media-asset bewerken",
+      enabled: true,
+      sectionId: "media",
+      params: { id: mediaEditMatch[1] }
+    };
+  }
+
+  const mediaDetailMatch = cleaned.match(/^\/media\/([^/]+)$/);
+  if (mediaDetailMatch) {
+    return {
+      id: "mediaDetail",
+      path: cleaned,
+      title: "Media-asset bekijken",
+      enabled: true,
+      sectionId: "media",
+      params: { id: mediaDetailMatch[1] }
     };
   }
 

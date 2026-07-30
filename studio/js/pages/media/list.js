@@ -1,0 +1,271 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
+import { renderButton } from "../../../../components/button.js";
+import { renderDataTable } from "../../../../components/data-table.js";
+import { renderFilterToolbar } from "../../../../components/filter-toolbar.js";
+import { renderNotice } from "../../../../components/notice.js";
+import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderSessionBanner } from "../../../../components/session-banner.js";
+import { renderStatusBadge } from "../../../../components/status-badge.js";
+import { renderValidationReport } from "../../../../components/validation-report.js";
+import {
+  getMediaAssets,
+  getMediaCounts,
+  getMediaRightsStatusLabel,
+  getMediaStatusLabel,
+  getMediaTypeLabel,
+  getMediaUsageTypeLabel,
+  sortMediaAssets
+} from "../../../../shared/media-model.js";
+import { escapeHtml } from "../../../../shared/utils.js";
+
+function renderMediaActions(asset) {
+  return `
+    <div class="studio-actions">
+      ${renderButton({
+        label: "Bekijken",
+        href: `#/media/${asset.id}`,
+        variant: "secondary",
+        ariaLabel: `${asset.title} bekijken`
+      })}
+      ${renderButton({
+        label: "Bewerken",
+        href: `#/media/${asset.id}/bewerken`,
+        variant: "outline",
+        ariaLabel: `${asset.title} bewerken`
+      })}
+    </div>
+  `;
+}
+
+function renderMediaCards(mediaAssets, mediaData) {
+  return mediaAssets
+    .map(
+      (asset) => `
+        <article
+          class="studio-card studio-media-card"
+          data-media-item
+          data-title="${escapeHtml(`${asset.title} ${asset.id} ${asset.file}`.toLowerCase())}"
+          data-type="${escapeHtml(asset.type)}"
+          data-usage="${escapeHtml(asset.usageType)}"
+          data-rights="${escapeHtml(asset.rightsStatus)}"
+          data-status="${escapeHtml(asset.status)}"
+        >
+          <div class="studio-card-head">
+            <div>
+              <h3>${escapeHtml(asset.title)}</h3>
+              <p class="studio-muted">${escapeHtml(asset.file)}</p>
+            </div>
+            ${renderStatusBadge(asset.status, getMediaStatusLabel(asset.status))}
+          </div>
+          <p>${escapeHtml(asset.caption || asset.alt || "Geen beschrijving ingevuld.")}</p>
+          <p class="studio-meta">
+            ${escapeHtml(getMediaTypeLabel(asset.type, mediaData))} ·
+            ${escapeHtml(getMediaUsageTypeLabel(asset.usageType, mediaData))} ·
+            ${escapeHtml(getMediaRightsStatusLabel(asset.rightsStatus, mediaData))}
+          </p>
+          ${renderMediaActions(asset)}
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderMediaTable(mediaAssets, mediaData) {
+  return renderDataTable({
+    label: "Mediaregister",
+    rows: mediaAssets,
+    rowAttributes: (asset) => `
+      data-media-item
+      data-title="${escapeHtml(`${asset.title} ${asset.id} ${asset.file}`.toLowerCase())}"
+      data-type="${escapeHtml(asset.type)}"
+      data-usage="${escapeHtml(asset.usageType)}"
+      data-rights="${escapeHtml(asset.rightsStatus)}"
+      data-status="${escapeHtml(asset.status)}"
+    `,
+    columns: [
+      {
+        label: "Asset",
+        render: (asset) => `<strong>${escapeHtml(asset.title)}</strong><br><span>${escapeHtml(asset.id)}</span>`
+      },
+      {
+        label: "Bestand",
+        render: (asset) => `<code>${escapeHtml(asset.file)}</code>`
+      },
+      {
+        label: "Type",
+        render: (asset) => escapeHtml(getMediaTypeLabel(asset.type, mediaData))
+      },
+      {
+        label: "Gebruik",
+        render: (asset) => escapeHtml(getMediaUsageTypeLabel(asset.usageType, mediaData))
+      },
+      {
+        label: "Status",
+        render: (asset) => renderStatusBadge(asset.status, getMediaStatusLabel(asset.status))
+      },
+      {
+        label: "Acties",
+        render: renderMediaActions
+      }
+    ]
+  });
+}
+
+function optionList(items, firstLabel) {
+  return [
+    { value: "all", label: firstLabel },
+    ...(items || []).map((item) => ({
+      value: item.id,
+      label: item.label
+    }))
+  ];
+}
+
+function statusOptions(mediaData) {
+  return [
+    { value: "all", label: "Alle statussen" },
+    ...(mediaData.statuses || []).map((status) => ({ value: status, label: getMediaStatusLabel(status) }))
+  ];
+}
+
+function renderSessionStatus(snapshot) {
+  if (snapshot.dirty) return "Niet-opgeslagen mediawijzigingen";
+  return "Gelijk aan geladen bron";
+}
+
+export function renderMediaList({ mediaData, sessionSnapshot }) {
+  const mediaAssets = sortMediaAssets(getMediaAssets(mediaData));
+  const counts = getMediaCounts(mediaData);
+  const actions = renderButton({ label: "Nieuw media-asset", href: "#/media/nieuw", variant: "primary" });
+
+  return `
+    ${renderPageHeader({
+      eyebrow: "Mediaregister",
+      title: "Media",
+      description: "Registreer bestaande assets en controleer metadata, paden en rechtenstatus binnen de statische Studio-werksessie."
+    })}
+
+    ${renderSessionBanner(sessionSnapshot, {
+      fileName: "media.json",
+      sourceDescription:
+        "Wijzigingen bestaan alleen in browsergeheugen. Upload, import en export voor media zijn in deze sprint niet actief.",
+      statusText: renderSessionStatus,
+      restoreLabel: "Media herstellen",
+      restoreAttributes: { "data-media-restore": true }
+    })}
+
+    ${renderNotice({
+      title: "Registry zonder upload",
+      message:
+        mediaData.storage?.message ||
+        "Media-assets worden alleen als metadata geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
+      tone: "warning"
+    })}
+
+    ${renderValidationReport(sessionSnapshot.lastValidationReport, {
+      title: "Validatierapport mediaregister"
+    })}
+
+    <section class="studio-section">
+      <div class="studio-grid studio-grid-4">
+        <article class="studio-card studio-metric-card">
+          <h3>Totaal</h3>
+          <p class="studio-metric-value">${counts.total}</p>
+          <p class="studio-muted">Geregistreerde assets in de actieve werksessie.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Pad ontbreekt</h3>
+          <p class="studio-metric-value">${counts.missingFilePath}</p>
+          <p class="studio-muted">Metadata zonder relatief bestandspad.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Alt-tekst ontbreekt</h3>
+          <p class="studio-metric-value">${counts.missingAlt}</p>
+          <p class="studio-muted">Afbeeldingsassets zonder alt-tekst.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Rechtencheck</h3>
+          <p class="studio-metric-value">${counts.needsRightsReview}</p>
+          <p class="studio-muted">Assets met onbekende of te controleren rechten.</p>
+        </article>
+      </div>
+    </section>
+
+    ${renderFilterToolbar({
+      scope: "media",
+      ariaLabel: "Mediafilters",
+      searchPlaceholder: "Zoek op titel, id of bestand",
+      filters: [
+        { name: "type", label: "Type", options: optionList(mediaData.types, "Alle types") },
+        { name: "usage", label: "Gebruik", options: optionList(mediaData.usageTypes, "Alle toepassingen") },
+        { name: "rights", label: "Rechten", options: optionList(mediaData.rightsStatuses, "Alle rechtenstatussen") },
+        { name: "status", label: "Status", options: statusOptions(mediaData) }
+      ],
+      actions
+    })}
+
+    <section class="studio-section">
+      <div class="studio-grid studio-grid-2" data-media-card-list>${renderMediaCards(mediaAssets, mediaData)}</div>
+      <div class="studio-list-empty" data-media-empty hidden>
+        Geen media-assets gevonden met deze filters.
+      </div>
+    </section>
+
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Tabelweergave</h2>
+      </div>
+      ${renderMediaTable(mediaAssets, mediaData)}
+    </section>
+  `;
+}
+
+export function setupMediaList({ mediaSession, rerender }) {
+  const search = document.querySelector("[data-media-search]");
+  const filters = Array.from(document.querySelectorAll("[data-media-filter]"));
+  const items = Array.from(document.querySelectorAll("[data-media-item]"));
+  const empty = document.querySelector("[data-media-empty]");
+  const restoreButton = document.querySelector("[data-media-restore]");
+
+  function applyFilters() {
+    const query = search?.value.trim().toLowerCase() || "";
+    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.mediaFilter, filter.value]));
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      const matchesSearch = !query || (item.dataset.title || "").includes(query);
+      const matchesType = values.type === "all" || item.dataset.type === values.type;
+      const matchesUsage = values.usage === "all" || item.dataset.usage === values.usage;
+      const matchesRights = values.rights === "all" || item.dataset.rights === values.rights;
+      const matchesStatus = values.status === "all" || item.dataset.status === values.status;
+      const visible = matchesSearch && matchesType && matchesUsage && matchesRights && matchesStatus;
+      item.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+
+    if (empty) {
+      empty.hidden = visibleCount > 0;
+    }
+  }
+
+  search?.addEventListener("input", applyFilters);
+  filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+  restoreButton?.addEventListener("click", async () => {
+    if (mediaSession.snapshot().dirty) {
+      const confirmed = await confirmStudioAction({
+        title: "Mediasessie herstellen?",
+        message:
+          "De actieve mediawerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+        confirmLabel: "Sessie herstellen",
+        cancelLabel: "Annuleren",
+        tone: "warning"
+      });
+      if (!confirmed) return;
+    }
+
+    mediaSession.restoreSource();
+    rerender();
+  });
+
+  applyFilters();
+}

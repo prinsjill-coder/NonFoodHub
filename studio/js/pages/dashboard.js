@@ -4,13 +4,15 @@ import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
+import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 import { renderNotFoundState } from "../shared/not-found.js";
 
-function hydrateMetrics(dashboardData, supplierData, brochureData) {
+function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData) {
   const supplierCounts = getSupplierCounts(supplierData);
   const brochureCounts = getBrochureCounts(brochureData);
+  const mediaCounts = getMediaCounts(mediaData);
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
       return {
@@ -27,6 +29,15 @@ function hydrateMetrics(dashboardData, supplierData, brochureData) {
         value: brochureCounts.total,
         state: "foundation",
         note: "Gelezen uit de actieve brochurewerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    if (metric.id === "media") {
+      return {
+        ...metric,
+        value: mediaCounts.total,
+        state: "foundation",
+        note: "Gelezen uit het mediaregister; uploads en automatische bestandsplaatsing zijn niet actief."
       };
     }
 
@@ -53,8 +64,8 @@ function renderQuickAction(action) {
   `;
 }
 
-export function renderDashboard(dashboardData, supplierData, brochureData) {
-  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData).map(renderMetricCard).join("");
+export function renderDashboard(dashboardData, supplierData, brochureData, mediaData) {
+  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
 

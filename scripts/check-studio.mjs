@@ -12,6 +12,7 @@ import {
 import { routeFromHash } from "../shared/routes.js";
 import { STUDIO_CONFIG } from "../shared/config.js";
 import { createBrochureSession } from "../studio/js/state/brochure-session.js";
+import { createMediaSession } from "../studio/js/state/media-session.js";
 import { createSupplierSession } from "../studio/js/state/supplier-session.js";
 import { renderValidationSummary } from "../components/validation-summary.js";
 import { clearFieldErrors, focusFirstInvalidField, setFieldErrors } from "../studio/js/shared/form-errors.js";
@@ -22,6 +23,7 @@ import { renderSuppliersRoute } from "../studio/js/pages/suppliers/index.js";
 import { getRouteTitle, renderRoute } from "../studio/js/router.js";
 import { createFormDirtyGuard } from "../studio/js/form-dirty-guard.js";
 import { runBrochureChecks } from "./check-brochures.mjs";
+import { runMediaChecks } from "./check-media.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -122,10 +124,12 @@ async function runCheck(name, check) {
 async function runStudioChecks() {
   const suppliers = readJson("data/suppliers.json");
   const brochures = readJson("data/brochures.json");
+  const media = readJson("data/media.json");
 
   await runCheck("basis JSON-bestanden zijn geldig", () => {
     readJson("data/suppliers.json");
     readJson("data/brochures.json");
+    readJson("data/media.json");
     readJson("data/studio-navigation.json");
     readJson("data/studio-dashboard.json");
   });
@@ -135,7 +139,8 @@ async function runStudioChecks() {
       navigation: "../data/studio-navigation.json",
       dashboard: "../data/studio-dashboard.json",
       suppliers: "../data/suppliers.json",
-      brochures: "../data/brochures.json"
+      brochures: "../data/brochures.json",
+      media: "../data/media.json"
     });
 
     Object.entries(STUDIO_CONFIG.data).forEach(([key, value]) => {
@@ -149,6 +154,9 @@ async function runStudioChecks() {
     await import("../shared/content-status.js");
     await import("../shared/brochure-file-validation.js");
     await import("../shared/brochure-normalizer.js");
+    await import("../shared/media-file-validation.js");
+    await import("../shared/media-normalizer.js");
+    await import("../shared/media-validation.js");
     await import("../shared/supplier-file-validation.js");
     await import("../shared/supplier-normalizer.js");
     await import("../studio/js/shared/form-errors.js");
@@ -158,9 +166,12 @@ async function runStudioChecks() {
     await import("../studio/js/router.js");
     await import("../studio/js/route-focus.js");
     await import("../studio/js/state/brochure-session.js");
+    await import("../studio/js/state/media-session.js");
     await import("../studio/js/pages/brochures/form.js");
     await import("../studio/js/pages/brochures/import-export.js");
     await import("../studio/js/pages/brochures/index.js");
+    await import("../studio/js/pages/media/form.js");
+    await import("../studio/js/pages/media/index.js");
     await import("../studio/js/pages/suppliers/form.js");
     await import("../studio/js/pages/suppliers/import-export.js");
     await import("../components/confirm-dialog.js");
@@ -220,17 +231,24 @@ async function runStudioChecks() {
     assert.equal(routeFromHash("#/brochures/nieuw").id, "brochureNew");
     assert.equal(routeFromHash("#/brochures/amefa-for-professionals-2026").id, "brochureDetail");
     assert.equal(routeFromHash("#/brochures/amefa-for-professionals-2026/bewerken").id, "brochureEdit");
+    assert.equal(routeFromHash("#/media").id, "media");
+    assert.equal(routeFromHash("#/media/nieuw").id, "mediaNew");
+    assert.equal(routeFromHash("#/media/media-brochures-overview").id, "mediaDetail");
+    assert.equal(routeFromHash("#/media/media-brochures-overview/bewerken").id, "mediaEdit");
     assert.equal(routeFromHash("#/bestaat-niet").id, "notFound");
   });
 
   await runCheck("route titles en document title helper werken", async () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
-    const state = { supplierSession, brochureSession };
+    const mediaSession = createMediaSession(media);
+    const state = { supplierSession, brochureSession, mediaSession };
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/amefa"), state), "Amefa");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/onbekend"), state), "Leverancier niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), "Amefa for Professionals 2026");
     assert.equal(getRouteTitle(routeFromHash("#/brochures/onbekend"), state), "Brochure niet gevonden");
+    assert.equal(getRouteTitle(routeFromHash("#/media/media-brochures-overview"), state), "Brochures overzichtsbeeld");
+    assert.equal(getRouteTitle(routeFromHash("#/media/onbekend"), state), "Media-asset niet gevonden");
 
     globalThis.document = { title: "" };
     const { applyRouteTitle, focusRouteContent } = await import("../studio/js/route-focus.js");
@@ -262,10 +280,12 @@ async function runStudioChecks() {
   await runCheck("leveranciersroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
       supplierSession,
-      brochureSession
+      brochureSession,
+      mediaSession
     };
 
     assert.match(renderRoute(routeFromHash("#/leveranciers"), state), /Leveranciers/);
@@ -277,10 +297,12 @@ async function runStudioChecks() {
   await runCheck("brochureroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
       supplierSession,
-      brochureSession
+      brochureSession,
+      mediaSession
     };
 
     const listHtml = renderRoute(routeFromHash("#/brochures"), state);
@@ -301,20 +323,52 @@ async function runStudioChecks() {
     assert.match(editHtml, /Amefa for Professionals 2026 bewerken/);
   });
 
-  await runCheck("dashboardknoppen verwijzen naar actieve brochuremodule", () => {
+  await runCheck("mediaroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
       supplierSession,
-      brochureSession
+      brochureSession,
+      mediaSession
+    };
+
+    const listHtml = renderRoute(routeFromHash("#/media"), state);
+    const newHtml = renderRoute(routeFromHash("#/media/nieuw"), state);
+    const detailHtml = renderRoute(routeFromHash("#/media/media-brochures-overview"), state);
+    const editHtml = renderRoute(routeFromHash("#/media/media-brochures-overview/bewerken"), state);
+
+    assert.match(listHtml, /Mediaregister/);
+    assert.match(listHtml, /Brochures overzichtsbeeld/);
+    assert.doesNotMatch(listHtml, /is nog niet actief/);
+    assert.match(newHtml, /Nieuw media-asset/);
+    assert.match(newHtml, /data-media-form/);
+    assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
+    assert.match(detailHtml, /Brochures overzichtsbeeld/);
+    assert.match(editHtml, /Brochures overzichtsbeeld bewerken/);
+  });
+
+  await runCheck("dashboardknoppen verwijzen naar actieve brochure- en mediamodule", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession,
+      mediaSession
     };
     const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
     const brochureAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuwe brochure<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
+    const mediaAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw media-asset<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
 
     assert.match(dashboardHtml, /href="#\/brochures\/nieuw"/);
+    assert.match(dashboardHtml, /href="#\/media\/nieuw"/);
     assert.match(brochureAction, /href="#\/brochures\/nieuw"/);
     assert.doesNotMatch(brochureAction, /Niet actief|is-disabled/);
+    assert.match(mediaAction, /href="#\/media\/nieuw"/);
+    assert.doesNotMatch(mediaAction, /Niet actief|is-disabled/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {
@@ -360,10 +414,12 @@ async function runStudioChecks() {
   await runCheck("not-foundweergaven blijven contextspecifiek", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
     const genericHtml = renderRouteNotFound(routeFromHash("#/bestaat-niet"));
     const supplierHtml = renderSuppliersRoute(routeFromHash("#/leveranciers/bestaat-niet"), supplierSession);
-    const state = { supplierSession, brochureSession };
+    const state = { supplierSession, brochureSession, mediaSession };
     const brochureHtml = renderRoute(routeFromHash("#/brochures/bestaat-niet"), state);
+    const mediaHtml = renderRoute(routeFromHash("#/media/bestaat-niet"), state);
 
     assert.match(genericHtml, /Pagina niet gevonden/);
     assert.match(genericHtml, /Terug naar dashboard/);
@@ -371,6 +427,8 @@ async function runStudioChecks() {
     assert.match(supplierHtml, /Terug naar leveranciers/);
     assert.match(brochureHtml, /Brochure niet gevonden/);
     assert.match(brochureHtml, /Terug naar brochures/);
+    assert.match(mediaHtml, /Media-asset niet gevonden/);
+    assert.match(mediaHtml, /Terug naar media/);
   });
 
   await runCheck("import- en exportstatussen renderen begrijpelijk", () => {
@@ -462,6 +520,7 @@ async function runStudioChecks() {
 
   await runSupplierChecks();
   await runBrochureChecks();
+  await runMediaChecks();
 }
 
 runStudioChecks()
