@@ -159,6 +159,7 @@ async function runStudioChecks() {
     await import("../studio/js/route-focus.js");
     await import("../studio/js/state/brochure-session.js");
     await import("../studio/js/pages/brochures/form.js");
+    await import("../studio/js/pages/brochures/import-export.js");
     await import("../studio/js/pages/brochures/index.js");
     await import("../studio/js/pages/suppliers/form.js");
     await import("../studio/js/pages/suppliers/import-export.js");
@@ -289,6 +290,9 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Brochurebeheer/);
     assert.match(listHtml, /Amefa for Professionals 2026/);
+    assert.match(listHtml, /data-brochure-import-button/);
+    assert.match(listHtml, /data-brochure-export-button/);
+    assert.match(listHtml, /brochures\.json importeren/);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuwe brochure/);
     assert.match(newHtml, /data-brochure-form/);

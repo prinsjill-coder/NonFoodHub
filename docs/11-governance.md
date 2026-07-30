@@ -64,11 +64,11 @@ Voorstel
 Voor statische Studio-import/export geldt aanvullend:
 
 ```text
-Suppliers-data laden of importeren
+Suppliers- of brochuredata laden of importeren
 -> wijzigen in browsergeheugen
 -> volledig valideren
--> suppliers.json exporteren
--> /data/suppliers.json handmatig vervangen
+-> suppliers.json of brochures.json exporteren
+-> het betreffende bestand in /data handmatig vervangen
 -> lokaal testen
 -> commit en push via GitHub Desktop
 -> live controle
@@ -77,6 +77,10 @@ Suppliers-data laden of importeren
 Een exportbestand is pas onderdeel van het project nadat het handmatig in de
 repository is geplaatst. Downloaden vanuit Studio geldt niet als opslaan,
 publiceren, committen of pushen.
+
+Voor brochures geldt aanvullend dat onbekende velden bij import waarschuwingen
+geven en niet in de definitieve brochurewerksessie of genormaliseerde export
+worden opgeslagen.
 
 De vaste handmatige QA-procedure voor Studio staat in
 [appendices/studio-qa-checklist.md](appendices/studio-qa-checklist.md).

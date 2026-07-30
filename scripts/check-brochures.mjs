@@ -5,8 +5,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { CONTENT_STATUSES, CONTENT_STATUS_LABELS } from "../shared/content-status.js";
 import { validateBrochureFile } from "../shared/brochure-file-validation.js";
-import { normalizeBrochureFileForSession, stableStringify } from "../shared/brochure-normalizer.js";
+import {
+  BROCHURES_EXPORT_FILENAME,
+  normalizeBrochureFileForSession,
+  stableStringify,
+  stringifyBrochureExport
+} from "../shared/brochure-normalizer.js";
 import { validateBrochure } from "../shared/brochure-validation.js";
+import { validateBrochureImportFile } from "../studio/js/pages/brochures/import-export.js";
 import { createBrochureSession } from "../studio/js/state/brochure-session.js";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -179,6 +185,103 @@ export async function runBrochureChecks() {
     assert.equal("extraBrochure" in first.items[0], false);
   });
 
+  await runCheck("exportbestand heet exact brochures.json en bevat actieve brochuredata", () => {
+    const session = createBrochureSession(brochures, suppliers);
+    const brochure = firstBrochure(brochures);
+    session.applyBrochure({ ...brochure, title: `${brochure.title} Exporttest` }, brochure.slug);
+
+    const result = session.prepareExport();
+    const exported = JSON.parse(result.json);
+
+    assert.equal(BROCHURES_EXPORT_FILENAME, "brochures.json");
+    assert.equal(result.ok, true);
+    assert.equal(result.fileName, "brochures.json");
+    assert.equal(exported.items.find((item) => item.id === brochure.id).title, `${brochure.title} Exporttest`);
+    assert.equal("lastValidationReport" in exported, false);
+    assert.equal("lastExport" in exported, false);
+  });
+
+  await runCheck("export neemt nieuw aangemaakte brochures mee", () => {
+    const session = createBrochureSession(brochures, suppliers);
+    session.applyBrochure(
+      {
+        ...firstBrochure(brochures),
+        id: "brochure-export-nieuw",
+        title: "Nieuwe exportbrochure",
+        slug: "nieuwe-exportbrochure",
+        status: "concept",
+        pdfFile: "",
+        thumbnail: "",
+        sortOrder: 99
+      },
+      ""
+    );
+
+    const exported = JSON.parse(session.prepareExport().json);
+    assert.ok(exported.items.some((item) => item.id === "brochure-export-nieuw"));
+  });
+
+  await runCheck("geldige import wordt genormaliseerde bron zonder onbekende velden", () => {
+    const data = clone(brochures);
+    data.extraRoot = "tijdelijk";
+    firstBrochure(data).extraBrochure = "tijdelijk";
+    const report = {
+      ...validateBrochureFile(data, suppliers),
+      action: "import",
+      sourceFileName: "brochures.json",
+      itemCount: data.items.length
+    };
+    const session = createBrochureSession(brochures, suppliers);
+
+    assert.equal(report.valid, true);
+    assert.ok(report.warnings.some((warning) => warning.path === "root.extraRoot"));
+    session.importSource(data, "brochures.json", report);
+
+    const workingData = session.getWorkingData();
+    assert.equal(session.snapshot().dirty, false);
+    assert.equal(session.snapshot().sourceType, "imported");
+    assert.equal("extraRoot" in workingData, false);
+    assert.equal("extraBrochure" in workingData.items[0], false);
+  });
+
+  await runCheck("foutieve import blokkeert en wijzigt de sessie niet", () => {
+    const session = createBrochureSession(brochures, suppliers);
+    const before = stableStringify(session.getWorkingData());
+    const data = clone(brochures);
+    secondBrochure(data).id = firstBrochure(data).id;
+    const report = validateBrochureFile(data, suppliers);
+
+    assert.equal(report.valid, false);
+    if (report.valid) {
+      session.importSource(data, "brochures.json", report);
+    } else {
+      session.setValidationReport({ ...report, action: "import", sourceFileName: "brochures.json" });
+    }
+
+    assert.equal(stableStringify(session.getWorkingData()), before);
+  });
+
+  await runCheck("supplier-validatie blijft actief bij brochure-import", () => {
+    const data = clone(brochures);
+    firstBrochure(data).supplierId = "supplier-bestaat-niet";
+    expectInvalid(data, suppliers, "items[0].supplierId");
+  });
+
+  await runCheck("brochure importbestandcontrole gebruikt 1 MB limiet en .json extensie", () => {
+    assert.equal(validateBrochureImportFile(null).report.errors[0].path, "import.file");
+    assert.equal(validateBrochureImportFile({ name: "brochures.txt", size: 1 }).report.errors[0].path, "import.file");
+    assert.equal(validateBrochureImportFile({ name: "brochures.json", size: 1024 * 1024 + 1 }).report.errors[0].path, "import.file");
+    assert.equal(validateBrochureImportFile({ name: "brochures.json", size: 1024 }).ok, true);
+  });
+
+  await runCheck("brochure exportnormalisatie blijft deterministisch", () => {
+    const first = stringifyBrochureExport(brochures);
+    const second = stringifyBrochureExport(brochures);
+
+    assert.equal(first, second);
+    assert.equal(JSON.parse(first).items.length, brochures.items.length);
+  });
+
   await runCheck("sessie start schoon, wordt dirty en kan herstellen", () => {
     const session = createBrochureSession(brochures, suppliers);
     assert.equal(session.snapshot().dirty, false);
@@ -191,6 +294,18 @@ export async function runBrochureChecks() {
     session.restoreSource();
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(brochure.slug).title, brochure.title);
+  });
+
+  await runCheck("exportstatus blijft overdrachtsstatus zonder publicatieclaim", () => {
+    const session = createBrochureSession(brochures, suppliers);
+    const exportResult = session.prepareExport();
+    session.markExported(exportResult.report);
+
+    const snapshot = session.snapshot();
+    assert.equal(snapshot.exportedCurrent, true);
+    assert.equal(snapshot.exportStatus, "exported_unconfirmed");
+    assert.equal(snapshot.lastExport.fileName, "brochures.json");
+    assert.equal(snapshot.hasUnexportedChanges, false);
   });
 
   await runCheck("sessie vindt items op slug en id en beschermt interne state", () => {

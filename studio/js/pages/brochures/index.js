@@ -41,7 +41,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession) {
 
 export function setupBrochuresRoute(route, brochureSession, supplierSession, options = {}) {
   if (route.id === "brochures") {
-    setupBrochureList({ brochureSession, rerender: options.rerender });
+    setupBrochureList({ brochureSession, supplierSession, rerender: options.rerender });
   }
 
   if (route.id === "brochureNew" || route.id === "brochureEdit") {

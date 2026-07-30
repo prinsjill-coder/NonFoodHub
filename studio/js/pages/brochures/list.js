@@ -1,6 +1,7 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import { renderDataTable } from "../../../../components/data-table.js";
+import { renderFileInput } from "../../../../components/file-input.js";
 import { renderFilterToolbar } from "../../../../components/filter-toolbar.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
@@ -16,6 +17,7 @@ import {
 } from "../../../../shared/brochure-model.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { setupBrochureImportExport } from "./import-export.js";
 
 function supplierNameById(supplierData) {
   return new Map(getSuppliers(supplierData).map((supplier) => [supplier.id, supplier.name]));
@@ -109,9 +111,41 @@ function renderBrochureTable(brochures, suppliersById) {
 }
 
 function renderSessionStatus(snapshot) {
+  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
   if (snapshot.hasUnexportedChanges) return "Niet-opgeslagen werksessiewijzigingen";
   if (snapshot.dirty) return "Werksessie wijkt af van de bron";
   return "Gelijk aan geladen bron";
+}
+
+function renderExportNotice(sessionSnapshot) {
+  if (!sessionSnapshot.exportedCurrent) return "";
+
+  return renderNotice({
+    title: "Export gedownload",
+    message:
+      "Dit bestand is alleen gedownload. Vervang handmatig /data/brochures.json en commit en push daarna zelf via GitHub Desktop.",
+    tone: "success"
+  });
+}
+
+function renderImportNotice(sessionSnapshot) {
+  if (sessionSnapshot.sourceType !== "imported") return "";
+
+  return renderNotice({
+    title: "Geïmporteerde brochurebron actief",
+    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    tone: "info"
+  });
+}
+
+function renderImportSummary(report) {
+  if (report?.action !== "import" || typeof report.itemCount !== "number") return "";
+
+  return renderNotice({
+    title: report.valid ? "Brochurebestand gevalideerd" : "Brochurebestand niet geaccepteerd",
+    message: `${report.sourceFileName || "Het geselecteerde bestand"} bevat ${report.itemCount} brochures. Controleer het validatierapport hieronder.`,
+    tone: report.valid ? "info" : "warning"
+  });
 }
 
 export function renderBrochuresList({ brochureData, supplierData, sessionSnapshot }) {
@@ -133,7 +167,27 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       .map((year) => ({ value: String(year), label: String(year) }))
   ];
 
-  const actions = renderButton({ label: "Nieuwe brochure", href: "#/brochures/nieuw", variant: "primary" });
+  const actions = `
+    ${renderButton({ label: "Nieuwe brochure", href: "#/brochures/nieuw", variant: "primary" })}
+    ${renderButton({
+      label: "Importeren",
+      variant: "secondary",
+      ariaLabel: "Brochuredata importeren",
+      attributes: { "data-brochure-import-button": true }
+    })}
+    ${renderButton({
+      label: "Exporteren",
+      variant: "secondary",
+      ariaLabel: "Brochuredata exporteren",
+      attributes: { "data-brochure-export-button": true }
+    })}
+    ${renderFileInput({
+      id: "brochure-import-file",
+      accept: ".json",
+      label: "brochures.json importeren",
+      attributes: { "data-brochure-import-file": true }
+    })}
+  `;
 
   return `
     ${renderPageHeader({
@@ -145,10 +199,16 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "brochures.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen. Import, export en uploads voor brochures worden pas in deel 2 gebouwd.",
+        "Wijzigingen bestaan alleen in browsergeheugen totdat je brochures.json exporteert.",
+      exportMessage:
+        "Dit bestand is alleen gedownload. Vervang handmatig /data/brochures.json en commit en push daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreAttributes: { "data-brochure-restore": true }
     })}
+
+    ${renderImportNotice(sessionSnapshot)}
+    ${renderExportNotice(sessionSnapshot)}
+    ${renderImportSummary(sessionSnapshot.lastValidationReport)}
 
     ${renderNotice({
       title: "Statische Studio-werksessie",
@@ -210,12 +270,14 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
   `;
 }
 
-export function setupBrochureList({ brochureSession, rerender }) {
+export function setupBrochureList({ brochureSession, supplierSession, rerender }) {
   const search = document.querySelector("[data-brochure-search]");
   const filters = Array.from(document.querySelectorAll("[data-brochure-filter]"));
   const items = Array.from(document.querySelectorAll("[data-brochure-item]"));
   const empty = document.querySelector("[data-brochure-empty]");
   const restoreButton = document.querySelector("[data-brochure-restore]");
+
+  setupBrochureImportExport({ brochureSession, supplierSession, rerender });
 
   function applyFilters() {
     const query = search?.value.trim().toLowerCase() || "";

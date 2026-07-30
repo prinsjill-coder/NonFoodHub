@@ -1,6 +1,13 @@
 import { findBrochureById, findBrochureBySlug, getBrochures, sortBrochures } from "../../../shared/brochure-model.js";
 import { validateBrochureFile } from "../../../shared/brochure-file-validation.js";
-import { deepClone, stableStringify } from "../../../shared/brochure-normalizer.js";
+import {
+  BROCHURES_EXPORT_FILENAME,
+  deepClone,
+  normalizeBrochureFileForExport,
+  normalizeBrochureFileForSession,
+  stableStringify,
+  stringifyBrochureExport
+} from "../../../shared/brochure-normalizer.js";
 
 function createHash(value) {
   return stableStringify(value);
@@ -25,6 +32,7 @@ export function createBrochureSession(initialData, supplierDataSource) {
   let sourceFileName = "data/brochures.json";
   let sourceType = "bundled";
   let lastValidationReport = createInitialReport(workingData, getSupplierData());
+  let lastExport = null;
 
   function workingHash() {
     return createHash(workingData);
@@ -33,11 +41,15 @@ export function createBrochureSession(initialData, supplierDataSource) {
   function snapshot() {
     const currentHash = workingHash();
     const dirty = currentHash !== sourceHash;
+    const exportedCurrent = Boolean(lastExport && lastExport.hash === currentHash);
     return {
       sourceFileName,
       sourceType,
       dirty,
-      hasUnexportedChanges: dirty,
+      exportedCurrent,
+      hasUnexportedChanges: dirty && !exportedCurrent,
+      exportStatus: exportedCurrent ? "exported_unconfirmed" : "not_exported",
+      lastExport: deepClone(lastExport),
       lastValidationReport: deepClone(lastValidationReport),
       brochureCount: getBrochures(workingData).length
     };
@@ -55,6 +67,21 @@ export function createBrochureSession(initialData, supplierDataSource) {
     lastValidationReport = deepClone(report);
   }
 
+  function importSource(nextData, fileName, report = validateBrochureFile(nextData, getSupplierData())) {
+    const normalizedData = normalizeBrochureFileForSession(nextData);
+    sourceData = deepClone(normalizedData);
+    workingData = deepClone(normalizedData);
+    sourceHash = createHash(sourceData);
+    sourceFileName = fileName || "geimporteerd brochures.json";
+    sourceType = "imported";
+    lastValidationReport = deepClone({
+      ...report,
+      action: "import",
+      sourceFileName
+    });
+    lastExport = null;
+  }
+
   function restoreSource() {
     workingData = deepClone(sourceData);
     lastValidationReport = deepClone({
@@ -62,6 +89,7 @@ export function createBrochureSession(initialData, supplierDataSource) {
       action: "restore",
       sourceFileName
     });
+    lastExport = null;
   }
 
   function applyBrochure(brochure, originalSlug = "") {
@@ -95,14 +123,48 @@ export function createBrochureSession(initialData, supplierDataSource) {
     return brochure ? deepClone(brochure) : null;
   }
 
+  function prepareExport() {
+    const report = {
+      ...validateBrochureFile(workingData, getSupplierData()),
+      action: "export",
+      sourceFileName: BROCHURES_EXPORT_FILENAME
+    };
+    lastValidationReport = deepClone(report);
+
+    if (!report.valid) {
+      return { ok: false, report: deepClone(report), fileName: BROCHURES_EXPORT_FILENAME, json: "" };
+    }
+
+    return {
+      ok: true,
+      report: deepClone(report),
+      fileName: BROCHURES_EXPORT_FILENAME,
+      data: normalizeBrochureFileForExport(workingData),
+      json: stringifyBrochureExport(workingData)
+    };
+  }
+
+  function markExported(report = lastValidationReport) {
+    lastExport = {
+      at: new Date().toISOString(),
+      fileName: BROCHURES_EXPORT_FILENAME,
+      hash: workingHash(),
+      status: "exported_unconfirmed"
+    };
+    lastValidationReport = deepClone(report);
+  }
+
   return {
     snapshot,
     getWorkingData,
     getSourceData,
     setValidationReport,
+    importSource,
     restoreSource,
     applyBrochure,
     findBySlug,
-    findById
+    findById,
+    prepareExport,
+    markExported
   };
 }

@@ -1,6 +1,8 @@
 import { CONTENT_STATUSES } from "./content-status.js";
 import { BROCHURE_LANGUAGES, normalizeSlug, sortBrochures } from "./brochure-model.js";
 
+export const BROCHURES_EXPORT_FILENAME = "brochures.json";
+
 export const BROCHURE_FILE_KEYS = ["schemaVersion", "prototype", "storage", "statuses", "categories", "languages", "items"];
 
 export const BROCHURE_KEYS = [
@@ -21,7 +23,7 @@ export const BROCHURE_KEYS = [
 ];
 
 export const BROCHURE_STORAGE_NOTICE =
-  "Brochures worden in Sprint 6A alleen in browsergeheugen gewijzigd. Import, export, uploads en publicatie zijn nog niet beschikbaar.";
+  "Brochures worden in browsergeheugen gewijzigd. Export downloadt alleen brochures.json; vervang /data/brochures.json handmatig en commit en push daarna zelf via GitHub Desktop.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -88,7 +90,7 @@ export function normalizeBrochureFileForSession(brochureData) {
     schemaVersion: asString(brochureData?.schemaVersion) || "0.1.0",
     prototype: true,
     storage: {
-      mode: "static-session",
+      mode: "static-import-export",
       writeEnabled: false,
       message: BROCHURE_STORAGE_NOTICE
     },
@@ -97,6 +99,10 @@ export function normalizeBrochureFileForSession(brochureData) {
     languages: normalizeLanguages(brochureData?.languages),
     items
   };
+}
+
+export function normalizeBrochureFileForExport(brochureData) {
+  return normalizeBrochureFileForSession(brochureData);
 }
 
 export function stableStringify(value) {
@@ -112,4 +118,8 @@ export function stableStringify(value) {
   }
 
   return JSON.stringify(value);
+}
+
+export function stringifyBrochureExport(brochureData) {
+  return `${JSON.stringify(normalizeBrochureFileForExport(brochureData), null, 2)}\n`;
 }

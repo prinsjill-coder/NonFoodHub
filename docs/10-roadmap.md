@@ -62,6 +62,13 @@ Leveranciersbeheer blijft de referentie-implementatie. Een generieke
 sessiekern, CRUD-engine of modulegenerator blijft buiten scope totdat minimaal
 een tweede volwaardige module concrete hergebruikspatronen bewijst.
 
+Aanvullend Sprint 6B-besluit: brochurebeheer gebruikt nu dezelfde statische
+overdrachtslogica als principe, maar blijft modulespecifiek. Brochuredata kan in
+de actieve browserwerksessie worden aangepast, als `brochures.json` worden
+geexporteerd en na validatie worden geimporteerd. Downloaden of importeren is
+geen opslag, publicatie, commit of push; GitHub Desktop blijft de handmatige
+publicatiestap.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

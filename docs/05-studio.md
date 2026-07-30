@@ -151,6 +151,36 @@ Nieuwe brochure
 
 Bij vervanging van een PDF blijven bestaande koppelingen bestaan.
 
+### Brochures import/export in statische Studio
+
+Zolang Studio statisch draait, schrijft brochurebeheer niet rechtstreeks naar
+repositorybestanden, GitHub of de live website. `data/brochures.json` wordt als
+gebundelde bron geladen. Daarna bestaan wijzigingen alleen in het actieve
+browsergeheugen.
+
+Sprint 6B gebruikt deze werksessie:
+
+```text
+data/brochures.json laden
+-> in-memory workingData maken
+-> brochures aanmaken of bewerken in workingData
+-> brochures.json importeren en valideren
+-> import na bevestiging toepassen op de browserwerksessie
+-> volledig valideren
+-> brochures.json exporteren als download
+-> bestand handmatig vervangen in /data
+-> commit en push via GitHub Desktop
+```
+
+Een geldige import vervangt alleen de actieve brochurewerksessie nadat de
+gebruiker dit bevestigt. Importeren publiceert niets en schrijft niets terug
+naar de repository. Onbekende velden geven waarschuwingen, maar worden niet
+opgeslagen in de definitieve brochurewerksessie en niet meegenomen in de
+genormaliseerde export.
+
+PDF-upload, thumbnail-upload, mediaopslag en automatische publicatie zijn nog
+niet actief.
+
 ## Kennisbankbeheer
 
 Artikelen worden beheerd met een eenvoudige editor.
