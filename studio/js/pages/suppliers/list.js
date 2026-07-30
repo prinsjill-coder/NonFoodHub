@@ -147,7 +147,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     })}
     ${renderFileInput({
       id: "supplier-import-file",
-      accept: ".json,application/json",
+      accept: ".json",
       label: "suppliers.json importeren",
       attributes: { "data-supplier-import-file": true }
     })}

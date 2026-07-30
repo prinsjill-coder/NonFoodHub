@@ -433,6 +433,11 @@ textarea:focus-visible {
   transform: none;
 }
 
+.studio-button.is-busy,
+.studio-button[aria-busy="true"] {
+  cursor: progress;
+}
+
 .studio-notice,
 .studio-validation-summary {
   display: grid;
@@ -538,6 +543,7 @@ textarea:focus-visible {
 .studio-validation-report {
   display: grid;
   gap: 16px;
+  overflow-wrap: anywhere;
 }
 
 .studio-report-section {
@@ -568,12 +574,15 @@ textarea:focus-visible {
 
 .studio-report-section li {
   color: var(--studio-ink-soft);
+  overflow-wrap: anywhere;
 }
 
 .studio-report-section code {
   display: inline-block;
+  max-width: 100%;
   margin-right: 6px;
   color: var(--studio-blue-dark);
+  overflow-wrap: anywhere;
 }
 
 .studio-file-input {

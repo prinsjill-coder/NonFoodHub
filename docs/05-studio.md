@@ -117,6 +117,9 @@ Een geldige import van een bestaand `suppliers.json`-bestand vervangt alleen de
 actieve werksessiebron. Importeren publiceert niets en schrijft niets terug naar
 de repository. Een browserrefresh wist niet-geexporteerde werksessiewijzigingen.
 
+Import accepteert alleen `.json`-bestanden tot maximaal 1 MB. Fouten bij
+selecteren, lezen, parsen of valideren wijzigen de actieve werksessie niet.
+
 De status `published` is alleen een contentstatus binnen data. Deze status
 betekent niet dat Studio automatisch publiceert of de live website wijzigt.
 

@@ -78,6 +78,9 @@ Een exportbestand is pas onderdeel van het project nadat het handmatig in de
 repository is geplaatst. Downloaden vanuit Studio geldt niet als opslaan,
 publiceren, committen of pushen.
 
+De vaste handmatige QA-procedure voor Studio staat in
+[appendices/studio-qa-checklist.md](appendices/studio-qa-checklist.md).
+
 ## Acceptatiecriteria
 
 Een onderdeel is gereed wanneer:

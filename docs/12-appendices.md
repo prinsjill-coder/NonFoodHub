@@ -34,6 +34,9 @@ Nog te bevestigen:
 
 De volledige audit staat in [appendices/audit-2026-07-24.md](appendices/audit-2026-07-24.md).
 
+De vaste Studio QA-checklist staat in
+[appendices/studio-qa-checklist.md](appendices/studio-qa-checklist.md).
+
 De audit van 2026-07-24 concludeert:
 
 - de Fase 1-site is technisch stabiel;
