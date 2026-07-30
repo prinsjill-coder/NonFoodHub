@@ -26,8 +26,8 @@
       "id": "brochures",
       "label": "Brochures",
       "route": "#/brochures",
-      "description": "Placeholder voor toekomstig brochurebeheer",
-      "enabled": false
+      "description": "Brochures beheren in de Studio-prototypefase",
+      "enabled": true
     },
     {
       "id": "knowledge",

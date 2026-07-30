@@ -18,22 +18,28 @@ function statusText(snapshot) {
   return "Gelijk aan geladen bron";
 }
 
-export function renderSessionBanner(snapshot) {
+export function renderSessionBanner(snapshot, options = {}) {
   const tone = snapshot.hasUnexportedChanges ? "warning" : snapshot.exportedCurrent ? "success" : "info";
   const badge = snapshot.hasUnexportedChanges ? "review" : snapshot.exportedCurrent ? "success" : "foundation";
+  const sourceDescription =
+    options.sourceDescription ||
+    `Wijzigingen bestaan alleen in browsergeheugen totdat je ${options.fileName || "suppliers.json"} exporteert.`;
+  const exportMessage =
+    options.exportMessage ||
+    "Dit bestand is alleen gedownload. Vervang handmatig /data/suppliers.json en commit en push daarna zelf via GitHub Desktop.";
 
   return `
     <section class="studio-session-banner is-${tone}" aria-label="Werksessiestatus" role="status" aria-live="polite">
       <div>
         <p class="studio-kicker">Werksessie</p>
-        <h2>${escapeHtml(statusText(snapshot))}</h2>
+        <h2>${escapeHtml(options.statusText ? options.statusText(snapshot) : statusText(snapshot))}</h2>
         <p>
           Bron: ${escapeHtml(snapshot.sourceFileName)}.
-          Wijzigingen bestaan alleen in browsergeheugen totdat je suppliers.json exporteert.
+          ${escapeHtml(sourceDescription)}
         </p>
         ${
           snapshot.exportedCurrent
-            ? `<p class="studio-meta">Dit bestand is alleen gedownload. Vervang handmatig /data/suppliers.json en commit en push daarna zelf via GitHub Desktop.</p>`
+            ? `<p class="studio-meta">${escapeHtml(exportMessage)}</p>`
             : ""
         }
         ${
@@ -45,9 +51,9 @@ export function renderSessionBanner(snapshot) {
       <div class="studio-session-actions">
         ${renderStatusBadge(badge)}
         ${renderButton({
-          label: "Sessie herstellen",
+          label: options.restoreLabel || "Sessie herstellen",
           variant: "outline",
-          attributes: { "data-supplier-restore": true }
+          attributes: options.restoreAttributes || { "data-supplier-restore": true }
         })}
       </div>
     </section>

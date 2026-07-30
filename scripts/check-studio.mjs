@@ -11,6 +11,7 @@ import {
 } from "../shared/content-status.js";
 import { routeFromHash } from "../shared/routes.js";
 import { STUDIO_CONFIG } from "../shared/config.js";
+import { createBrochureSession } from "../studio/js/state/brochure-session.js";
 import { createSupplierSession } from "../studio/js/state/supplier-session.js";
 import { renderValidationSummary } from "../components/validation-summary.js";
 import { clearFieldErrors, focusFirstInvalidField, setFieldErrors } from "../studio/js/shared/form-errors.js";
@@ -20,6 +21,7 @@ import { renderSuppliersList } from "../studio/js/pages/suppliers/list.js";
 import { renderSuppliersRoute } from "../studio/js/pages/suppliers/index.js";
 import { getRouteTitle, renderRoute } from "../studio/js/router.js";
 import { createFormDirtyGuard } from "../studio/js/form-dirty-guard.js";
+import { runBrochureChecks } from "./check-brochures.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -119,16 +121,34 @@ async function runCheck(name, check) {
 
 async function runStudioChecks() {
   const suppliers = readJson("data/suppliers.json");
+  const brochures = readJson("data/brochures.json");
 
   await runCheck("basis JSON-bestanden zijn geldig", () => {
     readJson("data/suppliers.json");
+    readJson("data/brochures.json");
     readJson("data/studio-navigation.json");
     readJson("data/studio-dashboard.json");
+  });
+
+  await runCheck("Studio datapaden zijn expliciet geconfigureerd", () => {
+    assert.deepEqual(STUDIO_CONFIG.data, {
+      navigation: "../data/studio-navigation.json",
+      dashboard: "../data/studio-dashboard.json",
+      suppliers: "../data/suppliers.json",
+      brochures: "../data/brochures.json"
+    });
+
+    Object.entries(STUDIO_CONFIG.data).forEach(([key, value]) => {
+      assert.equal(typeof value, "string", `Datapad ${key} ontbreekt.`);
+      assert.notEqual(value, "undefined", `Datapad ${key} mag niet letterlijk undefined zijn.`);
+    });
   });
 
   await runCheck("Studio modules importeren zonder side effects", async () => {
     await import("../shared/routes.js");
     await import("../shared/content-status.js");
+    await import("../shared/brochure-file-validation.js");
+    await import("../shared/brochure-normalizer.js");
     await import("../shared/supplier-file-validation.js");
     await import("../shared/supplier-normalizer.js");
     await import("../studio/js/shared/form-errors.js");
@@ -137,6 +157,9 @@ async function runStudioChecks() {
     await import("../studio/js/shared/route-metadata.js");
     await import("../studio/js/router.js");
     await import("../studio/js/route-focus.js");
+    await import("../studio/js/state/brochure-session.js");
+    await import("../studio/js/pages/brochures/form.js");
+    await import("../studio/js/pages/brochures/index.js");
     await import("../studio/js/pages/suppliers/form.js");
     await import("../studio/js/pages/suppliers/import-export.js");
     await import("../components/confirm-dialog.js");
@@ -192,14 +215,21 @@ async function runStudioChecks() {
     assert.equal(routeFromHash("#/leveranciers/nieuw").id, "supplierNew");
     assert.equal(routeFromHash("#/leveranciers/amefa").id, "supplierDetail");
     assert.equal(routeFromHash("#/leveranciers/amefa/bewerken").id, "supplierEdit");
+    assert.equal(routeFromHash("#/brochures").id, "brochures");
+    assert.equal(routeFromHash("#/brochures/nieuw").id, "brochureNew");
+    assert.equal(routeFromHash("#/brochures/amefa-for-professionals-2026").id, "brochureDetail");
+    assert.equal(routeFromHash("#/brochures/amefa-for-professionals-2026/bewerken").id, "brochureEdit");
     assert.equal(routeFromHash("#/bestaat-niet").id, "notFound");
   });
 
   await runCheck("route titles en document title helper werken", async () => {
     const supplierSession = createSupplierSession(suppliers);
-    const state = { supplierSession };
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const state = { supplierSession, brochureSession };
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/amefa"), state), "Amefa");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/onbekend"), state), "Leverancier niet gevonden");
+    assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), "Amefa for Professionals 2026");
+    assert.equal(getRouteTitle(routeFromHash("#/brochures/onbekend"), state), "Brochure niet gevonden");
 
     globalThis.document = { title: "" };
     const { applyRouteTitle, focusRouteContent } = await import("../studio/js/route-focus.js");
@@ -230,15 +260,57 @@ async function runStudioChecks() {
 
   await runCheck("leveranciersroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
-      supplierSession
+      supplierSession,
+      brochureSession
     };
 
     assert.match(renderRoute(routeFromHash("#/leveranciers"), state), /Leveranciers/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/amefa"), state), /Amefa/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Amefa bewerken/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/nieuw"), state), /Nieuwe leverancier/);
+  });
+
+  await runCheck("brochureroutes renderen lijst, detail, nieuw en bewerken", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession
+    };
+
+    const listHtml = renderRoute(routeFromHash("#/brochures"), state);
+    const newHtml = renderRoute(routeFromHash("#/brochures/nieuw"), state);
+    const detailHtml = renderRoute(routeFromHash("#/brochures/amefa-for-professionals-2026"), state);
+    const editHtml = renderRoute(routeFromHash("#/brochures/amefa-for-professionals-2026/bewerken"), state);
+
+    assert.match(listHtml, /Brochurebeheer/);
+    assert.match(listHtml, /Amefa for Professionals 2026/);
+    assert.doesNotMatch(listHtml, /is nog niet actief/);
+    assert.match(newHtml, /Nieuwe brochure/);
+    assert.match(newHtml, /data-brochure-form/);
+    assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
+    assert.match(detailHtml, /Amefa for Professionals 2026/);
+    assert.match(editHtml, /Amefa for Professionals 2026 bewerken/);
+  });
+
+  await runCheck("dashboardknoppen verwijzen naar actieve brochuremodule", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession
+    };
+    const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
+    const brochureAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuwe brochure<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
+
+    assert.match(dashboardHtml, /href="#\/brochures\/nieuw"/);
+    assert.match(brochureAction, /href="#\/brochures\/nieuw"/);
+    assert.doesNotMatch(brochureAction, /Niet actief|is-disabled/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {
@@ -283,13 +355,18 @@ async function runStudioChecks() {
 
   await runCheck("not-foundweergaven blijven contextspecifiek", () => {
     const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
     const genericHtml = renderRouteNotFound(routeFromHash("#/bestaat-niet"));
     const supplierHtml = renderSuppliersRoute(routeFromHash("#/leveranciers/bestaat-niet"), supplierSession);
+    const state = { supplierSession, brochureSession };
+    const brochureHtml = renderRoute(routeFromHash("#/brochures/bestaat-niet"), state);
 
     assert.match(genericHtml, /Pagina niet gevonden/);
     assert.match(genericHtml, /Terug naar dashboard/);
     assert.match(supplierHtml, /Leverancier niet gevonden/);
     assert.match(supplierHtml, /Terug naar leveranciers/);
+    assert.match(brochureHtml, /Brochure niet gevonden/);
+    assert.match(brochureHtml, /Terug naar brochures/);
   });
 
   await runCheck("import- en exportstatussen renderen begrijpelijk", () => {
@@ -380,6 +457,7 @@ async function runStudioChecks() {
   });
 
   await runSupplierChecks();
+  await runBrochureChecks();
 }
 
 runStudioChecks()

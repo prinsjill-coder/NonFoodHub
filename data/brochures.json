@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "0.1.0",
+  "prototype": true,
+  "storage": {
+    "mode": "static-session",
+    "writeEnabled": false,
+    "message": "Brochures worden in Sprint 6A alleen in browsergeheugen gewijzigd. Import, export, uploads en publicatie zijn nog niet beschikbaar."
+  },
+  "statuses": [
+    "concept",
+    "review",
+    "published",
+    "hidden",
+    "archived"
+  ],
+  "categories": [
+    "Bestek",
+    "Buffet & presentatie",
+    "Glaswerk",
+    "Keukengerei",
+    "Servies",
+    "Tafelpresentatie"
+  ],
+  "languages": [
+    {
+      "id": "nl",
+      "label": "Nederlands"
+    },
+    {
+      "id": "en",
+      "label": "Engels"
+    }
+  ],
+  "items": [
+    {
+      "id": "brochure-amefa-2026",
+      "title": "Amefa for Professionals 2026",
+      "supplierId": "supplier-amefa",
+      "slug": "amefa-for-professionals-2026",
+      "year": 2026,
+      "categories": [
+        "Bestek",
+        "Tafelpresentatie"
+      ],
+      "pdfFile": "assets/downloads/brochures/amefa-for-professionals-2026.pdf",
+      "pdfSize": "",
+      "thumbnail": "assets/images/supplier-amefa.jpg",
+      "description": "Demo-brochure voor bestek en tafelpresentatie, gekoppeld aan Amefa.",
+      "language": "nl",
+      "status": "published",
+      "sortOrder": 10,
+      "updatedAt": "2026-07-30"
+    },
+    {
+      "id": "brochure-churchill-2026",
+      "title": "Churchill Combined Brochure 2026",
+      "supplierId": "supplier-churchill",
+      "slug": "churchill-combined-brochure-2026",
+      "year": 2026,
+      "categories": [
+        "Servies",
+        "Buffet & presentatie"
+      ],
+      "pdfFile": "assets/downloads/brochures/churchill-combined-brochure-2026.pdf",
+      "pdfSize": "",
+      "thumbnail": "",
+      "description": "Demo-brochure voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
+      "language": "en",
+      "status": "review",
+      "sortOrder": 20,
+      "updatedAt": "2026-07-30"
+    }
+  ]
+}

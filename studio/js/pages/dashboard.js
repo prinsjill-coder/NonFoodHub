@@ -3,20 +3,34 @@ import { renderMetricCard, renderPanelCard } from "../../../components/card.js";
 import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
+import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 import { renderNotFoundState } from "../shared/not-found.js";
 
-function hydrateMetrics(dashboardData, supplierData) {
+function hydrateMetrics(dashboardData, supplierData, brochureData) {
   const supplierCounts = getSupplierCounts(supplierData);
+  const brochureCounts = getBrochureCounts(brochureData);
   return dashboardData.metrics.map((metric) => {
-    if (metric.id !== "suppliers") return metric;
-    return {
-      ...metric,
-      value: supplierCounts.total,
-      state: "foundation",
-      note: "Gelezen uit de actieve Studio-werksessie; nog niet gekoppeld aan de publieke website."
-    };
+    if (metric.id === "suppliers") {
+      return {
+        ...metric,
+        value: supplierCounts.total,
+        state: "foundation",
+        note: "Gelezen uit de actieve Studio-werksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    if (metric.id === "brochures") {
+      return {
+        ...metric,
+        value: brochureCounts.total,
+        state: "foundation",
+        note: "Gelezen uit de actieve brochurewerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    return metric;
   });
 }
 
@@ -39,8 +53,8 @@ function renderQuickAction(action) {
   `;
 }
 
-export function renderDashboard(dashboardData, supplierData) {
-  const metrics = hydrateMetrics(dashboardData, supplierData).map(renderMetricCard).join("");
+export function renderDashboard(dashboardData, supplierData, brochureData) {
+  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
 

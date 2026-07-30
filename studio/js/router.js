@@ -1,4 +1,5 @@
 import { routeFromHash } from "../../shared/routes.js";
+import { renderBrochuresRoute, setupBrochuresRoute } from "./pages/brochures/index.js";
 import { renderDashboard, renderRouteNotFound, renderRoutePlaceholder } from "./pages/dashboard.js";
 import { renderSuppliersRoute, setupSuppliersRoute } from "./pages/suppliers/index.js";
 import { getBaseRouteTitle, getItemRouteTitle } from "./shared/route-metadata.js";
@@ -9,6 +10,7 @@ export function getCurrentRoute() {
 
 export function getRouteTitle(route, state) {
   if (route.id === "supplierNew") return "Nieuwe leverancier";
+  if (route.id === "brochureNew") return "Nieuwe brochure";
 
   if (route.id === "supplierEdit" || route.id === "supplierDetail") {
     const supplier = state.supplierSession.findBySlug(route.params?.slug);
@@ -23,6 +25,19 @@ export function getRouteTitle(route, state) {
     });
   }
 
+  if (route.id === "brochureEdit" || route.id === "brochureDetail") {
+    const brochure = state.brochureSession?.findBySlug(route.params?.slug);
+    return getItemRouteTitle({
+      route,
+      item: brochure,
+      detailRouteId: "brochureDetail",
+      editRouteId: "brochureEdit",
+      missingTitle: "Brochure niet gevonden",
+      detailTitle: (item) => item.title,
+      editTitle: (item) => `${item.title} bewerken`
+    });
+  }
+
   return getBaseRouteTitle(route);
 }
 
@@ -32,11 +47,15 @@ export function renderRoute(route, state) {
   }
 
   if (route.id === "dashboard") {
-    return renderDashboard(state.dashboard, state.supplierSession.getWorkingData());
+    return renderDashboard(state.dashboard, state.supplierSession.getWorkingData(), state.brochureSession?.getWorkingData());
   }
 
   if (route.sectionId === "suppliers") {
     return renderSuppliersRoute(route, state.supplierSession);
+  }
+
+  if (route.sectionId === "brochures") {
+    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession);
   }
 
   return renderRoutePlaceholder(route);
@@ -45,5 +64,9 @@ export function renderRoute(route, state) {
 export function setupRoute(route, state, options = {}) {
   if (route.sectionId === "suppliers") {
     setupSuppliersRoute(route, state.supplierSession, options);
+  }
+
+  if (route.sectionId === "brochures") {
+    setupBrochuresRoute(route, state.brochureSession, state.supplierSession, options);
   }
 }

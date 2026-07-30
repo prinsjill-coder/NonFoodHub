@@ -22,7 +22,8 @@ export const STUDIO_ROUTES = [
     id: "brochures",
     path: "/brochures",
     title: "Brochures",
-    enabled: false
+    enabled: true,
+    sectionId: "brochures"
   },
   {
     id: "knowledge",
@@ -117,6 +118,41 @@ export function routeFromHash(hash) {
       enabled: true,
       sectionId: "suppliers",
       params: { slug: supplierDetailMatch[1] }
+    };
+  }
+
+  if (cleaned === "/brochures/nieuw") {
+    return {
+      id: "brochureNew",
+      path: cleaned,
+      title: "Nieuwe brochure",
+      enabled: true,
+      sectionId: "brochures",
+      params: {}
+    };
+  }
+
+  const brochureEditMatch = cleaned.match(/^\/brochures\/([^/]+)\/bewerken$/);
+  if (brochureEditMatch) {
+    return {
+      id: "brochureEdit",
+      path: cleaned,
+      title: "Brochure bewerken",
+      enabled: true,
+      sectionId: "brochures",
+      params: { slug: brochureEditMatch[1] }
+    };
+  }
+
+  const brochureDetailMatch = cleaned.match(/^\/brochures\/([^/]+)$/);
+  if (brochureDetailMatch) {
+    return {
+      id: "brochureDetail",
+      path: cleaned,
+      title: "Brochure bekijken",
+      enabled: true,
+      sectionId: "brochures",
+      params: { slug: brochureDetailMatch[1] }
     };
   }
 

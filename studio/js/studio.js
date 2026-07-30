@@ -5,21 +5,36 @@ import { createFormDirtyGuard } from "./form-dirty-guard.js";
 import { renderLayout } from "./layout.js";
 import { focusRouteContent, applyRouteTitle } from "./route-focus.js";
 import { getCurrentRoute, getRouteTitle, renderRoute, setupRoute } from "./router.js";
+import { createBrochureSession } from "./state/brochure-session.js";
 import { createSupplierSession } from "./state/supplier-session.js";
 
 const app = document.querySelector("#studio-app");
 
+const STUDIO_DATA_PATHS = {
+  navigation: "../data/studio-navigation.json",
+  dashboard: "../data/studio-dashboard.json",
+  suppliers: "../data/suppliers.json",
+  brochures: "../data/brochures.json"
+};
+
+function getStudioDataPath(key) {
+  return STUDIO_CONFIG.data?.[key] || STUDIO_DATA_PATHS[key];
+}
+
 async function loadStudioData() {
-  const [navigation, dashboard, suppliers] = await Promise.all([
-    fetchJson(STUDIO_CONFIG.data.navigation),
-    fetchJson(STUDIO_CONFIG.data.dashboard),
-    fetchJson(STUDIO_CONFIG.data.suppliers)
+  const [navigation, dashboard, suppliers, brochures] = await Promise.all([
+    fetchJson(getStudioDataPath("navigation")),
+    fetchJson(getStudioDataPath("dashboard")),
+    fetchJson(getStudioDataPath("suppliers")),
+    fetchJson(getStudioDataPath("brochures"))
   ]);
+  const supplierSession = createSupplierSession(suppliers);
 
   return {
     navigation,
     dashboard,
-    supplierSession: createSupplierSession(suppliers),
+    supplierSession,
+    brochureSession: createBrochureSession(brochures, () => supplierSession.getWorkingData()),
     formDirtyGuard: createFormDirtyGuard()
   };
 }
@@ -115,7 +130,9 @@ async function initStudio() {
       renderStudio(state);
     });
     window.addEventListener("beforeunload", (event) => {
-      if (!state.supplierSession?.snapshot().hasUnexportedChanges && !state.formDirtyGuard.isDirty()) return;
+      const supplierDirty = state.supplierSession?.snapshot().hasUnexportedChanges;
+      const brochureDirty = state.brochureSession?.snapshot().hasUnexportedChanges;
+      if (!supplierDirty && !brochureDirty && !state.formDirtyGuard.isDirty()) return;
       event.preventDefault();
       event.returnValue = "";
     });
