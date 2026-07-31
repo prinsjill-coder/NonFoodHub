@@ -1,6 +1,8 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
 import { renderLibraryDetail } from "./detail.js";
+import { renderLibraryExportPage, setupLibraryExport } from "./export.js";
 import { renderLibraryForm, setupLibraryForm } from "./form.js";
+import { renderLibraryImportPage, setupLibraryImport } from "./import.js";
 import { renderLibraryList, setupLibraryList } from "./list.js";
 
 export function renderLibraryRoute(route, librarySession, supplierSession, brochureSession, articleSession, mediaSession) {
@@ -14,6 +16,21 @@ export function renderLibraryRoute(route, librarySession, supplierSession, broch
     return renderLibraryList({
       libraryData,
       supplierData,
+      brochureData,
+      articleData,
+      mediaData,
+      sessionSnapshot: librarySession.snapshot()
+    });
+  }
+
+  if (route.id === "libraryImport") {
+    return renderLibraryImportPage({
+      sessionSnapshot: librarySession.snapshot()
+    });
+  }
+
+  if (route.id === "libraryExport") {
+    return renderLibraryExportPage({
       sessionSnapshot: librarySession.snapshot()
     });
   }
@@ -45,6 +62,24 @@ export function renderLibraryRoute(route, librarySession, supplierSession, broch
 export function setupLibraryRoute(route, librarySession, supplierSession, brochureSession, articleSession, mediaSession, options = {}) {
   if (route.id === "library") {
     setupLibraryList({ librarySession, rerender: options.rerender });
+  }
+
+  if (route.id === "libraryImport") {
+    setupLibraryImport({
+      librarySession,
+      supplierSession,
+      brochureSession,
+      articleSession,
+      mediaSession,
+      rerender: options.rerender
+    });
+  }
+
+  if (route.id === "libraryExport") {
+    setupLibraryExport({
+      librarySession,
+      rerender: options.rerender
+    });
   }
 
   if (route.id === "libraryNew" || route.id === "libraryEdit") {

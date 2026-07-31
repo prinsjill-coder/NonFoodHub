@@ -80,11 +80,25 @@
       "note": "Wordt in Studio berekend uit data/library.json."
     },
     {
+      "id": "libraryPublished",
+      "label": "Bibliotheek gepubliceerd",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit de actieve bibliotheekwerksessie."
+    },
+    {
+      "id": "libraryWarnings",
+      "label": "Bibliotheekwaarschuwingen",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit het bibliotheekkwaliteitsrapport."
+    },
+    {
       "id": "libraryMissingFiles",
       "label": "Bibliotheek zonder bestand",
       "value": null,
       "state": "not_connected",
-      "note": "Bibliotheekitems zonder gekoppeld bestandspad."
+      "note": "Bibliotheekitems met ontbrekende of niet geregistreerde bestands- en thumbnailpaden."
     }
   ],
   "panels": [

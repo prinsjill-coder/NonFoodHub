@@ -5,15 +5,24 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { CONTENT_STATUSES } from "../shared/content-status.js";
 import { routeFromHash } from "../shared/routes.js";
+import { createLibraryExport } from "../shared/library-export.js";
 import { validateLibraryFile } from "../shared/library-file-validation.js";
+import { validateLibraryImportData } from "../shared/library-import.js";
 import {
   getLibraryCounts,
   getLibraryItems,
   LIBRARY_CATEGORIES,
   LIBRARY_TYPES
 } from "../shared/library-model.js";
-import { normalizeLibraryFileForSession, stableStringify } from "../shared/library-normalizer.js";
+import {
+  LIBRARY_EXPORT_FILENAME,
+  normalizeLibraryFileForExport,
+  normalizeLibraryFileForSession,
+  stableStringify,
+  stringifyLibraryExport
+} from "../shared/library-normalizer.js";
 import { validateLibraryItem } from "../shared/library-validation.js";
+import { validateLibraryImportFile } from "../studio/js/pages/library/import.js";
 import { createLibrarySession } from "../studio/js/state/library-session.js";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -92,6 +101,8 @@ export async function runLibraryChecks() {
   await runCheck("routes voor bibliotheek bestaan", () => {
     assert.equal(routeFromHash("#/bibliotheek").id, "library");
     assert.equal(routeFromHash("#/bibliotheek/nieuw").id, "libraryNew");
+    assert.equal(routeFromHash("#/bibliotheek/import").id, "libraryImport");
+    assert.equal(routeFromHash("#/bibliotheek/export").id, "libraryExport");
     assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026").id, "libraryDetail");
     assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026/bewerken").id, "libraryEdit");
   });
@@ -219,6 +230,43 @@ export async function runLibraryChecks() {
     assert.equal(stableStringify(first), stableStringify(second));
     assert.equal("extraRoot" in first, false);
     assert.equal("extraItem" in first.items[0], false);
+    assert.equal(stableStringify(normalizeLibraryFileForExport(data)), stableStringify(first));
+    assert.match(stringifyLibraryExport(data), /"metadata":/);
+  });
+
+  await runCheck("import en export valideren modulespecifiek en gebruiken library.json", () => {
+    let data = clone(library);
+    firstItem(data).title = "Gewijzigde titel";
+    const importReport = validateLibraryImportData(data, suppliers, brochures, articles, media, "library.json", library);
+
+    assert.equal(importReport.valid, true);
+    assert.equal(importReport.sourceFileName, "library.json");
+    assert.equal(importReport.itemCount, library.items.length);
+    assert.equal(importReport.changedItems, 1);
+
+    data = clone(library);
+    secondItem(data).id = firstItem(data).id;
+    const invalidImport = validateLibraryImportData(data, suppliers, brochures, articles, media, "library.json", library);
+    assert.equal(invalidImport.valid, false);
+    assert.ok(invalidImport.errors.some((error) => error.path === "items[1].id"));
+
+    data = clone(library);
+    data.extraRoot = "tijdelijk";
+    firstItem(data).extraItem = "tijdelijk";
+    const exportResult = createLibraryExport(data, suppliers, brochures, articles, media);
+    assert.equal(exportResult.ok, true);
+    assert.equal(exportResult.fileName, LIBRARY_EXPORT_FILENAME);
+    assert.equal(exportResult.fileName, "library.json");
+    assert.equal("extraRoot" in exportResult.data, false);
+    assert.equal("extraItem" in exportResult.data.items[0], false);
+    assert.match(exportResult.json, /"items": \[/);
+  });
+
+  await runCheck("importbestandcontrole gebruikt 1 MB limiet en .json extensie", () => {
+    assert.equal(validateLibraryImportFile(null).report.errors[0].path, "import.file");
+    assert.equal(validateLibraryImportFile({ name: "library.txt", size: 1 }).report.errors[0].path, "import.file");
+    assert.equal(validateLibraryImportFile({ name: "library.json", size: 1024 * 1024 + 1 }).report.errors[0].path, "import.file");
+    assert.equal(validateLibraryImportFile({ name: "library.json", size: 1024 * 1024 }).ok, true);
   });
 
   await runCheck("sessie start schoon, wordt dirty en kan herstellen", () => {
@@ -238,6 +286,33 @@ export async function runLibraryChecks() {
     session.restoreSource();
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(item.slug).title, item.title);
+  });
+
+  await runCheck("sessie kan importeren, exporteren en exportstatus registreren", () => {
+    const session = createLibrarySession(library, {
+      suppliers,
+      brochures,
+      articles,
+      media
+    });
+    const data = clone(library);
+    firstItem(data).title = "Geimporteerd bibliotheekitem";
+    const report = validateLibraryImportData(data, suppliers, brochures, articles, media, "library.json", library);
+
+    session.importSource(data, "library.json", report);
+    assert.equal(session.snapshot().dirty, false);
+    assert.equal(session.snapshot().sourceType, "imported");
+    assert.equal(session.findById(firstItem(data).id).title, "Geimporteerd bibliotheekitem");
+
+    session.applyLibraryItem({ ...firstItem(data), title: "Nieuwe werksessietitel" }, firstItem(data).slug);
+    assert.equal(session.snapshot().hasUnexportedChanges, true);
+
+    const exportResult = session.prepareExport();
+    assert.equal(exportResult.ok, true);
+    assert.equal(exportResult.fileName, "library.json");
+    session.markExported(exportResult.report);
+    assert.equal(session.snapshot().exportedCurrent, true);
+    assert.equal(session.snapshot().lastExport.fileName, "library.json");
   });
 
   await runCheck("sessie beschermt snapshots en gevonden items tegen externe mutatie", () => {

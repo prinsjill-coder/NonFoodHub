@@ -1,8 +1,11 @@
 import { CONTENT_STATUSES } from "./content-status.js";
 import { LIBRARY_CATEGORIES, LIBRARY_TYPES, sortLibraryItems } from "./library-model.js";
 
+export const LIBRARY_EXPORT_FILENAME = "library.json";
+
 export const LIBRARY_FILE_KEYS = [
   "schemaVersion",
+  "metadata",
   "prototype",
   "storage",
   "statuses",
@@ -30,7 +33,7 @@ export const LIBRARY_ITEM_KEYS = [
 ];
 
 export const LIBRARY_STORAGE_NOTICE =
-  "Bibliotheekitems worden in Sprint 9A alleen in browsergeheugen als Studio-register beheerd. Uploads, automatische downloads, repositorywrites en publicatie zijn niet actief.";
+  "Bibliotheekitems worden in browsergeheugen gewijzigd. Import en export zijn handmatige overdrachtsstappen; vervang /data/library.json zelf en commit en push daarna via GitHub Desktop.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -52,6 +55,24 @@ function uniqueStrings(values) {
     seen.add(value);
     return true;
   });
+}
+
+function latestUpdatedAt(items) {
+  return items
+    .map((item) => asString(item.updatedAt))
+    .filter(Boolean)
+    .sort()
+    .at(-1) || "";
+}
+
+function normalizeMetadata(metadata, items) {
+  return {
+    module: asString(metadata?.module) || "library",
+    source: asString(metadata?.source) || "NonFood Hub Studio",
+    transfer: asString(metadata?.transfer) || "manual-json-export",
+    itemCount: items.length,
+    lastUpdatedAt: latestUpdatedAt(items)
+  };
 }
 
 export function normalizeLibraryItemForSession(item) {
@@ -79,9 +100,10 @@ export function normalizeLibraryFileForSession(libraryData) {
 
   return {
     schemaVersion: asString(libraryData?.schemaVersion) || "0.1.0",
+    metadata: normalizeMetadata(libraryData?.metadata, items),
     prototype: true,
     storage: {
-      mode: "static-session",
+      mode: "static-import-export",
       writeEnabled: false,
       message: LIBRARY_STORAGE_NOTICE
     },
@@ -92,6 +114,10 @@ export function normalizeLibraryFileForSession(libraryData) {
       : LIBRARY_CATEGORIES,
     items
   };
+}
+
+export function normalizeLibraryFileForExport(libraryData) {
+  return normalizeLibraryFileForSession(libraryData);
 }
 
 export function stableStringify(value) {
@@ -107,4 +133,8 @@ export function stableStringify(value) {
   }
 
   return JSON.stringify(value);
+}
+
+export function stringifyLibraryExport(libraryData) {
+  return `${JSON.stringify(normalizeLibraryFileForExport(libraryData), null, 2)}\n`;
 }

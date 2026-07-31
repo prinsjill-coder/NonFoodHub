@@ -65,6 +65,12 @@ export function validateLibraryFile(libraryData, supplierData = {}, brochureData
 
   if (!libraryData.schemaVersion) {
     errors.push(createIssue("schemaVersion", "schemaVersion is verplicht."));
+  } else if (libraryData.schemaVersion !== "0.1.0") {
+    errors.push(createIssue("schemaVersion", "schemaVersion moet 0.1.0 zijn."));
+  }
+
+  if ("metadata" in libraryData && !isPlainObject(libraryData.metadata)) {
+    warnings.push(createIssue("metadata", "metadata moet een object zijn en wordt bij export genormaliseerd."));
   }
 
   if (!Array.isArray(libraryData.statuses)) {

@@ -104,6 +104,13 @@ metadata, relatieve bestandspaden en relaties met leveranciers, brochures en
 kennisbankartikelen. Er is nog geen import/export, uploadfunctionaliteit,
 publieke downloadkoppeling, backend, repositorywrite of mediaAssetId-migratie.
 
+Aanvullend Sprint 9B-besluit: Bibliotheekbeheer ondersteunt modulespecifieke
+import/export voor `library.json`, een kwaliteitsrapport, relatiecontrole en
+dashboardinzichten voor bibliotheekkwaliteit. De werkwijze blijft statisch en
+handmatig: exporteren is een download, geen opslag, publicatie, commit of push.
+Uploads, publieke downloads, backendkoppelingen en mediaAssetId-migratie blijven
+buiten scope.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

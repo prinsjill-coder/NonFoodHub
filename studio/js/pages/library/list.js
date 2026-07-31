@@ -14,6 +14,7 @@ import {
   getLibraryTypeLabel,
   sortLibraryItems
 } from "../../../../shared/library-model.js";
+import { getLibraryQualityReport } from "../../../../shared/library-quality.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
@@ -136,15 +137,76 @@ function categoryOptions(libraryData) {
 }
 
 function renderSessionStatus(snapshot) {
+  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
+  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde bibliotheekwijzigingen";
   if (snapshot.dirty) return "Niet-opgeslagen bibliotheekwijzigingen";
   return "Gelijk aan geladen bron";
 }
 
-export function renderLibraryList({ libraryData, supplierData, sessionSnapshot }) {
+function renderExportNotice(sessionSnapshot) {
+  if (!sessionSnapshot.exportedCurrent) return "";
+
+  return renderNotice({
+    title: "Export gedownload",
+    message:
+      "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+    tone: "success"
+  });
+}
+
+function renderImportNotice(sessionSnapshot) {
+  if (sessionSnapshot.sourceType !== "imported") return "";
+
+  return renderNotice({
+    title: "Geïmporteerde bibliotheekbron actief",
+    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    tone: "info"
+  });
+}
+
+function renderQualitySummary(qualityReport) {
+  return `
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Contentkwaliteit</h2>
+        ${renderStatusBadge(qualityReport.valid ? "success" : "review")}
+      </div>
+      <div class="studio-grid studio-grid-4">
+        <article class="studio-card studio-metric-card">
+          <h3>Gepubliceerd</h3>
+          <p class="studio-metric-value">${qualityReport.stats.published}</p>
+          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Waarschuwingen</h3>
+          <p class="studio-metric-value">${qualityReport.stats.warnings}</p>
+          <p class="studio-muted">Structuur, bestanden, mediaregistraties en relaties.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Bestandsmeldingen</h3>
+          <p class="studio-metric-value">${qualityReport.stats.missingFiles}</p>
+          <p class="studio-muted">Ontbrekende of niet geregistreerde paden.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Relatiemeldingen</h3>
+          <p class="studio-metric-value">${qualityReport.stats.brokenRelations}</p>
+          <p class="studio-muted">Verwijzingen naar onbekende content-id's.</p>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+export function renderLibraryList({ libraryData, supplierData, brochureData, articleData, mediaData, sessionSnapshot }) {
   const items = sortLibraryItems(getLibraryItems(libraryData));
   const counts = getLibraryCounts(libraryData);
+  const qualityReport = getLibraryQualityReport(libraryData, supplierData, brochureData, articleData, mediaData);
   const suppliersById = supplierNameById(supplierData);
-  const actions = renderButton({ label: "Nieuw bibliotheekitem", href: "#/bibliotheek/nieuw", variant: "primary" });
+  const actions = `
+    ${renderButton({ label: "Nieuw bibliotheekitem", href: "#/bibliotheek/nieuw", variant: "primary" })}
+    ${renderButton({ label: "Importeren", href: "#/bibliotheek/import", variant: "secondary" })}
+    ${renderButton({ label: "Exporteren", href: "#/bibliotheek/export", variant: "secondary" })}
+  `;
 
   return `
     ${renderPageHeader({
@@ -156,22 +218,36 @@ export function renderLibraryList({ libraryData, supplierData, sessionSnapshot }
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen. Import, export, uploads en automatische downloads zijn in Sprint 9A niet actief.",
+        "Wijzigingen bestaan alleen in browsergeheugen totdat je library.json exporteert.",
+      exportMessage:
+        "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreLabel: "Bibliotheeksessie herstellen",
       restoreAttributes: { "data-library-restore": true }
     })}
 
+    ${renderImportNotice(sessionSnapshot)}
+    ${renderExportNotice(sessionSnapshot)}
+
     ${renderNotice({
-      title: "Register zonder upload",
+      title: "Statische Studio-werksessie",
       message:
         libraryData.storage?.message ||
-        "Bibliotheekitems worden alleen als metadata geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
+        "Bibliotheekitems worden als registry beheerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
       tone: "warning"
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport bibliotheek"
+    })}
+
+    ${renderValidationReport({
+      valid: qualityReport.valid,
+      errors: qualityReport.errors,
+      warnings: qualityReport.warnings,
+      sourceFileName: "actieve bibliotheekwerksessie"
+    }, {
+      title: "Kwaliteitsrapport bibliotheek"
     })}
 
     <section class="studio-section">
@@ -187,12 +263,14 @@ export function renderLibraryList({ libraryData, supplierData, sessionSnapshot }
           <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Bestandspad ontbreekt</h3>
-          <p class="studio-metric-value">${counts.missingFilePath}</p>
-          <p class="studio-muted">Items zonder gekoppeld bestandspad.</p>
+          <h3>Gepubliceerd</h3>
+          <p class="studio-metric-value">${qualityReport.stats.published}</p>
+          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
         </article>
       </div>
     </section>
+
+    ${renderQualitySummary(qualityReport)}
 
     ${renderFilterToolbar({
       scope: "library",

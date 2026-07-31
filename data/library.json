@@ -1,10 +1,17 @@
 {
   "schemaVersion": "0.1.0",
+  "metadata": {
+    "module": "library",
+    "source": "NonFood Hub Studio",
+    "transfer": "manual-json-export",
+    "itemCount": 2,
+    "lastUpdatedAt": "2026-07-31"
+  },
   "prototype": true,
   "storage": {
-    "mode": "static-session",
+    "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Bibliotheekitems worden alleen als Studio-register beheerd. Studio uploadt geen bestanden, schrijft niet naar de repository en publiceert niets automatisch."
+    "message": "Bibliotheekitems worden in browsergeheugen gewijzigd. Import en export zijn handmatige overdrachtsstappen; vervang /data/library.json zelf en commit en push daarna via GitHub Desktop."
   },
   "statuses": [
     "concept",

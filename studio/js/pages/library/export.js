@@ -1,0 +1,227 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
+import { renderButton } from "../../../../components/button.js";
+import { renderNotice } from "../../../../components/notice.js";
+import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderSessionBanner } from "../../../../components/session-banner.js";
+import { renderValidationReport } from "../../../../components/validation-report.js";
+import { LIBRARY_EXPORT_FILENAME } from "../../../../shared/library-normalizer.js";
+import {
+  createBusyGuard,
+  downloadTextFile
+} from "../../shared/import-export-file.js";
+
+function createIssue(path, message) {
+  return { path, message };
+}
+
+function createExportReport(path, message) {
+  return {
+    valid: false,
+    errors: [createIssue(path, message)],
+    warnings: [],
+    action: "export",
+    sourceFileName: LIBRARY_EXPORT_FILENAME
+  };
+}
+
+function focusValidationReport() {
+  window.requestAnimationFrame(() => {
+    const report = document.querySelector("[data-validation-report]");
+    if (!report) return;
+
+    if (!report.hasAttribute("tabindex")) {
+      report.setAttribute("tabindex", "-1");
+    }
+
+    report.focus({ preventScroll: false });
+  });
+}
+
+function rerenderAndFocusReport(rerender) {
+  rerender();
+  focusValidationReport();
+}
+
+function setButtonBusy(button, busy) {
+  if (!button) return;
+  button.disabled = busy;
+  button.classList.toggle("is-busy", busy);
+  button.setAttribute("aria-busy", busy ? "true" : "false");
+  button.textContent = busy ? "Exporteren..." : "Exporteren";
+}
+
+function renderSessionStatus(snapshot) {
+  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
+  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde bibliotheekwijzigingen";
+  if (snapshot.dirty) return "Niet-opgeslagen bibliotheekwijzigingen";
+  return "Gelijk aan geladen bron";
+}
+
+function renderExportNotice(sessionSnapshot) {
+  if (!sessionSnapshot.exportedCurrent) return "";
+
+  return renderNotice({
+    title: "Export gedownload",
+    message:
+      "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+    tone: "success"
+  });
+}
+
+function renderExportSummary(report) {
+  if (report?.action !== "export") return "";
+
+  return `
+    <section class="studio-section" aria-label="Exportsamenvatting">
+      <div class="studio-grid studio-grid-3">
+        <article class="studio-card studio-metric-card">
+          <h3>Items</h3>
+          <p class="studio-metric-value">${Number(report.itemCount || 0)}</p>
+          <p class="studio-muted">Aantal items in de actieve bibliotheekwerksessie.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Waarschuwingen</h3>
+          <p class="studio-metric-value">${Number(report.warnings?.length || 0)}</p>
+          <p class="studio-muted">Waarschuwingen blokkeren export niet.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Blokkades</h3>
+          <p class="studio-metric-value">${Number(report.errors?.length || 0)}</p>
+          <p class="studio-muted">Fouten blokkeren export.</p>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+export function renderLibraryExportPage({ sessionSnapshot }) {
+  return `
+    ${renderPageHeader({
+      eyebrow: "Bibliotheekbeheer",
+      title: "Bibliotheek exporteren",
+      description: "Download de actieve bibliotheekwerksessie als volledig gevalideerd en genormaliseerd library.json-bestand."
+    })}
+
+    <div class="studio-actions studio-page-actions">
+      ${renderButton({ label: "Terug naar bibliotheek", href: "#/bibliotheek", variant: "secondary" })}
+      ${renderButton({ label: "Naar import", href: "#/bibliotheek/import", variant: "secondary" })}
+    </div>
+
+    ${renderSessionBanner(sessionSnapshot, {
+      fileName: "library.json",
+      sourceDescription:
+        "Exporteren downloadt alleen de actieve browserwerksessie als JSON-bestand.",
+      exportMessage:
+        "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+      statusText: renderSessionStatus,
+      restoreLabel: "Bibliotheeksessie herstellen",
+      restoreAttributes: { "data-library-restore": true }
+    })}
+
+    ${renderExportNotice(sessionSnapshot)}
+
+    ${renderNotice({
+      title: "Handmatige overdracht",
+      message:
+        "Export schrijft niet naar data/library.json, maakt geen commit, pusht niets en publiceert niets. De bestandsnaam blijft exact library.json.",
+      tone: "warning"
+    })}
+
+    <section class="studio-section">
+      <div class="studio-card">
+        <div class="studio-card-head">
+          <div>
+            <h2>Genormaliseerde export</h2>
+            <p class="studio-muted">Onbekende velden worden niet meegenomen in het exportbestand.</p>
+          </div>
+        </div>
+        <div class="studio-actions">
+          ${renderButton({
+            label: "Exporteren",
+            variant: "primary",
+            attributes: { "data-library-export-button": true }
+          })}
+        </div>
+      </div>
+    </section>
+
+    ${renderExportSummary(sessionSnapshot.lastValidationReport)}
+    ${renderValidationReport(sessionSnapshot.lastValidationReport, {
+      title: "Validatierapport bibliotheekexport"
+    })}
+  `;
+}
+
+export function setupLibraryExport({ librarySession, rerender = () => {} }) {
+  const exportButton = document.querySelector("[data-library-export-button]");
+  const restoreButton = document.querySelector("[data-library-restore]");
+  const exportGuard = createBusyGuard();
+
+  exportButton?.addEventListener("click", async () => {
+    if (exportGuard.isBusy()) return;
+
+    await exportGuard.run(async () => {
+      setButtonBusy(exportButton, true);
+
+      try {
+        let exportResult;
+        try {
+          exportResult = librarySession.prepareExport();
+        } catch {
+          librarySession.setValidationReport(
+            createExportReport(
+              "export.serialize",
+              "Export kon niet worden voorbereid. De actieve bibliotheekwerksessie is niet gewijzigd."
+            )
+          );
+          rerenderAndFocusReport(rerender);
+          return;
+        }
+
+        if (!exportResult.ok) {
+          rerenderAndFocusReport(rerender);
+          return;
+        }
+
+        try {
+          downloadTextFile({
+            fileName: LIBRARY_EXPORT_FILENAME,
+            content: exportResult.json,
+            type: "application/json;charset=utf-8"
+          });
+        } catch {
+          librarySession.setValidationReport(
+            createExportReport(
+              "export.download",
+              "De download kon niet worden gestart. De actieve bibliotheekwerksessie is niet gewijzigd."
+            )
+          );
+          rerenderAndFocusReport(rerender);
+          return;
+        }
+
+        librarySession.markExported(exportResult.report);
+        rerenderAndFocusReport(rerender);
+      } finally {
+        setButtonBusy(exportButton, false);
+      }
+    });
+  });
+
+  restoreButton?.addEventListener("click", async () => {
+    if (librarySession.snapshot().dirty) {
+      const confirmed = await confirmStudioAction({
+        title: "Bibliotheeksessie herstellen?",
+        message:
+          "De actieve bibliotheekwerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+        confirmLabel: "Sessie herstellen",
+        cancelLabel: "Annuleren",
+        tone: "warning"
+      });
+      if (!confirmed) return;
+    }
+
+    librarySession.restoreSource();
+    rerender();
+  });
+}

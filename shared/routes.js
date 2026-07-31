@@ -240,6 +240,28 @@ export function routeFromHash(hash) {
     };
   }
 
+  if (cleaned === "/bibliotheek/import") {
+    return {
+      id: "libraryImport",
+      path: cleaned,
+      title: "Bibliotheek importeren",
+      enabled: true,
+      sectionId: "library",
+      params: {}
+    };
+  }
+
+  if (cleaned === "/bibliotheek/export") {
+    return {
+      id: "libraryExport",
+      path: cleaned,
+      title: "Bibliotheek exporteren",
+      enabled: true,
+      sectionId: "library",
+      params: {}
+    };
+  }
+
   const libraryEditMatch = cleaned.match(/^\/bibliotheek\/([^/]+)\/bewerken$/);
   if (libraryEditMatch) {
     return {

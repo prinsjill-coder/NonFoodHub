@@ -8,6 +8,7 @@ import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getContentRelationStats } from "../../../shared/content-relations.js";
 import { getLibraryCounts } from "../../../shared/library-model.js";
+import { getLibraryQualityReport } from "../../../shared/library-quality.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
@@ -20,6 +21,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
   const articleCounts = getArticleCounts(articleData);
   const libraryCounts = getLibraryCounts(libraryData);
   const articleQuality = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
+  const libraryQuality = getLibraryQualityReport(libraryData, supplierData, brochureData, articleData, mediaData);
   const relationStats = getContentRelationStats(supplierData, brochureData, mediaData, articleData);
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
@@ -70,9 +72,27 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
     if (metric.id === "libraryMissingFiles") {
       return {
         ...metric,
-        value: libraryCounts.missingFilePath,
-        state: libraryCounts.missingFilePath ? "review" : "foundation",
-        note: "Bibliotheekitems zonder gekoppeld bestandspad."
+        value: libraryQuality.stats.missingFiles,
+        state: libraryQuality.stats.missingFiles ? "review" : "foundation",
+        note: "Bibliotheekitems met ontbrekende of niet geregistreerde bestands- en thumbnailpaden."
+      };
+    }
+
+    if (metric.id === "libraryPublished") {
+      return {
+        ...metric,
+        value: libraryQuality.stats.published,
+        state: "foundation",
+        note: "Gelezen uit de actieve bibliotheekwerksessie; contentstatus publiceert niets automatisch."
+      };
+    }
+
+    if (metric.id === "libraryWarnings") {
+      return {
+        ...metric,
+        value: libraryQuality.stats.warnings,
+        state: libraryQuality.stats.warnings ? "review" : "foundation",
+        note: "Waarschuwingen uit het bibliotheekkwaliteitsrapport."
       };
     }
 

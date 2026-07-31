@@ -252,13 +252,23 @@ bronnen. `data/library.json` wordt als gebundelde bron geladen en wijzigingen
 bestaan alleen in de actieve browserwerksessie.
 
 Bibliotheekitems kunnen worden bekeken, aangemaakt en bewerkt binnen Studio.
-Opslaan past alleen `workingData` in browsergeheugen aan. Er is nog geen import,
-export, uploadfunctionaliteit, automatische downloadservice, publieke
-websitekoppeling of migratie naar `mediaAssetId`.
+Opslaan past alleen `workingData` in browsergeheugen aan. Vanaf Sprint 9B kan
+`library.json` ook worden geimporteerd, gevalideerd en als genormaliseerde
+download worden geexporteerd. Importeren en exporteren schrijven niets naar de
+repository en publiceren niets.
 
 Bibliotheekitems gebruiken relatieve projectpaden voor bestanden en thumbnails.
 Ontbrekende fysieke bestanden of paden die nog niet in `media.json` staan geven
 waarschuwingen, maar blokkeren het register niet.
+
+Sprint 9B voegt een bibliotheekkwaliteitsrapport toe. Dit rapport controleert
+basisvelden, statusregels, bestandspaden, mediaregistraties en relaties met
+leveranciers, brochures en kennisbankartikelen. Concepten mogen onvolledig
+blijven; gepubliceerde items tonen waarschuwingen wanneer belangrijke
+informatie zoals bestandspad of thumbnailpad ontbreekt.
+
+Uploadfunctionaliteit, automatische downloadservice, publieke websitekoppeling
+en migratie naar `mediaAssetId` zijn nog niet actief.
 
 ## Showroombeheer
 

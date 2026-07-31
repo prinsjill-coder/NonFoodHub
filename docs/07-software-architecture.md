@@ -214,9 +214,12 @@ Vanaf Sprint 9A bestaat Bibliotheek als eigen Studio-contentmodule voor
 documenten en bronnen. De module gebruikt `data/library.json`, een eigen
 datamodel, eigen validatie, eigen normalisatie en een eigen in-memory sessie.
 
-Bibliotheekitems blijven in deze fase een statisch Studio-register. Studio
-uploadt geen bestanden, genereert geen publieke downloads, schrijft niet naar de
-repository en gebruikt geen backend. Relaties met leveranciers, brochures en
-kennisbankartikelen worden gevalideerd via bestaande id's. Bestands- en
-thumbnailpaden blijven relatieve projectpaden; een migratie naar `mediaAssetId`
-is uitgesteld.
+Bibliotheekitems blijven in deze fase een statisch Studio-register. Vanaf
+Sprint 9B heeft Bibliotheek een modulespecifieke import/exportworkflow voor
+`library.json` en een kwaliteitslaag voor structuur, statusregels,
+bestandspaden, mediawaarschuwingen en relaties met leveranciers, brochures en
+kennisbankartikelen.
+
+Studio uploadt geen bestanden, genereert geen publieke downloads, schrijft niet
+naar de repository en gebruikt geen backend. Bestands- en thumbnailpaden blijven
+relatieve projectpaden; een migratie naar `mediaAssetId` is uitgesteld.

@@ -29,6 +29,7 @@ import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
 import { runContentRelationChecks } from "./check-content-relations.mjs";
 import { runLibraryChecks } from "./check-library.mjs";
+import { runLibraryQualityChecks } from "./check-library-quality.mjs";
 import { runMediaChecks } from "./check-media.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
@@ -172,8 +173,11 @@ async function runStudioChecks() {
     await import("../shared/content-relations.js");
     await import("../shared/content-status.js");
     await import("../shared/library-file-validation.js");
+    await import("../shared/library-import.js");
+    await import("../shared/library-export.js");
     await import("../shared/library-model.js");
     await import("../shared/library-normalizer.js");
+    await import("../shared/library-quality.js");
     await import("../shared/library-validation.js");
     await import("../shared/brochure-file-validation.js");
     await import("../shared/brochure-normalizer.js");
@@ -200,6 +204,8 @@ async function runStudioChecks() {
     await import("../studio/js/pages/knowledge/export.js");
     await import("../studio/js/pages/knowledge/index.js");
     await import("../studio/js/pages/library/form.js");
+    await import("../studio/js/pages/library/import.js");
+    await import("../studio/js/pages/library/export.js");
     await import("../studio/js/pages/library/index.js");
     await import("../studio/js/pages/media/form.js");
     await import("../studio/js/pages/media/index.js");
@@ -272,6 +278,8 @@ async function runStudioChecks() {
     assert.equal(routeFromHash("#/kennisbank/terras-outdoor-inspiratie/bewerken").id, "articleEdit");
     assert.equal(routeFromHash("#/bibliotheek").id, "library");
     assert.equal(routeFromHash("#/bibliotheek/nieuw").id, "libraryNew");
+    assert.equal(routeFromHash("#/bibliotheek/import").id, "libraryImport");
+    assert.equal(routeFromHash("#/bibliotheek/export").id, "libraryExport");
     assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026").id, "libraryDetail");
     assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026/bewerken").id, "libraryEdit");
     assert.equal(routeFromHash("#/bestaat-niet").id, "notFound");
@@ -306,6 +314,8 @@ async function runStudioChecks() {
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articlesWithoutSupplier")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "suppliersWithoutBrochures")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "mediaWithoutUsage")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "libraryPublished")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "libraryWarnings")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "libraryMissingFiles")?.state, "not_connected");
   });
 
@@ -324,6 +334,8 @@ async function runStudioChecks() {
     assert.equal(getRouteTitle(routeFromHash("#/media/onbekend"), state), "Media-asset niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/kennisbank/terras-outdoor-inspiratie"), state), "Terras & Outdoor inspiratie");
     assert.equal(getRouteTitle(routeFromHash("#/kennisbank/onbekend"), state), "Kennisbankartikel niet gevonden");
+    assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/import"), state), "Bibliotheek importeren");
+    assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/export"), state), "Bibliotheek exporteren");
     assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026"), state), "Churchill Combined Brochure 2026");
     assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/onbekend"), state), "Bibliotheekitem niet gevonden");
 
@@ -509,16 +521,30 @@ async function runStudioChecks() {
 
     const listHtml = renderRoute(routeFromHash("#/bibliotheek"), state);
     const newHtml = renderRoute(routeFromHash("#/bibliotheek/nieuw"), state);
+    const importHtml = renderRoute(routeFromHash("#/bibliotheek/import"), state);
+    const exportHtml = renderRoute(routeFromHash("#/bibliotheek/export"), state);
     const detailHtml = renderRoute(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026"), state);
     const editHtml = renderRoute(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026/bewerken"), state);
 
     assert.match(listHtml, /Bibliotheekbeheer/);
     assert.match(listHtml, /Churchill Combined Brochure 2026/);
     assert.match(listHtml, /Terras &amp; Outdoor inspiratie gids/);
+    assert.match(listHtml, /href="#\/bibliotheek\/import"/);
+    assert.match(listHtml, /href="#\/bibliotheek\/export"/);
+    assert.match(listHtml, /Kwaliteitsrapport bibliotheek/);
+    assert.match(listHtml, /Contentkwaliteit/);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw bibliotheekitem/);
     assert.match(newHtml, /data-library-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
+    assert.match(importHtml, /Bibliotheek importeren/);
+    assert.match(importHtml, /data-library-import-button/);
+    assert.match(importHtml, /library\.json importeren/);
+    assert.doesNotMatch(importHtml, /Pagina niet gevonden|is nog niet actief/);
+    assert.match(exportHtml, /Bibliotheek exporteren/);
+    assert.match(exportHtml, /data-library-export-button/);
+    assert.match(exportHtml, /library\.json/);
+    assert.doesNotMatch(exportHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Churchill Combined Brochure 2026/);
     assert.match(detailHtml, /Bestandspad/);
     assert.match(detailHtml, /href="#\/leveranciers\/churchill"/);
@@ -583,6 +609,8 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Leveranciers zonder brochures/);
     assert.match(dashboardHtml, /Media zonder gebruik/);
     assert.match(dashboardHtml, /Bibliotheekitems/);
+    assert.match(dashboardHtml, /Bibliotheek gepubliceerd/);
+    assert.match(dashboardHtml, /Bibliotheekwaarschuwingen/);
     assert.match(dashboardHtml, /Bibliotheek zonder bestand/);
   });
 
@@ -747,6 +775,7 @@ async function runStudioChecks() {
   await runArticleChecks();
   await runArticleQualityChecks();
   await runLibraryChecks();
+  await runLibraryQualityChecks();
   await runContentRelationChecks();
 }
 

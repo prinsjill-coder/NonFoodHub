@@ -1,6 +1,12 @@
-import { findLibraryItemBySlug, getLibraryItems, sortLibraryItems } from "../../../shared/library-model.js";
+import { createLibraryExport } from "../../../shared/library-export.js";
+import { findLibraryItemById, findLibraryItemBySlug, getLibraryItems, sortLibraryItems } from "../../../shared/library-model.js";
 import { validateLibraryFile } from "../../../shared/library-file-validation.js";
-import { deepClone, normalizeLibraryFileForSession, stableStringify } from "../../../shared/library-normalizer.js";
+import {
+  LIBRARY_EXPORT_FILENAME,
+  deepClone,
+  normalizeLibraryFileForSession,
+  stableStringify
+} from "../../../shared/library-normalizer.js";
 
 function createHash(value) {
   return stableStringify(value);
@@ -31,6 +37,7 @@ export function createLibrarySession(initialData, sources = {}) {
   let sourceFileName = "data/library.json";
   let sourceType = "bundled";
   let lastValidationReport = createValidationReport(workingData, sources, "load", sourceFileName);
+  let lastExport = null;
 
   function workingHash() {
     return createHash(workingData);
@@ -39,14 +46,15 @@ export function createLibrarySession(initialData, sources = {}) {
   function snapshot() {
     const currentHash = workingHash();
     const dirty = currentHash !== sourceHash;
+    const exportedCurrent = Boolean(lastExport && lastExport.hash === currentHash);
     return {
       sourceFileName,
       sourceType,
       dirty,
-      exportedCurrent: false,
-      hasUnexportedChanges: dirty,
-      exportStatus: "not_available",
-      lastExport: null,
+      exportedCurrent,
+      hasUnexportedChanges: dirty && !exportedCurrent,
+      exportStatus: exportedCurrent ? "exported_unconfirmed" : "not_exported",
+      lastExport: deepClone(lastExport),
       lastValidationReport: deepClone(lastValidationReport),
       libraryCount: getLibraryItems(workingData).length
     };
@@ -67,6 +75,22 @@ export function createLibrarySession(initialData, sources = {}) {
   function restoreSource() {
     workingData = deepClone(sourceData);
     lastValidationReport = createValidationReport(workingData, sources, "restore", sourceFileName);
+    lastExport = null;
+  }
+
+  function importSource(nextData, fileName, report = createValidationReport(nextData, sources, "import", fileName || "library.json")) {
+    const normalizedData = normalizeLibraryFileForSession(nextData);
+    sourceData = deepClone(normalizedData);
+    workingData = deepClone(normalizedData);
+    sourceHash = createHash(sourceData);
+    sourceFileName = fileName || "geimporteerd library.json";
+    sourceType = "imported";
+    lastValidationReport = deepClone({
+      ...report,
+      action: "import",
+      sourceFileName
+    });
+    lastExport = null;
   }
 
   function applyLibraryItem(item, originalSlug = "") {
@@ -85,11 +109,39 @@ export function createLibrarySession(initialData, sources = {}) {
     workingData.items = sortLibraryItems(items);
     workingData = normalizeLibraryFileForSession(workingData);
     lastValidationReport = createValidationReport(workingData, sources, "session", sourceFileName);
+    lastExport = null;
   }
 
   function findBySlug(slug) {
     const item = findLibraryItemBySlug(workingData, slug);
     return item ? deepClone(item) : null;
+  }
+
+  function findById(id) {
+    const item = findLibraryItemById(workingData, id);
+    return item ? deepClone(item) : null;
+  }
+
+  function prepareExport() {
+    const exportResult = createLibraryExport(
+      workingData,
+      resolveData(sources.suppliers),
+      resolveData(sources.brochures),
+      resolveData(sources.articles),
+      resolveData(sources.media)
+    );
+    lastValidationReport = deepClone(exportResult.report);
+    return deepClone(exportResult);
+  }
+
+  function markExported(report = lastValidationReport) {
+    lastExport = {
+      at: new Date().toISOString(),
+      fileName: LIBRARY_EXPORT_FILENAME,
+      hash: workingHash(),
+      status: "exported_unconfirmed"
+    };
+    lastValidationReport = deepClone(report);
   }
 
   return {
@@ -98,7 +150,11 @@ export function createLibrarySession(initialData, sources = {}) {
     getSourceData,
     setValidationReport,
     restoreSource,
+    importSource,
     applyLibraryItem,
-    findBySlug
+    findBySlug,
+    findById,
+    prepareExport,
+    markExported
   };
 }

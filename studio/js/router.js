@@ -17,6 +17,8 @@ export function getRouteTitle(route, state) {
   if (route.id === "mediaNew") return "Nieuw media-asset";
   if (route.id === "articleNew") return "Nieuw kennisbankartikel";
   if (route.id === "libraryNew") return "Nieuw bibliotheekitem";
+  if (route.id === "libraryImport") return "Bibliotheek importeren";
+  if (route.id === "libraryExport") return "Bibliotheek exporteren";
 
   if (route.id === "supplierEdit" || route.id === "supplierDetail") {
     const supplier = state.supplierSession.findBySlug(route.params?.slug);
