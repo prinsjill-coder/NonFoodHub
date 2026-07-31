@@ -29,7 +29,8 @@ export const STUDIO_ROUTES = [
     id: "knowledge",
     path: "/kennisbank",
     title: "Kennisbank",
-    enabled: false
+    enabled: true,
+    sectionId: "knowledge"
   },
   {
     id: "library",
@@ -189,6 +190,41 @@ export function routeFromHash(hash) {
       enabled: true,
       sectionId: "media",
       params: { id: mediaDetailMatch[1] }
+    };
+  }
+
+  if (cleaned === "/kennisbank/nieuw") {
+    return {
+      id: "articleNew",
+      path: cleaned,
+      title: "Nieuw kennisbankartikel",
+      enabled: true,
+      sectionId: "knowledge",
+      params: {}
+    };
+  }
+
+  const articleEditMatch = cleaned.match(/^\/kennisbank\/([^/]+)\/bewerken$/);
+  if (articleEditMatch) {
+    return {
+      id: "articleEdit",
+      path: cleaned,
+      title: "Kennisbankartikel bewerken",
+      enabled: true,
+      sectionId: "knowledge",
+      params: { slug: articleEditMatch[1] }
+    };
+  }
+
+  const articleDetailMatch = cleaned.match(/^\/kennisbank\/([^/]+)$/);
+  if (articleDetailMatch) {
+    return {
+      id: "articleDetail",
+      path: cleaned,
+      title: "Kennisbankartikel bekijken",
+      enabled: true,
+      sectionId: "knowledge",
+      params: { slug: articleDetailMatch[1] }
     };
   }
 

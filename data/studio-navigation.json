@@ -33,8 +33,8 @@
       "id": "knowledge",
       "label": "Kennisbank",
       "route": "#/kennisbank",
-      "description": "Placeholder voor toekomstig kennisbankbeheer",
-      "enabled": false
+      "description": "Kennisbankartikelen beheren in de Studio-prototypefase",
+      "enabled": true
     },
     {
       "id": "library",

@@ -3,16 +3,18 @@ import { renderMetricCard, renderPanelCard } from "../../../components/card.js";
 import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
+import { getArticleCounts } from "../../../shared/article-model.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 import { renderNotFoundState } from "../shared/not-found.js";
 
-function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData) {
+function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData) {
   const supplierCounts = getSupplierCounts(supplierData);
   const brochureCounts = getBrochureCounts(brochureData);
   const mediaCounts = getMediaCounts(mediaData);
+  const articleCounts = getArticleCounts(articleData);
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
       return {
@@ -41,6 +43,15 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData) {
       };
     }
 
+    if (metric.id === "articles") {
+      return {
+        ...metric,
+        value: articleCounts.total,
+        state: "foundation",
+        note: "Gelezen uit de actieve kennisbankwerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
     return metric;
   });
 }
@@ -64,8 +75,8 @@ function renderQuickAction(action) {
   `;
 }
 
-export function renderDashboard(dashboardData, supplierData, brochureData, mediaData) {
-  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData).map(renderMetricCard).join("");
+export function renderDashboard(dashboardData, supplierData, brochureData, mediaData, articleData) {
+  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
 

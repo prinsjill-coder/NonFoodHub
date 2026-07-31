@@ -8,7 +8,8 @@ export const STUDIO_CONFIG = {
     dashboard: "../data/studio-dashboard.json",
     suppliers: "../data/suppliers.json",
     brochures: "../data/brochures.json",
-    media: "../data/media.json"
+    media: "../data/media.json",
+    articles: "../data/articles.json"
   },
   authPlaceholder: {
     title: "Authentication placeholder",

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.1.0",
+  "prototype": true,
+  "storage": {
+    "mode": "static-session",
+    "writeEnabled": false,
+    "message": "Kennisbankartikelen worden in Sprint 8A alleen als registry in browsergeheugen beheerd. Import, export, publieke rendering en publicatie zijn niet actief."
+  },
+  "statuses": ["concept", "review", "published", "hidden", "archived"],
+  "categories": [
+    "Inspiratie",
+    "Terras & Outdoor",
+    "Tafelpresentatie",
+    "Buffet & presentatie",
+    "Gastbeleving",
+    "Koffie & dranken",
+    "Trends"
+  ],
+  "items": [
+    {
+      "id": "article-terras-outdoor-inspiratie",
+      "title": "Terras & Outdoor inspiratie",
+      "slug": "terras-outdoor-inspiratie",
+      "status": "published",
+      "summary": "Inspiratie voor een gastvrij terras met duurzame materialen, slimme routing en sterke presentatie.",
+      "body": "Een goed terras voelt als een verlengstuk van de zaak. Denk aan comfortabele routing, servies dat tegen intensief gebruik kan en presentatie die past bij het moment van de dag.\n\nCombineer praktische keuzes zoals stapelbare stoelen en stevig glaswerk met details die de gastbeleving versterken, zoals tafelpresentatie, menukaarten en herkenbare signing.",
+      "categories": ["Terras & Outdoor", "Gastbeleving"],
+      "heroImage": "assets/images/blog-terrace.png",
+      "supplierIds": ["supplier-churchill"],
+      "brochureIds": ["brochure-churchill-2026"],
+      "updatedAt": "2026-07-31",
+      "sortOrder": 10
+    },
+    {
+      "id": "article-professioneel-tafelconcept",
+      "title": "Professioneel tafelconcept voor hospitality",
+      "slug": "professioneel-tafelconcept-hospitality",
+      "status": "review",
+      "summary": "Maak tafelpresentatie consistenter door bestek, servies, glaswerk en routing als een samenhangend concept te ontwerpen.",
+      "body": "Een professioneel tafelconcept begint bij de gastreis. Wat ziet de gast bij binnenkomst, welke materialen worden aangeraakt en hoe blijft de presentatie overeind tijdens drukke services?\n\nGebruik de kennisbank om keuzes te bundelen rond thema's zoals besteklijnen, serviesfamilies, buffetpresentatie en operationele eenvoud.",
+      "categories": ["Tafelpresentatie", "Buffet & presentatie"],
+      "heroImage": "assets/images/blog-tableware.png",
+      "supplierIds": ["supplier-amefa", "supplier-churchill"],
+      "brochureIds": ["brochure-amefa-2026"],
+      "updatedAt": "2026-07-31",
+      "sortOrder": 20
+    }
+  ]
+}

@@ -184,3 +184,15 @@ Media uploadt of verplaatst geen bestanden en schrijft niet naar de repository.
 Bestaande velden zoals `logo`, `image`, `pdfFile` en `thumbnail` blijven in hun
 eigen contentmodules bestaan. Een eventuele migratie naar `mediaAssetId`-
 relaties is een latere architectuurbeslissing.
+
+## Kennisbankregistry
+
+Vanaf Sprint 8A bestaat Kennisbank als eigen Studio-contentmodule voor
+artikelen. De module gebruikt `data/articles.json`, een eigen datamodel, eigen
+validatie, eigen normalisatie en een eigen in-memory sessie.
+
+Artikelen blijven een statische registry voor toekomstige publieke
+website-integratie. Studio schrijft geen artikelen naar de repository en koppelt
+deze data nog niet aan de publieke website. Relaties met leveranciers en
+brochures worden gevalideerd via bestaande id's. Hoofdafbeeldingen blijven
+relatieve projectpaden; een migratie naar `mediaAssetId` is uitgesteld.

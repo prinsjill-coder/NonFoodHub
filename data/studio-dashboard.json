@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bevat leveranciersbeheer, brochurebeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
     {
       "id": "suppliers",
@@ -28,7 +28,7 @@
       "label": "Kennisbankartikelen",
       "value": null,
       "state": "not_connected",
-      "note": "Nog niet gekoppeld aan artikeldata."
+      "note": "Wordt in Studio berekend uit data/articles.json."
     },
     {
       "id": "library",
@@ -83,8 +83,9 @@
     {
       "id": "newArticle",
       "label": "Nieuw artikel",
-      "enabled": false,
-      "message": "Beschikbaar vanaf kennisbankbeheer."
+      "enabled": true,
+      "route": "#/kennisbank/nieuw",
+      "message": "Open het prototypeformulier voor kennisbankbeheer."
     },
     {
       "id": "newLibraryItem",

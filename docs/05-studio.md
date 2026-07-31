@@ -190,13 +190,34 @@ Ondersteund:
 - titel;
 - slug;
 - samenvatting;
-- hoofdafbeelding;
+- hero afbeelding;
 - tekstblokken;
 - afbeeldingen;
 - gerelateerde leveranciers;
 - gerelateerde brochures;
 - CTA's;
 - status.
+
+### Kennisbankregistry in statische Studio
+
+Sprint 8A introduceert kennisbankartikelen als aparte Studio-module.
+`data/articles.json` wordt als gebundelde bron geladen en wijzigingen bestaan
+alleen in de actieve browserwerksessie.
+
+Artikelen kunnen worden bekeken, aangemaakt en bewerkt binnen Studio. Opslaan
+past alleen `workingData` in browsergeheugen aan. Er is nog geen import/export,
+geen publieke rendering, geen automatische publicatie en geen schrijfactie naar
+de repository.
+
+Vanaf Sprint 8A.1 bevat de kennisbankconfiguratie minimaal deze categorieen:
+Inspiratie, Terras & Outdoor, Tafelpresentatie, Buffet & presentatie,
+Gastbeleving, Koffie & dranken en Trends. Artikelen zijn alleen geldig wanneer
+minimaal een bekende categorie is gekozen.
+
+Hero afbeeldingen blijven in deze sprint relatieve projectpaden, zoals
+`assets/images/blog-terras.png`. Automatische koppeling met MediaAsset volgt in
+een latere sprint. Wanneer een pad niet in `media.json` staat, toont validatie
+alleen een waarschuwing; dit blokkeert opslaan niet.
 
 ## Bibliotheekbeheer
 

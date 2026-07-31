@@ -74,6 +74,19 @@ assets. Bestaande padvelden in leveranciers en brochures blijven voorlopig
 bestaan; er is nog geen migratie naar `mediaAssetId`, geen uploadfunctionaliteit
 en geen automatische bestandsplaatsing.
 
+Aanvullend Sprint 8A-besluit: Kennisbankartikelen worden als aparte
+Studio-module toegevoegd. `data/articles.json` fungeert als statische
+contentregistry met een in-memory werksessie. Er is nog geen import/export,
+geen publieke websitekoppeling, geen rich-text/blokkeneditor en geen migratie
+naar `mediaAssetId`.
+
+Aanvullend Sprint 8A.1-besluit: De kennisbankcategorieen bevatten minimaal
+Inspiratie, Terras & Outdoor, Tafelpresentatie, Buffet & presentatie,
+Gastbeleving, Koffie & dranken en Trends. Het formulier gebruikt het veldlabel
+Hero afbeelding (relatief pad), opgeslagen als `heroImage`. Ontbrekende
+registratie in `media.json` is alleen een waarschuwing en blokkeert de
+werksessie niet.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:
