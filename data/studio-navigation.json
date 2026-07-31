@@ -40,8 +40,8 @@
       "id": "library",
       "label": "Bibliotheek",
       "route": "#/bibliotheek",
-      "description": "Placeholder voor toekomstig bibliotheekbeheer",
-      "enabled": false
+      "description": "Documenten en bronnen beheren als Studio-register",
+      "enabled": true
     },
     {
       "id": "showroom",

@@ -98,6 +98,12 @@ detailpagina's en in beperkte dashboardmetrics. Relaties worden gelezen uit
 bestaande id- en padvelden; er is geen nieuw opslagmodel, geen mediaAssetId-
 migratie en geen generieke relation engine.
 
+Aanvullend Sprint 9A-besluit: Bibliotheekbeheer wordt toegevoegd als statisch
+Studio-register voor documenten en bronnen. `data/library.json` ondersteunt
+metadata, relatieve bestandspaden en relaties met leveranciers, brochures en
+kennisbankartikelen. Er is nog geen import/export, uploadfunctionaliteit,
+publieke downloadkoppeling, backend, repositorywrite of mediaAssetId-migratie.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

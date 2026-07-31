@@ -13,6 +13,7 @@ import { routeFromHash } from "../shared/routes.js";
 import { STUDIO_CONFIG } from "../shared/config.js";
 import { createArticleSession } from "../studio/js/state/article-session.js";
 import { createBrochureSession } from "../studio/js/state/brochure-session.js";
+import { createLibrarySession } from "../studio/js/state/library-session.js";
 import { createMediaSession } from "../studio/js/state/media-session.js";
 import { createSupplierSession } from "../studio/js/state/supplier-session.js";
 import { renderValidationSummary } from "../components/validation-summary.js";
@@ -27,6 +28,7 @@ import { runArticleChecks } from "./check-articles.mjs";
 import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
 import { runContentRelationChecks } from "./check-content-relations.mjs";
+import { runLibraryChecks } from "./check-library.mjs";
 import { runMediaChecks } from "./check-media.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
@@ -130,12 +132,14 @@ async function runStudioChecks() {
   const brochures = readJson("data/brochures.json");
   const media = readJson("data/media.json");
   const articles = readJson("data/articles.json");
+  const library = readJson("data/library.json");
 
   await runCheck("basis JSON-bestanden zijn geldig", () => {
     readJson("data/suppliers.json");
     readJson("data/brochures.json");
     readJson("data/media.json");
     readJson("data/articles.json");
+    readJson("data/library.json");
     readJson("data/studio-navigation.json");
     readJson("data/studio-dashboard.json");
   });
@@ -147,7 +151,8 @@ async function runStudioChecks() {
       suppliers: "../data/suppliers.json",
       brochures: "../data/brochures.json",
       media: "../data/media.json",
-      articles: "../data/articles.json"
+      articles: "../data/articles.json",
+      library: "../data/library.json"
     });
 
     Object.entries(STUDIO_CONFIG.data).forEach(([key, value]) => {
@@ -166,6 +171,10 @@ async function runStudioChecks() {
     await import("../shared/article-validation.js");
     await import("../shared/content-relations.js");
     await import("../shared/content-status.js");
+    await import("../shared/library-file-validation.js");
+    await import("../shared/library-model.js");
+    await import("../shared/library-normalizer.js");
+    await import("../shared/library-validation.js");
     await import("../shared/brochure-file-validation.js");
     await import("../shared/brochure-normalizer.js");
     await import("../shared/media-file-validation.js");
@@ -181,6 +190,7 @@ async function runStudioChecks() {
     await import("../studio/js/route-focus.js");
     await import("../studio/js/state/article-session.js");
     await import("../studio/js/state/brochure-session.js");
+    await import("../studio/js/state/library-session.js");
     await import("../studio/js/state/media-session.js");
     await import("../studio/js/pages/brochures/form.js");
     await import("../studio/js/pages/brochures/import-export.js");
@@ -189,6 +199,8 @@ async function runStudioChecks() {
     await import("../studio/js/pages/knowledge/import.js");
     await import("../studio/js/pages/knowledge/export.js");
     await import("../studio/js/pages/knowledge/index.js");
+    await import("../studio/js/pages/library/form.js");
+    await import("../studio/js/pages/library/index.js");
     await import("../studio/js/pages/media/form.js");
     await import("../studio/js/pages/media/index.js");
     await import("../studio/js/pages/suppliers/form.js");
@@ -258,22 +270,35 @@ async function runStudioChecks() {
     assert.equal(routeFromHash("#/kennisbank/nieuw").id, "articleNew");
     assert.equal(routeFromHash("#/kennisbank/terras-outdoor-inspiratie").id, "articleDetail");
     assert.equal(routeFromHash("#/kennisbank/terras-outdoor-inspiratie/bewerken").id, "articleEdit");
+    assert.equal(routeFromHash("#/bibliotheek").id, "library");
+    assert.equal(routeFromHash("#/bibliotheek/nieuw").id, "libraryNew");
+    assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026").id, "libraryDetail");
+    assert.equal(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026/bewerken").id, "libraryEdit");
     assert.equal(routeFromHash("#/bestaat-niet").id, "notFound");
   });
 
-  await runCheck("kennisbanknavigatie en dashboardmetric blijven actief", () => {
+  await runCheck("kennisbank- en bibliotheeknavigatie blijven actief", () => {
     const navigation = readJson("data/studio-navigation.json");
     const dashboard = readJson("data/studio-dashboard.json");
     const knowledgeItem = navigation.items.find((item) => item.id === "knowledge");
+    const libraryItem = navigation.items.find((item) => item.id === "library");
     const articleMetric = dashboard.metrics.find((metric) => metric.id === "articles");
+    const libraryMetric = dashboard.metrics.find((metric) => metric.id === "library");
     const articleAction = dashboard.quickActions.find((action) => action.id === "newArticle");
+    const libraryAction = dashboard.quickActions.find((action) => action.id === "newLibraryItem");
 
     assert.equal(knowledgeItem?.enabled, true);
     assert.equal(knowledgeItem?.route, "#/kennisbank");
+    assert.equal(libraryItem?.enabled, true);
+    assert.equal(libraryItem?.route, "#/bibliotheek");
     assert.equal(articleMetric?.state, "not_connected");
     assert.match(articleMetric?.note || "", /data\/articles\.json/);
+    assert.equal(libraryMetric?.state, "not_connected");
+    assert.match(libraryMetric?.note || "", /data\/library\.json/);
     assert.equal(articleAction?.enabled, true);
     assert.equal(articleAction?.route, "#/kennisbank/nieuw");
+    assert.equal(libraryAction?.enabled, true);
+    assert.equal(libraryAction?.route, "#/bibliotheek/nieuw");
 
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articlePublished")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articleWarnings")?.state, "not_connected");
@@ -281,6 +306,7 @@ async function runStudioChecks() {
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articlesWithoutSupplier")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "suppliersWithoutBrochures")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "mediaWithoutUsage")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "libraryMissingFiles")?.state, "not_connected");
   });
 
   await runCheck("route titles en document title helper werken", async () => {
@@ -288,7 +314,8 @@ async function runStudioChecks() {
     const brochureSession = createBrochureSession(brochures, suppliers);
     const mediaSession = createMediaSession(media);
     const articleSession = createArticleSession(articles, suppliers, brochures, media);
-    const state = { supplierSession, brochureSession, mediaSession, articleSession };
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
+    const state = { supplierSession, brochureSession, mediaSession, articleSession, librarySession };
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/amefa"), state), "Amefa");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/onbekend"), state), "Leverancier niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), "Amefa for Professionals 2026");
@@ -297,6 +324,8 @@ async function runStudioChecks() {
     assert.equal(getRouteTitle(routeFromHash("#/media/onbekend"), state), "Media-asset niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/kennisbank/terras-outdoor-inspiratie"), state), "Terras & Outdoor inspiratie");
     assert.equal(getRouteTitle(routeFromHash("#/kennisbank/onbekend"), state), "Kennisbankartikel niet gevonden");
+    assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026"), state), "Churchill Combined Brochure 2026");
+    assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/onbekend"), state), "Bibliotheekitem niet gevonden");
 
     globalThis.document = { title: "" };
     const { applyRouteTitle, focusRouteContent } = await import("../studio/js/route-focus.js");
@@ -463,45 +492,87 @@ async function runStudioChecks() {
     assert.match(editHtml, /Terras &amp; Outdoor inspiratie bewerken/);
   });
 
-  await runCheck("dashboardknoppen verwijzen naar actieve brochure-, media- en kennisbankmodule", () => {
+  await runCheck("bibliotheekroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
     const mediaSession = createMediaSession(media);
     const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
       supplierSession,
       brochureSession,
       mediaSession,
-      articleSession
+      articleSession,
+      librarySession
+    };
+
+    const listHtml = renderRoute(routeFromHash("#/bibliotheek"), state);
+    const newHtml = renderRoute(routeFromHash("#/bibliotheek/nieuw"), state);
+    const detailHtml = renderRoute(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026"), state);
+    const editHtml = renderRoute(routeFromHash("#/bibliotheek/churchill-combined-brochure-2026/bewerken"), state);
+
+    assert.match(listHtml, /Bibliotheekbeheer/);
+    assert.match(listHtml, /Churchill Combined Brochure 2026/);
+    assert.match(listHtml, /Terras &amp; Outdoor inspiratie gids/);
+    assert.doesNotMatch(listHtml, /is nog niet actief/);
+    assert.match(newHtml, /Nieuw bibliotheekitem/);
+    assert.match(newHtml, /data-library-form/);
+    assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
+    assert.match(detailHtml, /Churchill Combined Brochure 2026/);
+    assert.match(detailHtml, /Bestandspad/);
+    assert.match(detailHtml, /href="#\/leveranciers\/churchill"/);
+    assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
+    assert.match(editHtml, /Churchill Combined Brochure 2026 bewerken/);
+  });
+
+  await runCheck("dashboardknoppen verwijzen naar actieve brochure-, media-, kennisbank- en bibliotheekmodule", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
+    const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession,
+      mediaSession,
+      articleSession,
+      librarySession
     };
     const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
     const brochureAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuwe brochure<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
     const mediaAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw media-asset<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
     const articleAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw artikel<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
+    const libraryAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw bibliotheekitem<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
 
     assert.match(dashboardHtml, /href="#\/brochures\/nieuw"/);
     assert.match(dashboardHtml, /href="#\/media\/nieuw"/);
     assert.match(dashboardHtml, /href="#\/kennisbank\/nieuw"/);
+    assert.match(dashboardHtml, /href="#\/bibliotheek\/nieuw"/);
     assert.match(brochureAction, /href="#\/brochures\/nieuw"/);
     assert.doesNotMatch(brochureAction, /Niet actief|is-disabled/);
     assert.match(mediaAction, /href="#\/media\/nieuw"/);
     assert.doesNotMatch(mediaAction, /Niet actief|is-disabled/);
     assert.match(articleAction, /href="#\/kennisbank\/nieuw"/);
     assert.doesNotMatch(articleAction, /Niet actief|is-disabled/);
+    assert.match(libraryAction, /href="#\/bibliotheek\/nieuw"/);
+    assert.doesNotMatch(libraryAction, /Niet actief|is-disabled/);
   });
 
-  await runCheck("dashboard toont kennisbankkwaliteitsmetrics uit actieve data", () => {
+  await runCheck("dashboard toont kennisbank- en bibliotheekmetrics uit actieve data", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
     const mediaSession = createMediaSession(media);
     const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
     const state = {
       dashboard: readJson("data/studio-dashboard.json"),
       supplierSession,
       brochureSession,
       mediaSession,
-      articleSession
+      articleSession,
+      librarySession
     };
     const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
 
@@ -511,6 +582,8 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Artikelen zonder leverancier/);
     assert.match(dashboardHtml, /Leveranciers zonder brochures/);
     assert.match(dashboardHtml, /Media zonder gebruik/);
+    assert.match(dashboardHtml, /Bibliotheekitems/);
+    assert.match(dashboardHtml, /Bibliotheek zonder bestand/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {
@@ -558,12 +631,14 @@ async function runStudioChecks() {
     const brochureSession = createBrochureSession(brochures, suppliers);
     const mediaSession = createMediaSession(media);
     const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
     const genericHtml = renderRouteNotFound(routeFromHash("#/bestaat-niet"));
     const supplierHtml = renderSuppliersRoute(routeFromHash("#/leveranciers/bestaat-niet"), supplierSession);
-    const state = { supplierSession, brochureSession, mediaSession, articleSession };
+    const state = { supplierSession, brochureSession, mediaSession, articleSession, librarySession };
     const brochureHtml = renderRoute(routeFromHash("#/brochures/bestaat-niet"), state);
     const mediaHtml = renderRoute(routeFromHash("#/media/bestaat-niet"), state);
     const articleHtml = renderRoute(routeFromHash("#/kennisbank/bestaat-niet"), state);
+    const libraryHtml = renderRoute(routeFromHash("#/bibliotheek/bestaat-niet"), state);
 
     assert.match(genericHtml, /Pagina niet gevonden/);
     assert.match(genericHtml, /Terug naar dashboard/);
@@ -575,6 +650,8 @@ async function runStudioChecks() {
     assert.match(mediaHtml, /Terug naar media/);
     assert.match(articleHtml, /Kennisbankartikel niet gevonden/);
     assert.match(articleHtml, /Terug naar kennisbank/);
+    assert.match(libraryHtml, /Bibliotheekitem niet gevonden/);
+    assert.match(libraryHtml, /Terug naar bibliotheek/);
   });
 
   await runCheck("import- en exportstatussen renderen begrijpelijk", () => {
@@ -669,6 +746,7 @@ async function runStudioChecks() {
   await runMediaChecks();
   await runArticleChecks();
   await runArticleQualityChecks();
+  await runLibraryChecks();
   await runContentRelationChecks();
 }
 

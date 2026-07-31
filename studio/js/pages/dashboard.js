@@ -7,16 +7,18 @@ import { getArticleCounts } from "../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getContentRelationStats } from "../../../shared/content-relations.js";
+import { getLibraryCounts } from "../../../shared/library-model.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 import { renderNotFoundState } from "../shared/not-found.js";
 
-function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData) {
+function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
   const supplierCounts = getSupplierCounts(supplierData);
   const brochureCounts = getBrochureCounts(brochureData);
   const mediaCounts = getMediaCounts(mediaData);
   const articleCounts = getArticleCounts(articleData);
+  const libraryCounts = getLibraryCounts(libraryData);
   const articleQuality = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
   const relationStats = getContentRelationStats(supplierData, brochureData, mediaData, articleData);
   return dashboardData.metrics.map((metric) => {
@@ -53,6 +55,24 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         value: articleCounts.total,
         state: "foundation",
         note: "Gelezen uit de actieve kennisbankwerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    if (metric.id === "library") {
+      return {
+        ...metric,
+        value: libraryCounts.total,
+        state: "foundation",
+        note: "Gelezen uit de actieve bibliotheekwerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    if (metric.id === "libraryMissingFiles") {
+      return {
+        ...metric,
+        value: libraryCounts.missingFilePath,
+        state: libraryCounts.missingFilePath ? "review" : "foundation",
+        note: "Bibliotheekitems zonder gekoppeld bestandspad."
       };
     }
 
@@ -133,8 +153,8 @@ function renderQuickAction(action) {
   `;
 }
 
-export function renderDashboard(dashboardData, supplierData, brochureData, mediaData, articleData) {
-  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData).map(renderMetricCard).join("");
+export function renderDashboard(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
+  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
 

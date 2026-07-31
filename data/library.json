@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "0.1.0",
+  "prototype": true,
+  "storage": {
+    "mode": "static-session",
+    "writeEnabled": false,
+    "message": "Bibliotheekitems worden alleen als Studio-register beheerd. Studio uploadt geen bestanden, schrijft niet naar de repository en publiceert niets automatisch."
+  },
+  "statuses": [
+    "concept",
+    "review",
+    "published",
+    "hidden",
+    "archived"
+  ],
+  "types": [
+    "pdf",
+    "catalogus",
+    "handleiding",
+    "technisch-document",
+    "certificaat",
+    "presentatie",
+    "inspiratie",
+    "overig"
+  ],
+  "categories": [
+    "Leveranciers",
+    "Productinformatie",
+    "Inspiratie",
+    "Techniek",
+    "Certificering",
+    "Sales"
+  ],
+  "items": [
+    {
+      "id": "library-churchill-combined-brochure-2026",
+      "title": "Churchill Combined Brochure 2026",
+      "slug": "churchill-combined-brochure-2026",
+      "status": "review",
+      "type": "catalogus",
+      "category": "Leveranciers",
+      "summary": "Bibliotheekregistratie voor de Churchill Combined Brochure 2026, gekoppeld aan de bestaande leverancier en brochure.",
+      "filePath": "assets/downloads/brochures/churchill-combined-brochure-2026.pdf",
+      "thumbnailPath": "assets/images/supplier-churchill.jpg",
+      "supplierIds": [
+        "supplier-churchill"
+      ],
+      "brochureIds": [
+        "brochure-churchill-2026"
+      ],
+      "articleIds": [],
+      "tags": [
+        "servies",
+        "catalogus"
+      ],
+      "updatedAt": "2026-07-31",
+      "sortOrder": 10
+    },
+    {
+      "id": "library-terras-outdoor-inspiratie-gids",
+      "title": "Terras & Outdoor inspiratie gids",
+      "slug": "terras-outdoor-inspiratie-gids",
+      "status": "concept",
+      "type": "inspiratie",
+      "category": "Inspiratie",
+      "summary": "Conceptregistratie voor een toekomstige inspiratiegids rond terras en outdoor hospitality.",
+      "filePath": "assets/downloads/bibliotheek/terras-outdoor-inspiratie-gids.pdf",
+      "thumbnailPath": "assets/images/blog-terrace.png",
+      "supplierIds": [],
+      "brochureIds": [],
+      "articleIds": [
+        "article-terras-outdoor-inspiratie"
+      ],
+      "tags": [
+        "terras",
+        "outdoor",
+        "inspiratie"
+      ],
+      "updatedAt": "2026-07-31",
+      "sortOrder": 20
+    }
+  ]
+}

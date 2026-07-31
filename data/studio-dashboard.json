@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer, bibliotheekbeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
     {
       "id": "suppliers",
@@ -77,7 +77,14 @@
       "label": "Bibliotheekitems",
       "value": null,
       "state": "not_connected",
-      "note": "Nog niet gekoppeld aan bibliotheekdata."
+      "note": "Wordt in Studio berekend uit data/library.json."
+    },
+    {
+      "id": "libraryMissingFiles",
+      "label": "Bibliotheek zonder bestand",
+      "value": null,
+      "state": "not_connected",
+      "note": "Bibliotheekitems zonder gekoppeld bestandspad."
     }
   ],
   "panels": [
@@ -132,8 +139,9 @@
     {
       "id": "newLibraryItem",
       "label": "Nieuw bibliotheekitem",
-      "enabled": false,
-      "message": "Beschikbaar vanaf bibliotheekbeheer."
+      "enabled": true,
+      "route": "#/bibliotheek/nieuw",
+      "message": "Registreer een document of bron in de statische bibliotheekwerksessie."
     },
     {
       "id": "newSpecialist",

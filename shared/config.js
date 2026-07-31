@@ -9,7 +9,8 @@ export const STUDIO_CONFIG = {
     suppliers: "../data/suppliers.json",
     brochures: "../data/brochures.json",
     media: "../data/media.json",
-    articles: "../data/articles.json"
+    articles: "../data/articles.json",
+    library: "../data/library.json"
   },
   authPlaceholder: {
     title: "Authentication placeholder",

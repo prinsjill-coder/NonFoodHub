@@ -1,0 +1,329 @@
+import { renderButton } from "../../../../components/button.js";
+import {
+  renderSelectField,
+  renderTextAreaField,
+  renderTextField
+} from "../../../../components/form-field.js";
+import { renderNotice } from "../../../../components/notice.js";
+import { renderPageHeader } from "../../../../components/page-header.js";
+import { getArticles, sortArticles } from "../../../../shared/article-model.js";
+import { getBrochures, sortBrochures } from "../../../../shared/brochure-model.js";
+import {
+  createEmptyLibraryItem,
+  getLibraryStatusLabel,
+  getLibraryTypeLabel,
+  normalizeSlug
+} from "../../../../shared/library-model.js";
+import { hasValidationErrors, libraryItemFromForm, validateLibraryItem } from "../../../../shared/library-validation.js";
+import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
+import { escapeHtml } from "../../../../shared/utils.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+
+function optionList(values, labelGetter = (value) => value) {
+  return (values || []).map((value) => ({
+    value,
+    label: labelGetter(value)
+  }));
+}
+
+function getStatusOptions(libraryData) {
+  return optionList(libraryData.statuses || [], getLibraryStatusLabel);
+}
+
+function getTypeOptions(libraryData) {
+  return optionList(libraryData.types || [], (type) => getLibraryTypeLabel(type, libraryData));
+}
+
+function renderRelationCheckboxGroup({ name, label, values = [], options = [], help = "" }) {
+  const selected = new Set(values);
+  const helpHtml = help ? `<p class="studio-field-help">${escapeHtml(help)}</p>` : "";
+  const items = options
+    .map((option) => {
+      const id = `library-${name}-${option.value}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+      return `
+        <label class="studio-check-pill" for="${escapeHtml(id)}">
+          <input id="${escapeHtml(id)}" name="${escapeHtml(name)}" type="checkbox" value="${escapeHtml(option.value)}" ${selected.has(option.value) ? "checked" : ""}>
+          <span>${escapeHtml(option.label)}</span>
+        </label>
+      `;
+    })
+    .join("");
+
+  return `
+    <fieldset class="studio-fieldset" data-field="${escapeHtml(name)}">
+      <legend>${escapeHtml(label)}</legend>
+      ${helpHtml}
+      <div class="studio-check-grid">${items}</div>
+      <p class="studio-field-error" data-field-error="${escapeHtml(name)}" aria-live="polite"></p>
+    </fieldset>
+  `;
+}
+
+function supplierOptions(supplierData) {
+  return sortSuppliers(getSuppliers(supplierData)).map((supplier) => ({
+    value: supplier.id,
+    label: supplier.name
+  }));
+}
+
+function brochureOptions(brochureData) {
+  return sortBrochures(getBrochures(brochureData)).map((brochure) => ({
+    value: brochure.id,
+    label: brochure.title
+  }));
+}
+
+function articleOptions(articleData) {
+  return sortArticles(getArticles(articleData)).map((article) => ({
+    value: article.id,
+    label: article.title
+  }));
+}
+
+export function renderLibraryForm({
+  libraryData,
+  supplierData,
+  brochureData,
+  articleData,
+  item = createEmptyLibraryItem(),
+  mode
+}) {
+  const isEdit = mode === "edit";
+  const title = isEdit ? `${item.title} bewerken` : "Nieuw bibliotheekitem";
+  const description = isEdit
+    ? "Pas bibliotheekmetadata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website."
+    : "Registreer een nieuw document of bron binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website.";
+
+  return `
+    ${renderPageHeader({
+      eyebrow: "Bibliotheekbeheer",
+      title,
+      description
+    })}
+
+    <div class="studio-actions studio-page-actions">
+      ${renderButton({ label: "Terug naar bibliotheek", href: "#/bibliotheek", variant: "secondary" })}
+      ${isEdit ? renderButton({ label: "Bekijken", href: `#/bibliotheek/${item.slug}`, variant: "secondary" }) : ""}
+    </div>
+
+    ${renderNotice({
+      title: "Opslaan in werksessie",
+      message:
+        libraryData.storage?.message ||
+        "Opslaan past alleen de actieve browserdata aan. Er wordt niets naar data/library.json geschreven.",
+      tone: "warning"
+    })}
+
+    <form
+      class="studio-form"
+      data-library-form
+      data-original-slug="${escapeHtml(isEdit ? item.slug : "")}"
+      data-original-id="${escapeHtml(isEdit ? item.id : "")}"
+      novalidate
+    >
+      <div id="library-form-feedback" class="studio-form-feedback"></div>
+      <input type="hidden" name="id" value="${escapeHtml(item.id)}">
+
+      <section class="studio-form-section">
+        <h2>Basisgegevens</h2>
+        <div class="studio-form-grid">
+          ${renderTextField({
+            name: "title",
+            label: "Titel",
+            value: item.title,
+            required: true,
+            help: "Titel zoals deze in Studio wordt getoond."
+          })}
+          ${renderTextField({
+            name: "slug",
+            label: "Slug",
+            value: item.slug,
+            required: true,
+            help: "Uniek, lowercase en met koppeltekens."
+          })}
+          ${renderSelectField({
+            name: "status",
+            label: "Status",
+            value: item.status,
+            options: getStatusOptions(libraryData),
+            required: true,
+            help: "Contentstatus; dit publiceert niets automatisch."
+          })}
+          ${renderSelectField({
+            name: "type",
+            label: "Type",
+            value: item.type,
+            options: getTypeOptions(libraryData),
+            required: true
+          })}
+          ${renderSelectField({
+            name: "category",
+            label: "Categorie",
+            value: item.category,
+            options: optionList(libraryData.categories || []),
+            required: true
+          })}
+          ${renderTextField({
+            name: "updatedAt",
+            label: "Bijgewerkt op",
+            type: "date",
+            value: item.updatedAt,
+            required: true
+          })}
+          ${renderTextField({
+            name: "sortOrder",
+            label: "Sortering",
+            type: "number",
+            value: String(item.sortOrder ?? 0),
+            required: true,
+            help: "Lager getal komt eerder in overzichten."
+          })}
+        </div>
+      </section>
+
+      <section class="studio-form-section">
+        <h2>Content en bestanden</h2>
+        ${renderTextAreaField({
+          name: "summary",
+          label: "Samenvatting",
+          value: item.summary,
+          rows: 4,
+          required: true
+        })}
+        <div class="studio-form-grid">
+          ${renderTextField({
+            name: "filePath",
+            label: "Bestandspad",
+            value: item.filePath,
+            help: "Optioneel relatief projectpad. Geen upload, lokaal Mac-pad of file-url."
+          })}
+          ${renderTextField({
+            name: "thumbnailPath",
+            label: "Thumbnailpad",
+            value: item.thumbnailPath,
+            help: "Optioneel relatief projectpad naar een afbeelding."
+          })}
+          ${renderTextField({
+            name: "tags",
+            label: "Tags",
+            value: (item.tags || []).join(", "),
+            help: "Optionele tags, gescheiden door komma's."
+          })}
+        </div>
+      </section>
+
+      <section class="studio-form-section">
+        <h2>Relaties</h2>
+        ${renderRelationCheckboxGroup({
+          name: "supplierIds",
+          label: "Gekoppelde leveranciers",
+          values: item.supplierIds,
+          options: supplierOptions(supplierData),
+          help: "Relaties gebruiken bestaande leverancier-id's."
+        })}
+        ${renderRelationCheckboxGroup({
+          name: "brochureIds",
+          label: "Gekoppelde brochures",
+          values: item.brochureIds,
+          options: brochureOptions(brochureData),
+          help: "Relaties gebruiken bestaande brochure-id's."
+        })}
+        ${renderRelationCheckboxGroup({
+          name: "articleIds",
+          label: "Gekoppelde kennisbankartikelen",
+          values: item.articleIds,
+          options: articleOptions(articleData),
+          help: "Relaties gebruiken bestaande artikel-id's."
+        })}
+      </section>
+
+      <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
+        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+      </p>
+
+      <div class="studio-form-actions">
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        ${renderButton({
+          label: "Annuleren",
+          href: "#/bibliotheek",
+          variant: "secondary",
+          attributes: { "data-library-form-cancel": true }
+        })}
+      </div>
+    </form>
+  `;
+}
+
+export function setupLibraryForm({ librarySession, supplierSession, brochureSession, articleSession, mediaSession, formDirtyGuard }) {
+  const form = document.querySelector("[data-library-form]");
+  if (!form) return;
+
+  const libraryData = librarySession.getWorkingData();
+  const supplierData = supplierSession.getWorkingData();
+  const brochureData = brochureSession.getWorkingData();
+  const articleData = articleSession.getWorkingData();
+  const mediaData = mediaSession.getWorkingData();
+  const feedback = form.querySelector("#library-form-feedback");
+  const dirtyNotice = form.querySelector("[data-form-dirty-notice]");
+  const titleInput = form.elements.title;
+  const slugInput = form.elements.slug;
+  const idInput = form.elements.id;
+  let slugTouched = Boolean(slugInput.value);
+  const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
+
+  setupErrorLinkFocus(feedback, form);
+
+  slugInput.addEventListener("input", () => {
+    slugTouched = true;
+    slugInput.value = normalizeSlug(slugInput.value);
+    if (!idInput.value) {
+      idInput.value = `library-${slugInput.value}`.replace(/-+$/g, "");
+    }
+  });
+
+  titleInput.addEventListener("input", () => {
+    if (!slugTouched) {
+      slugInput.value = normalizeSlug(titleInput.value);
+    }
+    if (!form.dataset.originalId) {
+      idInput.value = `library-${normalizeSlug(titleInput.value)}`.replace(/-+$/g, "");
+    }
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearFieldErrors(form);
+
+    const item = libraryItemFromForm(form);
+    const result = validateLibraryItem(
+      item,
+      libraryData.items || [],
+      supplierData,
+      brochureData,
+      articleData,
+      libraryData,
+      mediaData,
+      {
+        originalSlug: form.dataset.originalSlug || "",
+        originalId: form.dataset.originalId || ""
+      }
+    );
+
+    if (hasValidationErrors(result)) {
+      renderFormValidationErrors(form, feedback, result.errors, {
+        headingId: "library-form-validation-summary-title"
+      });
+      return;
+    }
+
+    librarySession.applyLibraryItem(item, form.dataset.originalSlug || "");
+    dirtyRegistration?.markClean();
+    feedback.innerHTML = renderNotice({
+      title: "Opgeslagen in werksessie",
+      message:
+        "Het bibliotheekitem is toegepast op workingData in browsergeheugen. Uploads, downloads, repositorywrites en publicatie zijn niet actief.",
+      tone: "success"
+    });
+    window.location.hash = `#/bibliotheek/${item.slug}`;
+  });
+}

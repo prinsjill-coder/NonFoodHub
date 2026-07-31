@@ -36,7 +36,8 @@ export const STUDIO_ROUTES = [
     id: "library",
     path: "/bibliotheek",
     title: "Bibliotheek",
-    enabled: false
+    enabled: true,
+    sectionId: "library"
   },
   {
     id: "showroom",
@@ -225,6 +226,41 @@ export function routeFromHash(hash) {
       enabled: true,
       sectionId: "knowledge",
       params: { slug: articleDetailMatch[1] }
+    };
+  }
+
+  if (cleaned === "/bibliotheek/nieuw") {
+    return {
+      id: "libraryNew",
+      path: cleaned,
+      title: "Nieuw bibliotheekitem",
+      enabled: true,
+      sectionId: "library",
+      params: {}
+    };
+  }
+
+  const libraryEditMatch = cleaned.match(/^\/bibliotheek\/([^/]+)\/bewerken$/);
+  if (libraryEditMatch) {
+    return {
+      id: "libraryEdit",
+      path: cleaned,
+      title: "Bibliotheekitem bewerken",
+      enabled: true,
+      sectionId: "library",
+      params: { slug: libraryEditMatch[1] }
+    };
+  }
+
+  const libraryDetailMatch = cleaned.match(/^\/bibliotheek\/([^/]+)$/);
+  if (libraryDetailMatch) {
+    return {
+      id: "libraryDetail",
+      path: cleaned,
+      title: "Bibliotheekitem bekijken",
+      enabled: true,
+      sectionId: "library",
+      params: { slug: libraryDetailMatch[1] }
     };
   }
 

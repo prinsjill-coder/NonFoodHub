@@ -7,6 +7,7 @@ import { focusRouteContent, applyRouteTitle } from "./route-focus.js";
 import { getCurrentRoute, getRouteTitle, renderRoute, setupRoute } from "./router.js";
 import { createArticleSession } from "./state/article-session.js";
 import { createBrochureSession } from "./state/brochure-session.js";
+import { createLibrarySession } from "./state/library-session.js";
 import { createMediaSession } from "./state/media-session.js";
 import { createSupplierSession } from "./state/supplier-session.js";
 
@@ -18,7 +19,8 @@ const STUDIO_DATA_PATHS = {
   suppliers: "../data/suppliers.json",
   brochures: "../data/brochures.json",
   media: "../data/media.json",
-  articles: "../data/articles.json"
+  articles: "../data/articles.json",
+  library: "../data/library.json"
 };
 
 function getStudioDataPath(key) {
@@ -26,17 +28,30 @@ function getStudioDataPath(key) {
 }
 
 async function loadStudioData() {
-  const [navigation, dashboard, suppliers, brochures, media, articles] = await Promise.all([
+  const [navigation, dashboard, suppliers, brochures, media, articles, library] = await Promise.all([
     fetchJson(getStudioDataPath("navigation")),
     fetchJson(getStudioDataPath("dashboard")),
     fetchJson(getStudioDataPath("suppliers")),
     fetchJson(getStudioDataPath("brochures")),
     fetchJson(getStudioDataPath("media")),
-    fetchJson(getStudioDataPath("articles"))
+    fetchJson(getStudioDataPath("articles")),
+    fetchJson(getStudioDataPath("library"))
   ]);
   const supplierSession = createSupplierSession(suppliers);
   const brochureSession = createBrochureSession(brochures, () => supplierSession.getWorkingData());
   const mediaSession = createMediaSession(media);
+  const articleSession = createArticleSession(
+    articles,
+    () => supplierSession.getWorkingData(),
+    () => brochureSession.getWorkingData(),
+    () => mediaSession.getWorkingData()
+  );
+  const librarySession = createLibrarySession(library, {
+    suppliers: () => supplierSession.getWorkingData(),
+    brochures: () => brochureSession.getWorkingData(),
+    articles: () => articleSession.getWorkingData(),
+    media: () => mediaSession.getWorkingData()
+  });
 
   return {
     navigation,
@@ -44,12 +59,8 @@ async function loadStudioData() {
     supplierSession,
     brochureSession,
     mediaSession,
-    articleSession: createArticleSession(
-      articles,
-      () => supplierSession.getWorkingData(),
-      () => brochureSession.getWorkingData(),
-      () => mediaSession.getWorkingData()
-    ),
+    articleSession,
+    librarySession,
     formDirtyGuard: createFormDirtyGuard()
   };
 }
@@ -149,7 +160,8 @@ async function initStudio() {
       const brochureDirty = state.brochureSession?.snapshot().hasUnexportedChanges;
       const mediaDirty = state.mediaSession?.snapshot().hasUnexportedChanges;
       const articleDirty = state.articleSession?.snapshot().hasUnexportedChanges;
-      if (!supplierDirty && !brochureDirty && !mediaDirty && !articleDirty && !state.formDirtyGuard.isDirty()) return;
+      const libraryDirty = state.librarySession?.snapshot().hasUnexportedChanges;
+      if (!supplierDirty && !brochureDirty && !mediaDirty && !articleDirty && !libraryDirty && !state.formDirtyGuard.isDirty()) return;
       event.preventDefault();
       event.returnValue = "";
     });

@@ -2,6 +2,7 @@ import { routeFromHash } from "../../shared/routes.js";
 import { renderBrochuresRoute, setupBrochuresRoute } from "./pages/brochures/index.js";
 import { renderDashboard, renderRouteNotFound, renderRoutePlaceholder } from "./pages/dashboard.js";
 import { renderKnowledgeRoute, setupKnowledgeRoute } from "./pages/knowledge/index.js";
+import { renderLibraryRoute, setupLibraryRoute } from "./pages/library/index.js";
 import { renderMediaRoute, setupMediaRoute } from "./pages/media/index.js";
 import { renderSuppliersRoute, setupSuppliersRoute } from "./pages/suppliers/index.js";
 import { getBaseRouteTitle, getItemRouteTitle } from "./shared/route-metadata.js";
@@ -15,6 +16,7 @@ export function getRouteTitle(route, state) {
   if (route.id === "brochureNew") return "Nieuwe brochure";
   if (route.id === "mediaNew") return "Nieuw media-asset";
   if (route.id === "articleNew") return "Nieuw kennisbankartikel";
+  if (route.id === "libraryNew") return "Nieuw bibliotheekitem";
 
   if (route.id === "supplierEdit" || route.id === "supplierDetail") {
     const supplier = state.supplierSession.findBySlug(route.params?.slug);
@@ -68,6 +70,19 @@ export function getRouteTitle(route, state) {
     });
   }
 
+  if (route.id === "libraryEdit" || route.id === "libraryDetail") {
+    const item = state.librarySession?.findBySlug(route.params?.slug);
+    return getItemRouteTitle({
+      route,
+      item,
+      detailRouteId: "libraryDetail",
+      editRouteId: "libraryEdit",
+      missingTitle: "Bibliotheekitem niet gevonden",
+      detailTitle: (libraryItem) => libraryItem.title,
+      editTitle: (libraryItem) => `${libraryItem.title} bewerken`
+    });
+  }
+
   return getBaseRouteTitle(route);
 }
 
@@ -82,7 +97,8 @@ export function renderRoute(route, state) {
       state.supplierSession.getWorkingData(),
       state.brochureSession?.getWorkingData(),
       state.mediaSession?.getWorkingData(),
-      state.articleSession?.getWorkingData()
+      state.articleSession?.getWorkingData(),
+      state.librarySession?.getWorkingData()
     );
   }
 
@@ -100,6 +116,17 @@ export function renderRoute(route, state) {
 
   if (route.sectionId === "knowledge") {
     return renderKnowledgeRoute(route, state.articleSession, state.supplierSession, state.brochureSession, state.mediaSession);
+  }
+
+  if (route.sectionId === "library") {
+    return renderLibraryRoute(
+      route,
+      state.librarySession,
+      state.supplierSession,
+      state.brochureSession,
+      state.articleSession,
+      state.mediaSession
+    );
   }
 
   return renderRoutePlaceholder(route);
@@ -124,6 +151,18 @@ export function setupRoute(route, state, options = {}) {
       state.articleSession,
       state.supplierSession,
       state.brochureSession,
+      state.mediaSession,
+      options
+    );
+  }
+
+  if (route.sectionId === "library") {
+    setupLibraryRoute(
+      route,
+      state.librarySession,
+      state.supplierSession,
+      state.brochureSession,
+      state.articleSession,
       state.mediaSession,
       options
     );

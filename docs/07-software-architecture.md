@@ -207,3 +207,16 @@ contentrelaties. Deze helper zoekt bestaande relaties tussen leveranciers,
 brochures, kennisbankartikelen en media op basis van bestaande id- en
 padvelden. De helper muteert geen data, schrijft niets weg en is geen generieke
 relation engine.
+
+## Bibliotheekregistry
+
+Vanaf Sprint 9A bestaat Bibliotheek als eigen Studio-contentmodule voor
+documenten en bronnen. De module gebruikt `data/library.json`, een eigen
+datamodel, eigen validatie, eigen normalisatie en een eigen in-memory sessie.
+
+Bibliotheekitems blijven in deze fase een statisch Studio-register. Studio
+uploadt geen bestanden, genereert geen publieke downloads, schrijft niet naar de
+repository en gebruikt geen backend. Relaties met leveranciers, brochures en
+kennisbankartikelen worden gevalideerd via bestaande id's. Bestands- en
+thumbnailpaden blijven relatieve projectpaden; een migratie naar `mediaAssetId`
+is uitgesteld.

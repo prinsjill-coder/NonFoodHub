@@ -32,7 +32,7 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
           </a>
         <nav class="studio-nav" aria-label="Studio navigatie">${navItems}</nav>
         <p class="studio-sidebar-note">
-          Studio bevat tijdelijke werksessies voor leveranciers en brochures. Uploads, echte opslag en publicatie-acties zijn niet actief.
+          Studio bevat tijdelijke browserwerksessies. Uploads, echte opslag, repositorywrites en publicatie-acties zijn niet actief.
         </p>
       </aside>
       <main class="studio-main">

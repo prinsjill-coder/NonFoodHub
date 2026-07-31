@@ -1,5 +1,6 @@
 import { getArticles } from "./article-model.js";
 import { getBrochures } from "./brochure-model.js";
+import { getLibraryItems } from "./library-model.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
 
@@ -42,6 +43,22 @@ export function findArticleBrochures(article, brochureData) {
 
 export function findBrochureArticles(brochure, articleData) {
   return getArticles(articleData).filter((article) => hasId(article.brochureIds, brochure.id));
+}
+
+export function findLibrarySuppliers(libraryItem, supplierData) {
+  return getSuppliers(supplierData).filter((supplier) => hasId(libraryItem.supplierIds, supplier.id));
+}
+
+export function findLibraryBrochures(libraryItem, brochureData) {
+  return getBrochures(brochureData).filter((brochure) => hasId(libraryItem.brochureIds, brochure.id));
+}
+
+export function findLibraryArticles(libraryItem, articleData) {
+  return getArticles(articleData).filter((article) => hasId(libraryItem.articleIds, article.id));
+}
+
+export function findArticleLibraryItems(article, libraryData) {
+  return getLibraryItems(libraryData).filter((item) => hasId(item.articleIds, article.id));
 }
 
 export function findMediaAssetByPath(mediaData, path) {

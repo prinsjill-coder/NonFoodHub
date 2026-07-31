@@ -245,6 +245,21 @@ Voor algemene downloads:
 - zichtbaarheid;
 - status.
 
+### Bibliotheekregistry in statische Studio
+
+Sprint 9A introduceert Bibliotheek als Studio-register voor documenten en
+bronnen. `data/library.json` wordt als gebundelde bron geladen en wijzigingen
+bestaan alleen in de actieve browserwerksessie.
+
+Bibliotheekitems kunnen worden bekeken, aangemaakt en bewerkt binnen Studio.
+Opslaan past alleen `workingData` in browsergeheugen aan. Er is nog geen import,
+export, uploadfunctionaliteit, automatische downloadservice, publieke
+websitekoppeling of migratie naar `mediaAssetId`.
+
+Bibliotheekitems gebruiken relatieve projectpaden voor bestanden en thumbnails.
+Ontbrekende fysieke bestanden of paden die nog niet in `media.json` staan geven
+waarschuwingen, maar blokkeren het register niet.
+
 ## Showroombeheer
 
 Beheerbare velden:
