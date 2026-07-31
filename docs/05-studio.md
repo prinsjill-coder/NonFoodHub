@@ -205,9 +205,10 @@ Sprint 8A introduceert kennisbankartikelen als aparte Studio-module.
 alleen in de actieve browserwerksessie.
 
 Artikelen kunnen worden bekeken, aangemaakt en bewerkt binnen Studio. Opslaan
-past alleen `workingData` in browsergeheugen aan. Er is nog geen import/export,
-geen publieke rendering, geen automatische publicatie en geen schrijfactie naar
-de repository.
+past alleen `workingData` in browsergeheugen aan. Vanaf Sprint 8B kan
+`articles.json` ook worden geimporteerd, gevalideerd en als genormaliseerde
+download worden geexporteerd. Importeren en exporteren schrijven niets naar de
+repository en publiceren niets.
 
 Vanaf Sprint 8A.1 bevat de kennisbankconfiguratie minimaal deze categorieen:
 Inspiratie, Terras & Outdoor, Tafelpresentatie, Buffet & presentatie,
@@ -218,6 +219,12 @@ Hero afbeeldingen blijven in deze sprint relatieve projectpaden, zoals
 `assets/images/blog-terras.png`. Automatische koppeling met MediaAsset volgt in
 een latere sprint. Wanneer een pad niet in `media.json` staat, toont validatie
 alleen een waarschuwing; dit blokkeert opslaan niet.
+
+Sprint 8B voegt een kennisbankkwaliteitsrapport toe. Dit rapport controleert
+basisvelden, statusregels, hero-afbeeldingen en relaties met leveranciers,
+brochures en media. Concepten mogen onvolledig blijven; artikelen in review
+hebben minimaal titel, slug, samenvatting en categorie nodig; gepubliceerde
+artikelen hebben daarnaast inhoud en een hero-afbeelding nodig.
 
 ## Bibliotheekbeheer
 

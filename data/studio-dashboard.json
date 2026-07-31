@@ -31,6 +31,27 @@
       "note": "Wordt in Studio berekend uit data/articles.json."
     },
     {
+      "id": "articlePublished",
+      "label": "Artikelen gepubliceerd",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit de actieve kennisbankwerksessie."
+    },
+    {
+      "id": "articleWarnings",
+      "label": "Artikelwaarschuwingen",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit het kennisbankkwaliteitsrapport."
+    },
+    {
+      "id": "articleMissingMedia",
+      "label": "Ontbrekende artikelmedia",
+      "value": null,
+      "state": "not_connected",
+      "note": "Hero-afbeeldingen zonder registratie in data/media.json."
+    },
+    {
       "id": "library",
       "label": "Bibliotheekitems",
       "value": null,

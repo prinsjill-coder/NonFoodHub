@@ -99,7 +99,7 @@ export function renderRoute(route, state) {
   }
 
   if (route.sectionId === "knowledge") {
-    return renderKnowledgeRoute(route, state.articleSession, state.supplierSession, state.brochureSession);
+    return renderKnowledgeRoute(route, state.articleSession, state.supplierSession, state.brochureSession, state.mediaSession);
   }
 
   return renderRoutePlaceholder(route);

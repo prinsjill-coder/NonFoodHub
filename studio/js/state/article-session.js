@@ -1,6 +1,7 @@
 import { findArticleById, findArticleBySlug, getArticles, sortArticles } from "../../../shared/article-model.js";
 import { validateArticleFile } from "../../../shared/article-file-validation.js";
-import { deepClone, normalizeArticleFileForSession, stableStringify } from "../../../shared/article-normalizer.js";
+import { createArticleExport } from "../../../shared/article-export.js";
+import { ARTICLES_EXPORT_FILENAME, deepClone, normalizeArticleFileForSession, stableStringify } from "../../../shared/article-normalizer.js";
 
 function createHash(value) {
   return stableStringify(value);
@@ -30,6 +31,7 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
     resolveSource(brochureDataSource),
     resolveSource(mediaDataSource)
   );
+  let lastExport = null;
 
   function workingHash() {
     return createHash(workingData);
@@ -51,14 +53,15 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
   function snapshot() {
     const currentHash = workingHash();
     const dirty = currentHash !== sourceHash;
+    const exportedCurrent = Boolean(lastExport && lastExport.hash === currentHash);
     return {
       sourceFileName,
       sourceType,
       dirty,
-      exportedCurrent: false,
-      hasUnexportedChanges: dirty,
-      exportStatus: "not_available",
-      lastExport: null,
+      exportedCurrent,
+      hasUnexportedChanges: dirty && !exportedCurrent,
+      exportStatus: exportedCurrent ? "exported_unconfirmed" : "not_exported",
+      lastExport: deepClone(lastExport),
       lastValidationReport: deepClone(lastValidationReport),
       articleCount: getArticles(workingData).length
     };
@@ -76,9 +79,30 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
     lastValidationReport = deepClone(report);
   }
 
+  function importSource(nextData, fileName, report = validateArticleFile(
+    nextData,
+    resolveSource(supplierDataSource),
+    resolveSource(brochureDataSource),
+    resolveSource(mediaDataSource)
+  )) {
+    const normalizedData = normalizeArticleFileForSession(nextData);
+    sourceData = deepClone(normalizedData);
+    workingData = deepClone(normalizedData);
+    sourceHash = createHash(sourceData);
+    sourceFileName = fileName || "geimporteerd articles.json";
+    sourceType = "imported";
+    lastValidationReport = deepClone({
+      ...report,
+      action: "import",
+      sourceFileName
+    });
+    lastExport = null;
+  }
+
   function restoreSource() {
     workingData = deepClone(sourceData);
     lastValidationReport = deepClone(currentReport("restore"));
+    lastExport = null;
   }
 
   function applyArticle(article, originalSlug = "") {
@@ -109,14 +133,38 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
     return article ? deepClone(article) : null;
   }
 
+  function prepareExport() {
+    const exportResult = createArticleExport(
+      workingData,
+      resolveSource(supplierDataSource),
+      resolveSource(brochureDataSource),
+      resolveSource(mediaDataSource)
+    );
+    lastValidationReport = deepClone(exportResult.report);
+    return deepClone(exportResult);
+  }
+
+  function markExported(report = lastValidationReport) {
+    lastExport = {
+      at: new Date().toISOString(),
+      fileName: ARTICLES_EXPORT_FILENAME,
+      hash: workingHash(),
+      status: "exported_unconfirmed"
+    };
+    lastValidationReport = deepClone(report);
+  }
+
   return {
     snapshot,
     getWorkingData,
     getSourceData,
     setValidationReport,
+    importSource,
     restoreSource,
     applyArticle,
     findBySlug,
-    findById
+    findById,
+    prepareExport,
+    markExported
   };
 }

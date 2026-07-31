@@ -189,10 +189,15 @@ relaties is een latere architectuurbeslissing.
 
 Vanaf Sprint 8A bestaat Kennisbank als eigen Studio-contentmodule voor
 artikelen. De module gebruikt `data/articles.json`, een eigen datamodel, eigen
-validatie, eigen normalisatie en een eigen in-memory sessie.
+validatie, eigen normalisatie, eigen import/exportworkflow en een eigen
+in-memory sessie.
 
 Artikelen blijven een statische registry voor toekomstige publieke
 website-integratie. Studio schrijft geen artikelen naar de repository en koppelt
 deze data nog niet aan de publieke website. Relaties met leveranciers en
-brochures worden gevalideerd via bestaande id's. Hoofdafbeeldingen blijven
+brochures worden gevalideerd via bestaande id's. Hero-afbeeldingen blijven
 relatieve projectpaden; een migratie naar `mediaAssetId` is uitgesteld.
+
+Vanaf Sprint 8B heeft de kennisbank een modulespecifieke kwaliteitslaag voor
+statusregels, relatiecontrole en mediawaarschuwingen. Deze laag gebruikt de
+actieve browserwerksessie en vormt geen generieke CMS-engine.

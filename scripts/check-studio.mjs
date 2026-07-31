@@ -24,6 +24,7 @@ import { renderSuppliersRoute } from "../studio/js/pages/suppliers/index.js";
 import { getRouteTitle, renderRoute } from "../studio/js/router.js";
 import { createFormDirtyGuard } from "../studio/js/form-dirty-guard.js";
 import { runArticleChecks } from "./check-articles.mjs";
+import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
 import { runMediaChecks } from "./check-media.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
@@ -157,7 +158,10 @@ async function runStudioChecks() {
   await runCheck("Studio modules importeren zonder side effects", async () => {
     await import("../shared/routes.js");
     await import("../shared/article-file-validation.js");
+    await import("../shared/article-import.js");
+    await import("../shared/article-export.js");
     await import("../shared/article-normalizer.js");
+    await import("../shared/article-quality.js");
     await import("../shared/article-validation.js");
     await import("../shared/content-status.js");
     await import("../shared/brochure-file-validation.js");
@@ -180,6 +184,8 @@ async function runStudioChecks() {
     await import("../studio/js/pages/brochures/import-export.js");
     await import("../studio/js/pages/brochures/index.js");
     await import("../studio/js/pages/knowledge/form.js");
+    await import("../studio/js/pages/knowledge/import.js");
+    await import("../studio/js/pages/knowledge/export.js");
     await import("../studio/js/pages/knowledge/index.js");
     await import("../studio/js/pages/media/form.js");
     await import("../studio/js/pages/media/index.js");
@@ -266,6 +272,10 @@ async function runStudioChecks() {
     assert.match(articleMetric?.note || "", /data\/articles\.json/);
     assert.equal(articleAction?.enabled, true);
     assert.equal(articleAction?.route, "#/kennisbank/nieuw");
+
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "articlePublished")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "articleWarnings")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "articleMissingMedia")?.state, "not_connected");
   });
 
   await runCheck("route titles en document title helper werken", async () => {
@@ -408,6 +418,11 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Kennisbankbeheer/);
     assert.match(listHtml, /Terras &amp; Outdoor inspiratie/);
+    assert.match(listHtml, /data-article-import-button/);
+    assert.match(listHtml, /data-article-export-button/);
+    assert.match(listHtml, /articles\.json importeren/);
+    assert.match(listHtml, /Kwaliteitsrapport kennisbank/);
+    assert.match(listHtml, /Contentkwaliteit/);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw artikel/);
     assert.match(newHtml, /data-article-form/);
@@ -445,6 +460,25 @@ async function runStudioChecks() {
     assert.doesNotMatch(mediaAction, /Niet actief|is-disabled/);
     assert.match(articleAction, /href="#\/kennisbank\/nieuw"/);
     assert.doesNotMatch(articleAction, /Niet actief|is-disabled/);
+  });
+
+  await runCheck("dashboard toont kennisbankkwaliteitsmetrics uit actieve data", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
+    const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession,
+      mediaSession,
+      articleSession
+    };
+    const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
+
+    assert.match(dashboardHtml, /Artikelen gepubliceerd/);
+    assert.match(dashboardHtml, /Artikelwaarschuwingen/);
+    assert.match(dashboardHtml, /Ontbrekende artikelmedia/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {
@@ -602,6 +636,7 @@ async function runStudioChecks() {
   await runBrochureChecks();
   await runMediaChecks();
   await runArticleChecks();
+  await runArticleQualityChecks();
 }
 
 runStudioChecks()

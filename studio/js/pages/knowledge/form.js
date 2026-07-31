@@ -167,23 +167,22 @@ export function renderArticleForm({
           name: "summary",
           label: "Samenvatting",
           value: article.summary,
-          required: true,
-          rows: 4
+          rows: 4,
+          help: "Verplicht voor review en published. Concepten mogen nog onvolledig zijn."
         })}
         ${renderTextAreaField({
           name: "body",
           label: "Inhoud",
           value: article.body,
-          required: true,
           rows: 9,
-          help: "Eenvoudige tekstinhoud. Rich text en blokkeneditor zijn buiten scope van Sprint 8A."
+          help: "Verplicht voor published. Rich text en blokkeneditor zijn buiten scope van Sprint 8B."
         })}
         ${renderCheckboxGroup({
           name: "categories",
           label: "Categorieen",
           values: article.categories,
           options: articleData.categories || [],
-          required: true
+          help: "Minimaal een categorie is verplicht voor review en published."
         })}
       </section>
 

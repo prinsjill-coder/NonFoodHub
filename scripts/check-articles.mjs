@@ -4,9 +4,16 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { CONTENT_STATUSES } from "../shared/content-status.js";
+import { createArticleExport } from "../shared/article-export.js";
 import { validateArticleFile } from "../shared/article-file-validation.js";
+import { validateArticleImportData } from "../shared/article-import.js";
 import { ARTICLE_CATEGORIES, getArticleCounts } from "../shared/article-model.js";
-import { normalizeArticleFileForExport, normalizeArticleFileForSession, stableStringify } from "../shared/article-normalizer.js";
+import {
+  ARTICLES_EXPORT_FILENAME,
+  normalizeArticleFileForExport,
+  normalizeArticleFileForSession,
+  stableStringify
+} from "../shared/article-normalizer.js";
 import { validateArticle } from "../shared/article-validation.js";
 import { createArticleSession } from "../studio/js/state/article-session.js";
 
@@ -140,7 +147,7 @@ export async function runArticleChecks() {
       { originalSlug: firstArticle(articles).slug, originalId: firstArticle(articles).id }
     );
 
-    assert.equal(result.errors.categories, "Kies minimaal een categorie.");
+    assert.equal(result.errors.categories, "Kies minimaal een categorie voor review of publicatie.");
 
     result = validateArticle(
       {
@@ -186,6 +193,7 @@ export async function runArticleChecks() {
     let result = validateArticle(
       {
         ...firstArticle(articles),
+        status: "review",
         heroImage: ""
       },
       articles.items,
@@ -260,6 +268,19 @@ export async function runArticleChecks() {
     assert.equal("extraRoot" in first, false);
     assert.equal("extraArticle" in first.items[0], false);
     assert.equal("extraRoot" in exported, false);
+    assert.equal(exported.metadata.module, "knowledge");
+    assert.equal(exported.metadata.itemCount, exported.items.length);
+  });
+
+  await runCheck("artikelimport en artikelexport gebruiken genormaliseerde articles.json", () => {
+    const importReport = validateArticleImportData(articles, suppliers, brochures, media, ARTICLES_EXPORT_FILENAME);
+    const exportResult = createArticleExport(articles, suppliers, brochures, media);
+
+    assert.equal(importReport.valid, true);
+    assert.equal(importReport.itemCount, articles.items.length);
+    assert.equal(exportResult.ok, true);
+    assert.equal(exportResult.fileName, ARTICLES_EXPORT_FILENAME);
+    assert.equal(JSON.parse(exportResult.json).metadata.module, "knowledge");
   });
 
   await runCheck("sessie start schoon, wordt dirty en kan herstellen", () => {
@@ -274,6 +295,26 @@ export async function runArticleChecks() {
     session.restoreSource();
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(article.slug).title, article.title);
+  });
+
+  await runCheck("sessie kan importeren, exporteren en exportstatus registreren", () => {
+    const session = createArticleSession(articles, suppliers, brochures, media);
+    const data = clone(articles);
+    firstArticle(data).title = "Geimporteerd artikel";
+    const report = validateArticleImportData(data, suppliers, brochures, media, ARTICLES_EXPORT_FILENAME);
+
+    session.importSource(data, ARTICLES_EXPORT_FILENAME, report);
+    assert.equal(session.snapshot().dirty, false);
+    assert.equal(session.findBySlug(firstArticle(data).slug).title, "Geimporteerd artikel");
+
+    session.applyArticle({ ...firstArticle(data), title: "Gewijzigd artikel" }, firstArticle(data).slug);
+    assert.equal(session.snapshot().hasUnexportedChanges, true);
+
+    const exportResult = session.prepareExport();
+    assert.equal(exportResult.ok, true);
+    session.markExported(exportResult.report);
+    assert.equal(session.snapshot().exportedCurrent, true);
+    assert.equal(session.snapshot().lastExport.fileName, ARTICLES_EXPORT_FILENAME);
   });
 
   await runCheck("sessie vindt items op slug en id en beschermt interne state", () => {

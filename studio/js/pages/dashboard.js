@@ -4,6 +4,7 @@ import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getArticleCounts } from "../../../shared/article-model.js";
+import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
@@ -15,6 +16,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
   const brochureCounts = getBrochureCounts(brochureData);
   const mediaCounts = getMediaCounts(mediaData);
   const articleCounts = getArticleCounts(articleData);
+  const articleQuality = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
       return {
@@ -49,6 +51,33 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         value: articleCounts.total,
         state: "foundation",
         note: "Gelezen uit de actieve kennisbankwerksessie; nog niet gekoppeld aan de publieke website."
+      };
+    }
+
+    if (metric.id === "articlePublished") {
+      return {
+        ...metric,
+        value: articleQuality.stats.published,
+        state: "foundation",
+        note: "Gelezen uit de actieve kennisbankwerksessie; contentstatus publiceert niets automatisch."
+      };
+    }
+
+    if (metric.id === "articleWarnings") {
+      return {
+        ...metric,
+        value: articleQuality.stats.warnings,
+        state: articleQuality.stats.warnings ? "review" : "foundation",
+        note: "Waarschuwingen uit het kennisbankkwaliteitsrapport."
+      };
+    }
+
+    if (metric.id === "articleMissingMedia") {
+      return {
+        ...metric,
+        value: articleQuality.stats.missingMediaRegistrations,
+        state: articleQuality.stats.missingMediaRegistrations ? "review" : "foundation",
+        note: "Hero-afbeeldingen zonder registratie in media.json."
       };
     }
 

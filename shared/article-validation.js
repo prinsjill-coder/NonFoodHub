@@ -71,6 +71,9 @@ export function validateArticle(article, existingArticles, supplierData, brochur
   const warnings = {};
   const originalSlug = options.originalSlug || "";
   const originalId = options.originalId || "";
+  const status = String(article.status || "").trim();
+  const requiresReviewFields = status === "review" || status === "published";
+  const requiresPublishedFields = status === "published";
 
   if (!hasValue(article.id)) {
     errors.id = "Vul een id in.";
@@ -83,8 +86,8 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     }
   }
 
-  if (!hasValue(article.title)) {
-    errors.title = "Vul een titel in.";
+  if (requiresReviewFields && !hasValue(article.title)) {
+    errors.title = "Vul een titel in voor review of publicatie.";
   }
 
   if (!hasValue(article.slug)) {
@@ -102,16 +105,18 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     errors.status = "Kies een geldige status.";
   }
 
-  if (!hasValue(article.summary)) {
-    errors.summary = "Vul een samenvatting in.";
+  if (requiresReviewFields && !hasValue(article.summary)) {
+    errors.summary = "Vul een samenvatting in voor review of publicatie.";
   }
 
-  if (!hasValue(article.body)) {
-    errors.body = "Vul de artikelinhoud in.";
+  if (requiresPublishedFields && !hasValue(article.body)) {
+    errors.body = "Vul de artikelinhoud in voor publicatie.";
   }
 
-  if (!Array.isArray(article.categories) || article.categories.length === 0) {
-    errors.categories = "Kies minimaal een categorie.";
+  if (!Array.isArray(article.categories)) {
+    errors.categories = "Categorieen moeten een lijst zijn.";
+  } else if (requiresReviewFields && article.categories.length === 0) {
+    errors.categories = "Kies minimaal een categorie voor review of publicatie.";
   } else {
     const allowedCategories = new Set(articleData.categories || []);
     const invalidCategory = article.categories.find((category) => !allowedCategories.has(category));
@@ -120,7 +125,9 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     }
   }
 
-  if (!hasValue(article.heroImage)) {
+  if (requiresPublishedFields && !hasValue(article.heroImage)) {
+    errors.heroImage = "Hero afbeelding is verplicht voor publicatie.";
+  } else if (!hasValue(article.heroImage)) {
     warnings.heroImage = "Er is nog geen hero afbeelding gekoppeld.";
   } else if (!isRelativeProjectPath(article.heroImage)) {
     errors.heroImage = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";

@@ -1,10 +1,17 @@
 {
   "schemaVersion": "0.1.0",
+  "metadata": {
+    "module": "knowledge",
+    "source": "NonFood Hub Studio",
+    "transfer": "manual-json-export",
+    "itemCount": 2,
+    "lastUpdatedAt": "2026-07-31"
+  },
   "prototype": true,
   "storage": {
-    "mode": "static-session",
+    "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Kennisbankartikelen worden in Sprint 8A alleen als registry in browsergeheugen beheerd. Import, export, publieke rendering en publicatie zijn niet actief."
+    "message": "Kennisbankartikelen worden in browsergeheugen gewijzigd. Export downloadt alleen articles.json; vervang /data/articles.json handmatig en commit en push daarna zelf via GitHub Desktop."
   },
   "statuses": ["concept", "review", "published", "hidden", "archived"],
   "categories": [

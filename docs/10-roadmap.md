@@ -87,6 +87,12 @@ Hero afbeelding (relatief pad), opgeslagen als `heroImage`. Ontbrekende
 registratie in `media.json` is alleen een waarschuwing en blokkeert de
 werksessie niet.
 
+Aanvullend Sprint 8B-besluit: Kennisbankbeheer ondersteunt modulespecifieke
+import/export voor `articles.json`, een kwaliteitsrapport, cross-module
+relatiecontrole en dashboardinzichten voor artikelkwaliteit. De werkwijze blijft
+statisch en handmatig: exporteren is een download, geen opslag, publicatie,
+commit of push.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

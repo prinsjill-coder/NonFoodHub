@@ -3,15 +3,18 @@ import { renderArticleDetail } from "./detail.js";
 import { renderArticleForm, setupArticleForm } from "./form.js";
 import { renderArticlesList, setupArticleList } from "./list.js";
 
-export function renderKnowledgeRoute(route, articleSession, supplierSession, brochureSession) {
+export function renderKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession) {
   const articleData = articleSession.getWorkingData();
   const supplierData = supplierSession.getWorkingData();
   const brochureData = brochureSession.getWorkingData();
+  const mediaData = mediaSession.getWorkingData();
 
   if (route.id === "knowledge") {
     return renderArticlesList({
       articleData,
       supplierData,
+      brochureData,
+      mediaData,
       sessionSnapshot: articleSession.snapshot()
     });
   }
@@ -42,7 +45,13 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
 
 export function setupKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession, options = {}) {
   if (route.id === "knowledge") {
-    setupArticleList({ articleSession, rerender: options.rerender });
+    setupArticleList({
+      articleSession,
+      supplierSession,
+      brochureSession,
+      mediaSession,
+      rerender: options.rerender
+    });
   }
 
   if (route.id === "articleNew" || route.id === "articleEdit") {

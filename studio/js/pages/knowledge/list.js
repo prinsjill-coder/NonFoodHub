@@ -1,6 +1,7 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import { renderDataTable } from "../../../../components/data-table.js";
+import { renderFileInput } from "../../../../components/file-input.js";
 import { renderFilterToolbar } from "../../../../components/filter-toolbar.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
@@ -13,8 +14,11 @@ import {
   getArticleStatusLabel,
   sortArticles
 } from "../../../../shared/article-model.js";
+import { getArticleQualityReport } from "../../../../shared/article-quality.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { setupArticleExport } from "./export.js";
+import { setupArticleImport } from "./import.js";
 
 function supplierNameById(supplierData) {
   return new Map(getSuppliers(supplierData).map((supplier) => [supplier.id, supplier.name]));
@@ -126,15 +130,102 @@ function categoryOptions(articleData) {
 }
 
 function renderSessionStatus(snapshot) {
+  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
+  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde kennisbankwijzigingen";
   if (snapshot.dirty) return "Niet-opgeslagen kennisbankwijzigingen";
   return "Gelijk aan geladen bron";
 }
 
-export function renderArticlesList({ articleData, supplierData, sessionSnapshot }) {
+function renderExportNotice(sessionSnapshot) {
+  if (!sessionSnapshot.exportedCurrent) return "";
+
+  return renderNotice({
+    title: "Export gedownload",
+    message:
+      "Dit bestand is alleen gedownload. Vervang handmatig /data/articles.json en commit en push daarna zelf via GitHub Desktop.",
+    tone: "success"
+  });
+}
+
+function renderImportNotice(sessionSnapshot) {
+  if (sessionSnapshot.sourceType !== "imported") return "";
+
+  return renderNotice({
+    title: "Geïmporteerde kennisbankbron actief",
+    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    tone: "info"
+  });
+}
+
+function renderImportSummary(report) {
+  if (report?.action !== "import" || typeof report.itemCount !== "number") return "";
+
+  return renderNotice({
+    title: report.valid ? "Artikelbestand gevalideerd" : "Artikelbestand niet geaccepteerd",
+    message: `${report.sourceFileName || "Het geselecteerde bestand"} bevat ${report.itemCount} artikelen. Controleer het validatierapport hieronder.`,
+    tone: report.valid ? "info" : "warning"
+  });
+}
+
+function renderQualitySummary(qualityReport) {
+  return `
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Contentkwaliteit</h2>
+        ${renderStatusBadge(qualityReport.valid ? "success" : "review")}
+      </div>
+      <div class="studio-grid studio-grid-4">
+        <article class="studio-card studio-metric-card">
+          <h3>Gepubliceerd</h3>
+          <p class="studio-metric-value">${qualityReport.stats.published}</p>
+          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Waarschuwingen</h3>
+          <p class="studio-metric-value">${qualityReport.stats.warnings}</p>
+          <p class="studio-muted">Relaties, mediaregistraties en conceptkwaliteit.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Ontbrekende media</h3>
+          <p class="studio-metric-value">${qualityReport.stats.missingMediaRegistrations}</p>
+          <p class="studio-muted">Hero-afbeeldingen zonder registratie in media.json.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Blokkades</h3>
+          <p class="studio-metric-value">${qualityReport.errors.length}</p>
+          <p class="studio-muted">Moeten worden opgelost voor professionele publicatie.</p>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+export function renderArticlesList({ articleData, supplierData, brochureData, mediaData, sessionSnapshot }) {
   const articles = sortArticles(getArticles(articleData));
   const counts = getArticleCounts(articleData);
+  const qualityReport = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
   const suppliersById = supplierNameById(supplierData);
-  const actions = renderButton({ label: "Nieuw artikel", href: "#/kennisbank/nieuw", variant: "primary" });
+  const actions = `
+    ${renderButton({ label: "Nieuw artikel", href: "#/kennisbank/nieuw", variant: "primary" })}
+    ${renderButton({
+      label: "Importeren",
+      variant: "secondary",
+      ariaLabel: "Artikeldata importeren",
+      attributes: { "data-article-import-button": true }
+    })}
+    ${renderButton({
+      label: "Exporteren",
+      variant: "secondary",
+      ariaLabel: "Artikeldata exporteren",
+      attributes: { "data-article-export-button": true }
+    })}
+    ${renderFileInput({
+      id: "article-import-file",
+      accept: ".json",
+      label: "articles.json importeren",
+      attributes: { "data-article-import-file": true }
+    })}
+  `;
 
   return `
     ${renderPageHeader({
@@ -146,14 +237,20 @@ export function renderArticlesList({ articleData, supplierData, sessionSnapshot 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "articles.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen. Import, export en publieke rendering voor kennisbankartikelen zijn in deze sprint niet actief.",
+        "Wijzigingen bestaan alleen in browsergeheugen totdat je articles.json exporteert.",
+      exportMessage:
+        "Dit bestand is alleen gedownload. Vervang handmatig /data/articles.json en commit en push daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreLabel: "Kennisbanksessie herstellen",
       restoreAttributes: { "data-article-restore": true }
     })}
 
+    ${renderImportNotice(sessionSnapshot)}
+    ${renderExportNotice(sessionSnapshot)}
+    ${renderImportSummary(sessionSnapshot.lastValidationReport)}
+
     ${renderNotice({
-      title: "Kennisbankregistry zonder publicatie",
+      title: "Statische Studio-werksessie",
       message:
         articleData.storage?.message ||
         "Artikelen worden alleen als contentregistry beheerd. Studio publiceert niets en schrijft niets naar data/articles.json.",
@@ -162,6 +259,15 @@ export function renderArticlesList({ articleData, supplierData, sessionSnapshot 
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport kennisbank"
+    })}
+
+    ${renderValidationReport({
+      valid: qualityReport.valid,
+      errors: qualityReport.errors,
+      warnings: qualityReport.warnings,
+      sourceFileName: "actieve kennisbankwerksessie"
+    }, {
+      title: "Kwaliteitsrapport kennisbank"
     })}
 
     <section class="studio-section">
@@ -183,6 +289,8 @@ export function renderArticlesList({ articleData, supplierData, sessionSnapshot 
         </article>
       </div>
     </section>
+
+    ${renderQualitySummary(qualityReport)}
 
     ${renderFilterToolbar({
       scope: "article",
@@ -211,12 +319,15 @@ export function renderArticlesList({ articleData, supplierData, sessionSnapshot 
   `;
 }
 
-export function setupArticleList({ articleSession, rerender }) {
+export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender }) {
   const search = document.querySelector("[data-article-search]");
   const filters = Array.from(document.querySelectorAll("[data-article-filter]"));
   const items = Array.from(document.querySelectorAll("[data-article-item]"));
   const empty = document.querySelector("[data-article-empty]");
   const restoreButton = document.querySelector("[data-article-restore]");
+
+  setupArticleImport({ articleSession, supplierSession, brochureSession, mediaSession, rerender });
+  setupArticleExport({ articleSession, rerender });
 
   function applyFilters() {
     const query = search?.value.trim().toLowerCase() || "";

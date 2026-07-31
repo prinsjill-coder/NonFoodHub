@@ -1,8 +1,11 @@
 import { CONTENT_STATUSES } from "./content-status.js";
 import { ARTICLE_CATEGORIES, sortArticles } from "./article-model.js";
 
+export const ARTICLES_EXPORT_FILENAME = "articles.json";
+
 export const ARTICLE_FILE_KEYS = [
   "schemaVersion",
+  "metadata",
   "prototype",
   "storage",
   "statuses",
@@ -26,7 +29,7 @@ export const ARTICLE_KEYS = [
 ];
 
 export const ARTICLE_STORAGE_NOTICE =
-  "Kennisbankartikelen worden in Sprint 8A alleen in browsergeheugen als registry beheerd. Import, export, publieke rendering en publicatie zijn niet actief.";
+  "Kennisbankartikelen worden in browsergeheugen gewijzigd. Export downloadt alleen articles.json; vervang /data/articles.json handmatig en commit en push daarna zelf via GitHub Desktop.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -40,6 +43,24 @@ function uniqueSortedStrings(values) {
   return [...new Set((Array.isArray(values) ? values : []).map(asString).filter(Boolean))].sort((first, second) =>
     first.localeCompare(second, "nl")
   );
+}
+
+function latestUpdatedAt(items) {
+  return items
+    .map((item) => asString(item.updatedAt))
+    .filter(Boolean)
+    .sort()
+    .at(-1) || "";
+}
+
+function normalizeMetadata(metadata, items) {
+  return {
+    module: asString(metadata?.module) || "knowledge",
+    source: asString(metadata?.source) || "NonFood Hub Studio",
+    transfer: asString(metadata?.transfer) || "manual-json-export",
+    itemCount: items.length,
+    lastUpdatedAt: latestUpdatedAt(items)
+  };
 }
 
 export function normalizeArticleForSession(article) {
@@ -64,9 +85,10 @@ export function normalizeArticleFileForSession(articleData) {
 
   return {
     schemaVersion: asString(articleData?.schemaVersion) || "0.1.0",
+    metadata: normalizeMetadata(articleData?.metadata, items),
     prototype: true,
     storage: {
-      mode: "static-session",
+      mode: "static-import-export",
       writeEnabled: false,
       message: ARTICLE_STORAGE_NOTICE
     },
@@ -96,4 +118,8 @@ export function stableStringify(value) {
   }
 
   return JSON.stringify(value);
+}
+
+export function stringifyArticleExport(articleData) {
+  return `${JSON.stringify(normalizeArticleFileForExport(articleData), null, 2)}\n`;
 }
