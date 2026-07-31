@@ -3,14 +3,39 @@ import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
+import { getArticleStatusLabel } from "../../../../shared/article-model.js";
+import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
+import { findMediaUsage } from "../../../../shared/content-relations.js";
 import {
   getMediaRightsStatusLabel,
   getMediaTypeLabel,
   getMediaUsageTypeLabel
 } from "../../../../shared/media-model.js";
+import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
-export function renderMediaDetail({ mediaData, asset }) {
+function renderUsageList(items, { emptyText, hrefForItem, labelForItem, statusForItem, statusLabelForItem }) {
+  if (!items.length) {
+    return `<p class="studio-muted">${escapeHtml(emptyText)}</p>`;
+  }
+
+  return `
+    <ul class="studio-relation-list">
+      ${items
+        .map((item) => `
+          <li>
+            <a href="${escapeHtml(hrefForItem(item))}">${escapeHtml(labelForItem(item))}</a>
+            ${renderStatusBadge(statusForItem(item), statusLabelForItem(item))}
+          </li>
+        `)
+        .join("")}
+    </ul>
+  `;
+}
+
+export function renderMediaDetail({ mediaData, supplierData = {}, brochureData = {}, articleData = {}, asset }) {
+  const usage = findMediaUsage(asset, supplierData, brochureData, articleData);
+
   return `
     ${renderPageHeader({
       eyebrow: "Mediaregister",
@@ -58,6 +83,44 @@ export function renderMediaDetail({ mediaData, asset }) {
         <p><code>${escapeHtml(asset.file)}</code></p>
         <p class="studio-meta">Fysieke bestandscontrole gebeurt in lokale scripts en handmatige QA, niet via browser-upload.</p>
       </article>
+    </section>
+
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Gebruikt door</h2>
+      </div>
+      <div class="studio-grid studio-grid-3">
+        <article class="studio-card">
+          <h3>Leveranciers</h3>
+          ${renderUsageList(usage.suppliers, {
+            emptyText: "Geen leveranciers gebruiken dit pad.",
+            hrefForItem: (supplier) => `#/leveranciers/${supplier.slug}`,
+            labelForItem: (supplier) => supplier.name,
+            statusForItem: (supplier) => supplier.status,
+            statusLabelForItem: (supplier) => getSupplierStatusLabel(supplier.status)
+          })}
+        </article>
+        <article class="studio-card">
+          <h3>Brochures</h3>
+          ${renderUsageList(usage.brochures, {
+            emptyText: "Geen brochures gebruiken dit pad.",
+            hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
+            labelForItem: (brochure) => brochure.title,
+            statusForItem: (brochure) => brochure.status,
+            statusLabelForItem: (brochure) => getBrochureStatusLabel(brochure.status)
+          })}
+        </article>
+        <article class="studio-card">
+          <h3>Artikelen</h3>
+          ${renderUsageList(usage.articles, {
+            emptyText: "Geen artikelen gebruiken dit pad.",
+            hrefForItem: (article) => `#/kennisbank/${article.slug}`,
+            labelForItem: (article) => article.title,
+            statusForItem: (article) => article.status,
+            statusLabelForItem: (article) => getArticleStatusLabel(article.status)
+          })}
+        </article>
+      </div>
     </section>
   `;
 }

@@ -40,7 +40,7 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
     return renderArticleForm({ articleData, supplierData, brochureData, article, mode: "edit" });
   }
 
-  return renderArticleDetail({ article, supplierData, brochureData });
+  return renderArticleDetail({ article, supplierData, brochureData, mediaData });
 }
 
 export function setupKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession, options = {}) {

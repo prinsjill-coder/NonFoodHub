@@ -3,15 +3,25 @@ import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
+import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import {
   getBrochureLanguageLabel,
   getBrochureStatusLabel
 } from "../../../../shared/brochure-model.js";
+import { findBrochureArticles } from "../../../../shared/content-relations.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
-function supplierNameForId(supplierData, supplierId) {
-  return getSuppliers(supplierData).find((supplier) => supplier.id === supplierId)?.name || "Onbekende leverancier";
+function supplierForId(supplierData, supplierId) {
+  return getSuppliers(supplierData).find((supplier) => supplier.id === supplierId) || null;
+}
+
+function renderSupplierReference(supplier) {
+  if (!supplier) {
+    return "Onbekende leverancier";
+  }
+
+  return `<a class="studio-inline-link" href="#/leveranciers/${escapeHtml(supplier.slug)}">${escapeHtml(supplier.name)}</a>`;
 }
 
 function renderReferenceCard({ title, value, emptyText }) {
@@ -23,8 +33,28 @@ function renderReferenceCard({ title, value, emptyText }) {
   `;
 }
 
-export function renderBrochureDetail({ brochureData, supplierData, brochure }) {
-  const supplierName = supplierNameForId(supplierData, brochure.supplierId);
+function renderArticleRelations(articles) {
+  if (!articles.length) {
+    return `<p class="studio-muted">Geen kennisbankartikelen gekoppeld.</p>`;
+  }
+
+  return `
+    <ul class="studio-relation-list">
+      ${articles
+        .map((article) => `
+          <li>
+            <a href="#/kennisbank/${escapeHtml(article.slug)}">${escapeHtml(article.title)}</a>
+            ${renderStatusBadge(article.status, getArticleStatusLabel(article.status))}
+          </li>
+        `)
+        .join("")}
+    </ul>
+  `;
+}
+
+export function renderBrochureDetail({ brochureData, supplierData, articleData = {}, brochure }) {
+  const supplier = supplierForId(supplierData, brochure.supplierId);
+  const relatedArticles = findBrochureArticles(brochure, articleData);
 
   return `
     ${renderPageHeader({
@@ -55,7 +85,7 @@ export function renderBrochureDetail({ brochureData, supplierData, brochure }) {
           ${renderDetailList([
             { label: "Titel", value: brochure.title },
             { label: "Slug", value: brochure.slug },
-            { label: "Leverancier", value: supplierName },
+            { label: "Leverancier", value: renderSupplierReference(supplier), html: Boolean(supplier) },
             { label: "Jaar", value: brochure.year ? String(brochure.year) : "Geen jaar" },
             { label: "Categorieen", value: (brochure.categories || []).join(", ") || "Geen categorieen" },
             { label: "Taal", value: getBrochureLanguageLabel(brochure.language, brochureData) },
@@ -83,6 +113,15 @@ export function renderBrochureDetail({ brochureData, supplierData, brochure }) {
           emptyText: "Geen thumbnail gekoppeld."
         })}
       </div>
+    </section>
+
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Kennisbankartikelen</h2>
+      </div>
+      <article class="studio-card">
+        ${renderArticleRelations(relatedArticles)}
+      </article>
     </section>
   `;
 }

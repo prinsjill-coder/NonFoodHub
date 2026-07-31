@@ -87,15 +87,15 @@ export function renderRoute(route, state) {
   }
 
   if (route.sectionId === "suppliers") {
-    return renderSuppliersRoute(route, state.supplierSession);
+    return renderSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession);
   }
 
   if (route.sectionId === "brochures") {
-    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession);
+    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession);
   }
 
   if (route.sectionId === "media") {
-    return renderMediaRoute(route, state.mediaSession);
+    return renderMediaRoute(route, state.mediaSession, state.supplierSession, state.brochureSession, state.articleSession);
   }
 
   if (route.sectionId === "knowledge") {

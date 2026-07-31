@@ -6,6 +6,7 @@ import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getArticleCounts } from "../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
+import { getContentRelationStats } from "../../../shared/content-relations.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
@@ -17,6 +18,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
   const mediaCounts = getMediaCounts(mediaData);
   const articleCounts = getArticleCounts(articleData);
   const articleQuality = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
+  const relationStats = getContentRelationStats(supplierData, brochureData, mediaData, articleData);
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
       return {
@@ -78,6 +80,33 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         value: articleQuality.stats.missingMediaRegistrations,
         state: articleQuality.stats.missingMediaRegistrations ? "review" : "foundation",
         note: "Hero-afbeeldingen zonder registratie in media.json."
+      };
+    }
+
+    if (metric.id === "articlesWithoutSupplier") {
+      return {
+        ...metric,
+        value: relationStats.articlesWithoutSupplier,
+        state: relationStats.articlesWithoutSupplier ? "review" : "foundation",
+        note: "Kennisbankartikelen zonder gekoppelde leverancier."
+      };
+    }
+
+    if (metric.id === "suppliersWithoutBrochures") {
+      return {
+        ...metric,
+        value: relationStats.suppliersWithoutBrochures,
+        state: relationStats.suppliersWithoutBrochures ? "review" : "foundation",
+        note: "Leveranciers zonder brochurekoppeling of brochure met supplierId."
+      };
+    }
+
+    if (metric.id === "mediaWithoutUsage") {
+      return {
+        ...metric,
+        value: relationStats.mediaWithoutUsage,
+        state: relationStats.mediaWithoutUsage ? "review" : "foundation",
+        note: "Media-assets zonder gebruik in bestaande contentpadvelden."
       };
     }
 

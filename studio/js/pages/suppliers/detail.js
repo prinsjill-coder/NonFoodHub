@@ -3,6 +3,9 @@ import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
+import { getArticleStatusLabel } from "../../../../shared/article-model.js";
+import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
+import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
 import { getSupplierStatusLabel, getSupplierTypeLabel } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
@@ -29,7 +32,29 @@ function renderMediaPreview(label, path, alt) {
   `;
 }
 
-export function renderSupplierDetail({ supplierData, supplier }) {
+function renderRelationList(items, { emptyText, hrefForItem, labelForItem, statusForItem, statusLabelForItem }) {
+  if (!items.length) {
+    return `<p class="studio-muted">${escapeHtml(emptyText)}</p>`;
+  }
+
+  return `
+    <ul class="studio-relation-list">
+      ${items
+        .map((item) => `
+          <li>
+            <a href="${escapeHtml(hrefForItem(item))}">${escapeHtml(labelForItem(item))}</a>
+            ${renderStatusBadge(statusForItem(item), statusLabelForItem(item))}
+          </li>
+        `)
+        .join("")}
+    </ul>
+  `;
+}
+
+export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, supplier }) {
+  const relatedBrochures = findSupplierBrochures(supplier, brochureData);
+  const relatedArticles = findSupplierArticles(supplier, articleData);
+
   return `
     ${renderPageHeader({
       eyebrow: "Leverancier bekijken",
@@ -83,13 +108,23 @@ export function renderSupplierDetail({ supplierData, supplier }) {
       <div class="studio-grid studio-grid-2">
         <article class="studio-card">
           <h2>Brochures</h2>
-          <p class="studio-muted">Relaties met brochures zijn voorbereid via <code>brochureIds</code>, maar brochurebeheer valt buiten Sprint 3.</p>
-          <p class="studio-meta">${escapeHtml((supplier.brochureIds || []).join(", ") || "Geen brochures gekoppeld")}</p>
+          ${renderRelationList(relatedBrochures, {
+            emptyText: "Geen brochures gekoppeld.",
+            hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
+            labelForItem: (brochure) => brochure.title,
+            statusForItem: (brochure) => brochure.status,
+            statusLabelForItem: (brochure) => getBrochureStatusLabel(brochure.status)
+          })}
         </article>
         <article class="studio-card">
           <h2>Kennisbank</h2>
-          <p class="studio-muted">Relaties met kennisbankartikelen zijn voorbereid via <code>relatedArticleIds</code>, maar kennisbankbeheer valt buiten Sprint 3.</p>
-          <p class="studio-meta">${escapeHtml((supplier.relatedArticleIds || []).join(", ") || "Geen artikelen gekoppeld")}</p>
+          ${renderRelationList(relatedArticles, {
+            emptyText: "Geen kennisbankartikelen gekoppeld.",
+            hrefForItem: (article) => `#/kennisbank/${article.slug}`,
+            labelForItem: (article) => article.title,
+            statusForItem: (article) => article.status,
+            statusLabelForItem: (article) => getArticleStatusLabel(article.status)
+          })}
         </article>
       </div>
     </section>

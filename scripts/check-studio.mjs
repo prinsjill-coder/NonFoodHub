@@ -26,6 +26,7 @@ import { createFormDirtyGuard } from "../studio/js/form-dirty-guard.js";
 import { runArticleChecks } from "./check-articles.mjs";
 import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
+import { runContentRelationChecks } from "./check-content-relations.mjs";
 import { runMediaChecks } from "./check-media.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
@@ -163,6 +164,7 @@ async function runStudioChecks() {
     await import("../shared/article-normalizer.js");
     await import("../shared/article-quality.js");
     await import("../shared/article-validation.js");
+    await import("../shared/content-relations.js");
     await import("../shared/content-status.js");
     await import("../shared/brochure-file-validation.js");
     await import("../shared/brochure-normalizer.js");
@@ -276,6 +278,9 @@ async function runStudioChecks() {
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articlePublished")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articleWarnings")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articleMissingMedia")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "articlesWithoutSupplier")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "suppliersWithoutBrochures")?.state, "not_connected");
+    assert.equal(dashboard.metrics.find((metric) => metric.id === "mediaWithoutUsage")?.state, "not_connected");
   });
 
   await runCheck("route titles en document title helper werken", async () => {
@@ -334,7 +339,13 @@ async function runStudioChecks() {
     };
 
     assert.match(renderRoute(routeFromHash("#/leveranciers"), state), /Leveranciers/);
-    assert.match(renderRoute(routeFromHash("#/leveranciers/amefa"), state), /Amefa/);
+    const detailHtml = renderRoute(routeFromHash("#/leveranciers/amefa"), state);
+
+    assert.match(detailHtml, /Amefa/);
+    assert.match(detailHtml, /Amefa for Professionals 2026/);
+    assert.match(detailHtml, /Professioneel tafelconcept voor hospitality/);
+    assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
+    assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Amefa bewerken/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/nieuw"), state), /Nieuwe leverancier/);
   });
@@ -367,6 +378,10 @@ async function runStudioChecks() {
     assert.match(newHtml, /data-brochure-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Amefa for Professionals 2026/);
+    assert.match(detailHtml, /Kennisbankartikelen/);
+    assert.match(detailHtml, /Professioneel tafelconcept voor hospitality/);
+    assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
+    assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
     assert.match(editHtml, /Amefa for Professionals 2026 bewerken/);
   });
 
@@ -386,6 +401,7 @@ async function runStudioChecks() {
     const listHtml = renderRoute(routeFromHash("#/media"), state);
     const newHtml = renderRoute(routeFromHash("#/media/nieuw"), state);
     const detailHtml = renderRoute(routeFromHash("#/media/media-brochures-overview"), state);
+    const usedDetailHtml = renderRoute(routeFromHash("#/media/media-supplier-amefa-logo"), state);
     const editHtml = renderRoute(routeFromHash("#/media/media-brochures-overview/bewerken"), state);
 
     assert.match(listHtml, /Mediaregister/);
@@ -395,6 +411,12 @@ async function runStudioChecks() {
     assert.match(newHtml, /data-media-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Brochures overzichtsbeeld/);
+    assert.match(detailHtml, /Gebruikt door/);
+    assert.match(detailHtml, /Geen leveranciers gebruiken dit pad/);
+    assert.match(usedDetailHtml, /Amefa/);
+    assert.match(usedDetailHtml, /Amefa for Professionals 2026/);
+    assert.match(usedDetailHtml, /href="#\/leveranciers\/amefa"/);
+    assert.match(usedDetailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
     assert.match(editHtml, /Brochures overzichtsbeeld bewerken/);
   });
 
@@ -431,6 +453,13 @@ async function runStudioChecks() {
     assert.doesNotMatch(newHtml, /Hoofdafbeelding/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Terras &amp; Outdoor inspiratie/);
+    assert.match(detailHtml, /Gekoppelde leveranciers/);
+    assert.match(detailHtml, /Churchill/);
+    assert.match(detailHtml, /Gekoppelde brochures/);
+    assert.match(detailHtml, /Churchill Combined Brochure 2026/);
+    assert.match(detailHtml, /href="#\/leveranciers\/churchill"/);
+    assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
+    assert.match(detailHtml, /Hero afbeelding/);
     assert.match(editHtml, /Terras &amp; Outdoor inspiratie bewerken/);
   });
 
@@ -479,6 +508,9 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Artikelen gepubliceerd/);
     assert.match(dashboardHtml, /Artikelwaarschuwingen/);
     assert.match(dashboardHtml, /Ontbrekende artikelmedia/);
+    assert.match(dashboardHtml, /Artikelen zonder leverancier/);
+    assert.match(dashboardHtml, /Leveranciers zonder brochures/);
+    assert.match(dashboardHtml, /Media zonder gebruik/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {
@@ -637,6 +669,7 @@ async function runStudioChecks() {
   await runMediaChecks();
   await runArticleChecks();
   await runArticleQualityChecks();
+  await runContentRelationChecks();
 }
 
 runStudioChecks()

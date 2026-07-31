@@ -3,8 +3,11 @@ import { renderMediaDetail } from "./detail.js";
 import { renderMediaForm, setupMediaForm } from "./form.js";
 import { renderMediaList, setupMediaList } from "./list.js";
 
-export function renderMediaRoute(route, mediaSession) {
+export function renderMediaRoute(route, mediaSession, supplierSession, brochureSession, articleSession) {
   const mediaData = mediaSession.getWorkingData();
+  const supplierData = supplierSession?.getWorkingData();
+  const brochureData = brochureSession?.getWorkingData();
+  const articleData = articleSession?.getWorkingData();
 
   if (route.id === "media") {
     return renderMediaList({
@@ -34,7 +37,7 @@ export function renderMediaRoute(route, mediaSession) {
     return renderMediaForm({ mediaData, asset, mode: "edit" });
   }
 
-  return renderMediaDetail({ mediaData, asset });
+  return renderMediaDetail({ mediaData, supplierData, brochureData, articleData, asset });
 }
 
 export function setupMediaRoute(route, mediaSession, options = {}) {

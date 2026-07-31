@@ -93,6 +93,11 @@ relatiecontrole en dashboardinzichten voor artikelkwaliteit. De werkwijze blijft
 statisch en handmatig: exporteren is een download, geen opslag, publicatie,
 commit of push.
 
+Aanvullend Sprint 8C-besluit: Studio toont bestaande contentrelaties op
+detailpagina's en in beperkte dashboardmetrics. Relaties worden gelezen uit
+bestaande id- en padvelden; er is geen nieuw opslagmodel, geen mediaAssetId-
+migratie en geen generieke relation engine.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

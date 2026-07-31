@@ -226,6 +226,13 @@ brochures en media. Concepten mogen onvolledig blijven; artikelen in review
 hebben minimaal titel, slug, samenvatting en categorie nodig; gepubliceerde
 artikelen hebben daarnaast inhoud en een hero-afbeelding nodig.
 
+Vanaf Sprint 8C maakt Studio bestaande contentrelaties zichtbaar op
+detailpagina's. Leveranciers tonen gekoppelde brochures en kennisbankartikelen,
+brochures tonen gerelateerde artikelen, kennisbankartikelen tonen gekoppelde
+leveranciers, brochures en hero-mediagegevens, en media-assets tonen waar hun
+pad wordt gebruikt. Dit is alleen een leeslaag over bestaande data; er wordt
+geen nieuw relatiemodel opgeslagen.
+
 ## Bibliotheekbeheer
 
 Voor algemene downloads:

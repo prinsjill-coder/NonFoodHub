@@ -52,6 +52,27 @@
       "note": "Hero-afbeeldingen zonder registratie in data/media.json."
     },
     {
+      "id": "articlesWithoutSupplier",
+      "label": "Artikelen zonder leverancier",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt berekend uit relaties tussen articles.json en suppliers.json."
+    },
+    {
+      "id": "suppliersWithoutBrochures",
+      "label": "Leveranciers zonder brochures",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt berekend uit relaties tussen suppliers.json en brochures.json."
+    },
+    {
+      "id": "mediaWithoutUsage",
+      "label": "Media zonder gebruik",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt berekend uit bestaande padvelden in leveranciers, brochures en artikelen."
+    },
+    {
       "id": "library",
       "label": "Bibliotheekitems",
       "value": null,

@@ -201,3 +201,9 @@ relatieve projectpaden; een migratie naar `mediaAssetId` is uitgesteld.
 Vanaf Sprint 8B heeft de kennisbank een modulespecifieke kwaliteitslaag voor
 statusregels, relatiecontrole en mediawaarschuwingen. Deze laag gebruikt de
 actieve browserwerksessie en vormt geen generieke CMS-engine.
+
+Vanaf Sprint 8C gebruikt Studio een kleine gedeelde leeshelper voor
+contentrelaties. Deze helper zoekt bestaande relaties tussen leveranciers,
+brochures, kennisbankartikelen en media op basis van bestaande id- en
+padvelden. De helper muteert geen data, schrijft niets weg en is geen generieke
+relation engine.

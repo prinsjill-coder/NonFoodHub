@@ -3,8 +3,10 @@ import { renderSupplierDetail } from "./detail.js";
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
 import { renderSuppliersList, setupSupplierList } from "./list.js";
 
-export function renderSuppliersRoute(route, supplierSession) {
+export function renderSuppliersRoute(route, supplierSession, brochureSession, articleSession) {
   const supplierData = supplierSession.getWorkingData();
+  const brochureData = brochureSession?.getWorkingData();
+  const articleData = articleSession?.getWorkingData();
 
   if (route.id === "suppliers") {
     return renderSuppliersList({ supplierData, sessionSnapshot: supplierSession.snapshot() });
@@ -31,7 +33,7 @@ export function renderSuppliersRoute(route, supplierSession) {
     return renderSupplierForm({ supplierData, supplier, mode: "edit" });
   }
 
-  return renderSupplierDetail({ supplierData, supplier });
+  return renderSupplierDetail({ supplierData, brochureData, articleData, supplier });
 }
 
 export function setupSuppliersRoute(route, supplierSession, options = {}) {

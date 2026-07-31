@@ -3,9 +3,10 @@ import { renderBrochureDetail } from "./detail.js";
 import { renderBrochureForm, setupBrochureForm } from "./form.js";
 import { renderBrochuresList, setupBrochureList } from "./list.js";
 
-export function renderBrochuresRoute(route, brochureSession, supplierSession) {
+export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession) {
   const brochureData = brochureSession.getWorkingData();
   const supplierData = supplierSession.getWorkingData();
+  const articleData = articleSession?.getWorkingData();
 
   if (route.id === "brochures") {
     return renderBrochuresList({
@@ -36,7 +37,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession) {
     return renderBrochureForm({ brochureData, supplierData, brochure, mode: "edit" });
   }
 
-  return renderBrochureDetail({ brochureData, supplierData, brochure });
+  return renderBrochureDetail({ brochureData, supplierData, articleData, brochure });
 }
 
 export function setupBrochuresRoute(route, brochureSession, supplierSession, options = {}) {

@@ -665,6 +665,43 @@ textarea:focus-visible {
   font-size: 0.86rem;
 }
 
+.studio-relation-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-relation-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--studio-line);
+}
+
+.studio-relation-list li:last-child {
+  border-bottom: 0;
+}
+
+.studio-relation-list a,
+.studio-inline-link {
+  color: var(--studio-blue);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.studio-relation-list a:hover,
+.studio-relation-list a:focus-visible,
+.studio-inline-link:hover,
+.studio-inline-link:focus-visible {
+  color: var(--studio-blue-dark);
+}
+
 .studio-list-empty {
   margin-top: 16px;
   padding: 18px;
