@@ -316,6 +316,33 @@ export async function runPublicContentChecks() {
     assert.doesNotMatch(pageHtml, /data\/brochures\.json/);
   });
 
+  await runCheck("publieke leveranciersdetailpagina koppelt relaties via bestaande websitepagina's", () => {
+    const supplierPageHtml = readText("pages/leveranciers.html");
+    const inspirationPageHtml = readText("pages/inspiratie.html");
+    const brochurePageHtml = readText("pages/brochures-catalogi.html");
+    const publicJs = readText("assets/js/main.js");
+
+    assert.equal(existsSync(resolve(rootDir, "pages/leveranciers.html")), true);
+    assert.equal(existsSync(resolve(rootDir, "pages/inspiratie.html")), true);
+    assert.equal(existsSync(resolve(rootDir, "pages/brochures-catalogi.html")), true);
+    assert.match(supplierPageHtml, /data-public-supplier-detail/);
+    assert.match(inspirationPageHtml, /data-public-article-body/);
+    assert.match(brochurePageHtml, /data-public-brochure-grid/);
+    assert.match(publicJs, /function supplierPageLink/);
+    assert.match(publicJs, /renderArticleSupplierLinks/);
+    assert.match(publicJs, /renderSupplierRelatedArticles/);
+    assert.match(publicJs, /renderSupplierRelatedBrochures/);
+    assert.match(publicJs, /pages\/leveranciers\.html/);
+    assert.match(publicJs, /pages\/inspiratie\.html/);
+    assert.match(publicJs, /pages\/brochures-catalogi\.html/);
+    assert.match(publicJs, /linkToBrochurePage/);
+    assert.doesNotMatch(publicJs, /data\/suppliers\.json|data\/articles\.json|data\/brochures\.json/);
+    assert.doesNotMatch(
+      [supplierPageHtml, inspirationPageHtml, brochurePageHtml].join("\n"),
+      /data\/suppliers\.json|data\/articles\.json|data\/brochures\.json/
+    );
+  });
+
   await runCheck("publieke website gebruikt Bidfood niet als platformnaam", () => {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
     FORBIDDEN_PLATFORM_BRANDING.forEach((pattern) => {

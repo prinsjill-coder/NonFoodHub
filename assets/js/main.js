@@ -259,6 +259,10 @@
     return supplier ? `<span class="tag sky">Door ${escapeHtml(supplier.name)}</span>` : "";
   }
 
+  function supplierPageLink(supplier) {
+    return `${href("pages/leveranciers.html")}#${escapeHtml(supplier.slug)}`;
+  }
+
   function renderPublicArticleCard(article) {
     return `
       <a class="article-card fade-in" href="#${escapeHtml(article.slug)}">
@@ -289,7 +293,23 @@
         <h2>${escapeHtml(article.title)}</h2>
         <p class="lead">${escapeHtml(article.summary)}</p>
         ${paragraphs}
+        ${renderArticleSupplierLinks(article)}
       </article>
+    `;
+  }
+
+  function renderArticleSupplierLinks(article) {
+    const suppliers = articleSuppliers(article);
+    if (!suppliers.length) return "";
+
+    return `
+      <div class="contact-card supplier-detail-section">
+        <p class="kicker">Leveranciers</p>
+        <h3>Gerelateerde leveranciers</h3>
+        <div class="section-actions">
+          ${suppliers.map((supplier) => `<a class="btn btn-secondary" href="${supplierPageLink(supplier)}">${escapeHtml(supplier.name)}</a>`).join("")}
+        </div>
+      </div>
     `;
   }
 
@@ -381,7 +401,7 @@
 
   function publicBrochureSupplierMeta(brochure, suppliersById) {
     const supplier = suppliersById?.get(brochure.supplierId);
-    return supplier ? `<span class="tag sky">Van ${escapeHtml(supplier.name)}</span>` : "";
+    return supplier ? `<a class="tag sky" href="${supplierPageLink(supplier)}">Van ${escapeHtml(supplier.name)}</a>` : "";
   }
 
   function renderPublicBrochureCard(brochure, suppliersById = new Map(), options = {}) {
@@ -389,6 +409,7 @@
       ? `<a class="card-link" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
       : `<p class="file-name">Download nog niet beschikbaar</p>`;
     const cardLink = options.linkToBrochurePage ? `${href("pages/brochures-catalogi.html")}#${escapeHtml(brochure.slug)}` : `#${escapeHtml(brochure.slug)}`;
+    const openAction = `<a class="card-link" href="${cardLink}">Bekijk brochure</a>`;
 
     return `
       <article class="resource-card fade-in" id="${escapeHtml(brochure.slug)}" data-categories="${escapeHtml(brochureFilterValue(brochure))}">
@@ -402,6 +423,7 @@
           </div>
           <h3>${escapeHtml(brochure.title)}</h3>
           <p>${escapeHtml(brochure.summary)}</p>
+          ${openAction}
           ${downloadAction}
         </div>
       </article>
@@ -459,30 +481,46 @@
 
   function renderPublicSupplierDetail(supplier) {
     const description = supplier.description ? `<p>${escapeHtml(supplier.description)}</p>` : "";
+    const logo = supplier.logo
+      ? `
+        <div class="supplier-detail-logo">
+          <img src="${escapeHtml(href(supplier.logo))}" alt="Logo ${escapeHtml(supplier.name)}">
+        </div>
+      `
+      : "";
+    const website = supplier.website
+      ? `<a class="btn btn-secondary" href="${escapeHtml(supplier.website)}" target="_blank" rel="noreferrer">Website openen</a>`
+      : "";
 
     return `
       <article id="${escapeHtml(supplier.slug)}" class="fade-in">
         <div class="split">
           <div>
+            ${logo}
             <p class="kicker">${supplierCategories(supplier).map(escapeHtml).join(" / ") || "Leverancier"}</p>
             <h2>${escapeHtml(supplier.name)}</h2>
             <p class="lead">${escapeHtml(supplier.summary)}</p>
             ${description}
+            <div class="section-actions">
+              <a class="btn btn-primary" href="#${escapeHtml(supplier.slug)}-brochures">Bekijk brochures</a>
+              <a class="btn btn-secondary" href="#${escapeHtml(supplier.slug)}-artikelen">Meer inspiratie</a>
+              ${website}
+            </div>
           </div>
           <div class="split-media">
             <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
           </div>
         </div>
-        <div class="section-heading">
-          <p class="kicker">Kennisbank</p>
-          <h3>Gerelateerde artikelen</h3>
-        </div>
-        ${renderSupplierRelatedArticles(supplier)}
-        <div class="section-heading">
+        <div class="section-heading supplier-detail-section" id="${escapeHtml(supplier.slug)}-brochures">
           <p class="kicker">Brochures</p>
           <h3>Gerelateerde brochures</h3>
         </div>
         ${renderSupplierRelatedBrochures(supplier)}
+        <div class="section-heading supplier-detail-section" id="${escapeHtml(supplier.slug)}-artikelen">
+          <p class="kicker">Kennisbank</p>
+          <h3>Gerelateerde artikelen</h3>
+        </div>
+        ${renderSupplierRelatedArticles(supplier)}
       </article>
     `;
   }
