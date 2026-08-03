@@ -227,12 +227,12 @@
     filterBars.forEach((bar) => {
       const scope = document.querySelector(bar.dataset.filterBar);
       if (!scope) return;
-      const cards = Array.from(scope.querySelectorAll("[data-categories]"));
 
       bar.addEventListener("click", (event) => {
         const button = event.target.closest("[data-filter]");
         if (!button) return;
         const filter = button.dataset.filter.toLowerCase();
+        const cards = Array.from(scope.querySelectorAll("[data-categories]"));
 
         bar.querySelectorAll("[data-filter]").forEach((item) => item.classList.remove("is-active"));
         button.classList.add("is-active");
@@ -367,6 +367,47 @@
     return Array.isArray(supplier.relatedArticles) ? supplier.relatedArticles : [];
   }
 
+  function publicBrochureImage(brochure) {
+    return brochure.thumbnail ? href(brochure.thumbnail) : href("assets/images/brochures.png");
+  }
+
+  function brochureCategory(brochure) {
+    return String(brochure.category || "Brochure");
+  }
+
+  function brochureFilterValue(brochure) {
+    return brochureCategory(brochure).toLowerCase();
+  }
+
+  function publicBrochureSupplierMeta(brochure, suppliersById) {
+    const supplier = suppliersById?.get(brochure.supplierId);
+    return supplier ? `<span class="tag sky">Van ${escapeHtml(supplier.name)}</span>` : "";
+  }
+
+  function renderPublicBrochureCard(brochure, suppliersById = new Map(), options = {}) {
+    const downloadAction = brochure.downloadUrl
+      ? `<a class="card-link" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
+      : `<p class="file-name">Download nog niet beschikbaar</p>`;
+    const cardLink = options.linkToBrochurePage ? `${href("pages/brochures-catalogi.html")}#${escapeHtml(brochure.slug)}` : `#${escapeHtml(brochure.slug)}`;
+
+    return `
+      <article class="resource-card fade-in" id="${escapeHtml(brochure.slug)}" data-categories="${escapeHtml(brochureFilterValue(brochure))}">
+        <a href="${cardLink}">
+          <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}">
+        </a>
+        <div class="resource-card-body">
+          <div class="card-meta">
+            <span class="tag">${escapeHtml(brochureCategory(brochure))}</span>
+            ${publicBrochureSupplierMeta(brochure, suppliersById)}
+          </div>
+          <h3>${escapeHtml(brochure.title)}</h3>
+          <p>${escapeHtml(brochure.summary)}</p>
+          ${downloadAction}
+        </div>
+      </article>
+    `;
+  }
+
   function renderSupplierRelatedArticleCard(article) {
     return `
       <a class="article-card fade-in" href="${href("pages/inspiratie.html")}#${escapeHtml(article.slug)}">
@@ -396,6 +437,26 @@
     return `<div class="grid grid-3">${articles.map(renderSupplierRelatedArticleCard).join("")}</div>`;
   }
 
+  function relatedBrochures(supplier) {
+    return Array.isArray(supplier.relatedBrochures) ? supplier.relatedBrochures : [];
+  }
+
+  function renderSupplierRelatedBrochures(supplier) {
+    const brochures = relatedBrochures(supplier);
+    const suppliersById = new Map([[supplier.id, supplier]]);
+
+    if (!brochures.length) {
+      return `
+        <div class="contact-card fade-in">
+          <h3>Geen gekoppelde brochures</h3>
+          <p>Voor deze leverancier zijn nog geen publieke brochures gekoppeld.</p>
+        </div>
+      `;
+    }
+
+    return `<div class="grid grid-3">${brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById, { linkToBrochurePage: true })).join("")}</div>`;
+  }
+
   function renderPublicSupplierDetail(supplier) {
     const description = supplier.description ? `<p>${escapeHtml(supplier.description)}</p>` : "";
 
@@ -417,6 +478,11 @@
           <h3>Gerelateerde artikelen</h3>
         </div>
         ${renderSupplierRelatedArticles(supplier)}
+        <div class="section-heading">
+          <p class="kicker">Brochures</p>
+          <h3>Gerelateerde brochures</h3>
+        </div>
+        ${renderSupplierRelatedBrochures(supplier)}
       </article>
     `;
   }
@@ -463,6 +529,51 @@
     }
   }
 
+  async function setupPublicBrochures() {
+    if (currentPage !== "brochures") return;
+
+    const grid = document.querySelector("[data-public-brochure-grid]");
+    if (!grid) return;
+
+    try {
+      const [brochureResponse, supplierResponse] = await Promise.all([
+        fetch(href("data/public/brochures.json"), { cache: "no-store" }),
+        fetch(href("data/public/suppliers.json"), { cache: "no-store" })
+      ]);
+      if (!brochureResponse.ok) throw new Error("Publieke brochuredata kon niet worden geladen.");
+      if (!supplierResponse.ok) throw new Error("Publieke leveranciersdata kon niet worden geladen.");
+
+      const brochureData = await brochureResponse.json();
+      const supplierData = await supplierResponse.json();
+      const brochures = Array.isArray(brochureData.items) ? brochureData.items : [];
+      const suppliers = Array.isArray(supplierData.items) ? supplierData.items : [];
+      const suppliersById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+
+      if (!brochures.length) {
+        grid.innerHTML = `
+          <article class="contact-card fade-in">
+            <h3>Geen brochures beschikbaar</h3>
+            <p>Er zijn nog geen gepubliceerde brochures beschikbaar.</p>
+          </article>
+        `;
+        setupAnimations();
+        return;
+      }
+
+      grid.innerHTML = brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById)).join("");
+      setupAnimations();
+    } catch (error) {
+      grid.innerHTML = `
+        <article class="contact-card fade-in">
+          <h3>Brochures niet geladen</h3>
+          <p>De brochures konden niet worden geladen. Probeer de pagina later opnieuw.</p>
+        </article>
+      `;
+      setupAnimations();
+      console.error(error);
+    }
+  }
+
   function setupAnimations() {
     const items = document.querySelectorAll(".fade-in");
     if (!items.length) return;
@@ -489,4 +600,5 @@
   setupAnimations();
   setupPublicArticles();
   setupPublicSuppliers();
+  setupPublicBrochures();
 })();

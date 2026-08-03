@@ -1,4 +1,5 @@
 import { getArticles, sortArticles } from "./article-model.js";
+import { getBrochures, sortBrochures } from "./brochure-model.js";
 import { getSuppliers, sortSuppliers } from "./supplier-model.js";
 import {
   createPublicDataset,
@@ -35,19 +36,48 @@ function publicRelatedArticles(supplier, articleData = {}) {
   ).map(publicRelatedArticle);
 }
 
-function publicSupplier(supplier, articleData = {}) {
+function firstBrochureCategory(brochure) {
+  return Array.isArray(brochure?.categories) && brochure.categories.length ? brochure.categories[0] : "Brochure";
+}
+
+function publicRelatedBrochure(brochure, options = {}) {
+  const publicItem = {
+    id: brochure.id,
+    slug: brochure.slug,
+    title: brochure.title,
+    summary: brochure.description,
+    category: firstBrochureCategory(brochure),
+    thumbnail: brochure.thumbnail,
+    updatedAt: brochure.updatedAt
+  };
+
+  if (options.isPublicDownload?.(brochure.pdfFile)) {
+    publicItem.downloadUrl = brochure.pdfFile;
+  }
+
+  return publicItem;
+}
+
+function publicRelatedBrochures(supplier, brochureData = {}, options = {}) {
+  return sortBrochures(
+    getBrochures(brochureData).filter((brochure) => isPublicContentItem(brochure) && brochure.supplierId === supplier.id)
+  ).map((brochure) => publicRelatedBrochure(brochure, options));
+}
+
+function publicSupplier(supplier, articleData = {}, brochureData = {}, options = {}) {
   return pickPublicFields(
     {
       ...supplier,
-      relatedArticles: publicRelatedArticles(supplier, articleData)
+      relatedArticles: publicRelatedArticles(supplier, articleData),
+      relatedBrochures: publicRelatedBrochures(supplier, brochureData, options)
     },
     PUBLIC_SUPPLIER_KEYS
   );
 }
 
-export function projectPublicSuppliers(supplierData = {}, articleData = {}) {
+export function projectPublicSuppliers(supplierData = {}, articleData = {}, brochureData = {}, options = {}) {
   const items = sortSuppliers(getSuppliers(supplierData).filter(isPublicContentItem)).map((supplier) =>
-    publicSupplier(supplier, articleData)
+    publicSupplier(supplier, articleData, brochureData, options)
   );
 
   return createPublicDataset(items);

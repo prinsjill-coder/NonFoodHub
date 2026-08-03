@@ -137,6 +137,11 @@ website toont alleen relaties wanneer zowel leverancier als artikel in
 `data/public` staan. Interne relatievelden uit de Studio-data worden niet op de
 publieke website gerenderd.
 
+Aanvullend Sprint 11F-besluit: brochures zijn toegevoegd aan de publieke
+contentlaag via `data/public/brochures.json`. De brochurepagina rendert uit die
+projectie, leveranciers kunnen gerelateerde publieke brochures tonen, en
+downloadacties verschijnen alleen voor bestaande publieke PDF-bestanden.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

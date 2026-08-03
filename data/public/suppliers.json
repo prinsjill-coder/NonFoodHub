@@ -13,7 +13,18 @@
       ],
       "logo": "assets/images/supplier-amefa.jpg",
       "image": "assets/images/supplier-amefa.jpg",
-      "relatedArticles": []
+      "relatedArticles": [],
+      "relatedBrochures": [
+        {
+          "id": "brochure-amefa-2026",
+          "slug": "amefa-for-professionals-2026",
+          "title": "Amefa for Professionals 2026",
+          "summary": "Brochure met professionele besteklijnen en tafelpresentatie-oplossingen voor horeca en hospitality.",
+          "category": "Bestek",
+          "thumbnail": "assets/images/supplier-amefa.jpg",
+          "updatedAt": "2026-07-30"
+        }
+      ]
     }
   ]
 }

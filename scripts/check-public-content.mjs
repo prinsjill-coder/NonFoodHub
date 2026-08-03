@@ -4,6 +4,11 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { projectPublicArticles, PUBLIC_ARTICLE_KEYS } from "../shared/public-articles.js";
+import {
+  projectPublicBrochures,
+  PUBLIC_BROCHURE_KEYS,
+  PUBLIC_BROCHURE_OPTIONAL_KEYS
+} from "../shared/public-brochures.js";
 import { projectPublicSuppliers, PUBLIC_SUPPLIER_KEYS } from "../shared/public-suppliers.js";
 import {
   PUBLIC_DATASET_CONFIG,
@@ -12,6 +17,7 @@ import {
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC_ARTICLE_FILE = PUBLIC_DATASET_CONFIG.articles.publicPath;
+const PUBLIC_BROCHURE_FILE = PUBLIC_DATASET_CONFIG.brochures.publicPath;
 const PUBLIC_SUPPLIER_FILE = PUBLIC_DATASET_CONFIG.suppliers.publicPath;
 const FORBIDDEN_PUBLIC_TEXT = [
   /Notion/i,
@@ -55,6 +61,7 @@ const FORBIDDEN_PLATFORM_BRANDING = [
 ];
 const PUBLIC_SUPPLIER_REFERENCE_KEYS = ["id", "slug", "name"];
 const PUBLIC_RELATED_ARTICLE_KEYS = ["id", "slug", "title", "summary", "category", "heroImage", "updatedAt"];
+const PUBLIC_RELATED_BROCHURE_KEYS = ["id", "slug", "title", "summary", "category", "thumbnail", "updatedAt"];
 
 function readText(relativePath) {
   return readFileSync(resolve(rootDir, relativePath), "utf8");
@@ -92,6 +99,39 @@ function byId(items) {
   return new Map(items.map((item) => [item.id, item]));
 }
 
+function isRelativeProjectPath(value) {
+  if (!value) return false;
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.startsWith("file://") &&
+    !/^[a-zA-Z]:[\\/]/.test(value) &&
+    !value.includes("/Users/") &&
+    !value.includes("\\Users\\") &&
+    !value.includes("/home/") &&
+    !value.includes("\\home\\")
+  );
+}
+
+function publicFileExists(relativePath) {
+  return isRelativeProjectPath(relativePath) && existsSync(resolve(rootDir, relativePath));
+}
+
+function isPublicDownload(downloadUrl) {
+  return publicFileExists(downloadUrl) && String(downloadUrl).toLowerCase().endsWith(".pdf");
+}
+
+function assertKeys(item, requiredKeys, optionalKeys = []) {
+  const allowedKeys = new Set([...requiredKeys, ...optionalKeys]);
+  const keys = Object.keys(item);
+  const unexpectedKeys = keys.filter((key) => !allowedKeys.has(key));
+  const missingKeys = requiredKeys.filter((key) => !(key in item));
+
+  assert.deepEqual(unexpectedKeys, [], `Onverwachte publieke velden: ${unexpectedKeys.join(", ")}`);
+  assert.deepEqual(missingKeys, [], `Ontbrekende publieke velden: ${missingKeys.join(", ")}`);
+}
+
 async function runCheck(name, check) {
   await check();
   console.log(`ok - ${name}`);
@@ -99,10 +139,12 @@ async function runCheck(name, check) {
 
 export async function runPublicContentChecks() {
   const articles = readJson("data/articles.json");
+  const brochures = readJson("data/brochures.json");
   const suppliers = readJson("data/suppliers.json");
   const publicArticles = readJson(PUBLIC_ARTICLE_FILE);
+  const publicBrochures = readJson(PUBLIC_BROCHURE_FILE);
   const publicSuppliers = readJson(PUBLIC_SUPPLIER_FILE);
-  const publicDatasets = [publicArticles, publicSuppliers];
+  const publicDatasets = [publicArticles, publicBrochures, publicSuppliers];
 
   await runCheck("publieke datasetstructuur bestaat voor contentprojecties", () => {
     assert.equal(existsSync(resolve(rootDir, "data/public")), true);
@@ -119,8 +161,13 @@ export async function runPublicContentChecks() {
   });
 
   await runCheck("publieke leveranciersprojectie is afgeleid van gepubliceerde Studio-leveranciers", () => {
-    assert.deepEqual(publicSuppliers, projectPublicSuppliers(suppliers, articles));
+    assert.deepEqual(publicSuppliers, projectPublicSuppliers(suppliers, articles, brochures, { isPublicDownload }));
     assert.ok(publicSuppliers.items.length > 0);
+  });
+
+  await runCheck("publieke brochureprojectie is afgeleid van gepubliceerde Studio-brochures", () => {
+    assert.deepEqual(publicBrochures, projectPublicBrochures(brochures, suppliers, { isPublicDownload }));
+    assert.ok(publicBrochures.items.length > 0);
   });
 
   await runCheck("publieke artikelprojectie bevat alleen websitevelden", () => {
@@ -130,9 +177,23 @@ export async function runPublicContentChecks() {
     assert.deepEqual(Object.keys(publicArticles), PUBLIC_DATASET_ROOT_KEYS);
 
     publicArticles.items.forEach((item) => {
-      assert.deepEqual(Object.keys(item), PUBLIC_ARTICLE_KEYS);
+      assertKeys(item, PUBLIC_ARTICLE_KEYS);
       FORBIDDEN_ITEM_FIELDS.forEach((field) => {
         assert.equal(field in item, false, `Verboden itemveld in publieke projectie: ${field}`);
+      });
+    });
+  });
+
+  await runCheck("publieke brochureprojectie bevat alleen websitevelden", () => {
+    FORBIDDEN_ROOT_FIELDS.forEach((field) => {
+      assert.equal(field in publicBrochures, false, `Verboden rootveld in publieke brochureprojectie: ${field}`);
+    });
+    assert.deepEqual(Object.keys(publicBrochures), PUBLIC_DATASET_ROOT_KEYS);
+
+    publicBrochures.items.forEach((item) => {
+      assertKeys(item, PUBLIC_BROCHURE_KEYS, PUBLIC_BROCHURE_OPTIONAL_KEYS);
+      FORBIDDEN_ITEM_FIELDS.forEach((field) => {
+        assert.equal(field in item, false, `Verboden itemveld in publieke brochureprojectie: ${field}`);
       });
     });
   });
@@ -144,7 +205,7 @@ export async function runPublicContentChecks() {
     assert.deepEqual(Object.keys(publicSuppliers), PUBLIC_DATASET_ROOT_KEYS);
 
     publicSuppliers.items.forEach((item) => {
-      assert.deepEqual(Object.keys(item), PUBLIC_SUPPLIER_KEYS);
+      assertKeys(item, PUBLIC_SUPPLIER_KEYS);
       FORBIDDEN_ITEM_FIELDS.forEach((field) => {
         assert.equal(field in item, false, `Verboden itemveld in publieke leveranciersprojectie: ${field}`);
       });
@@ -154,6 +215,7 @@ export async function runPublicContentChecks() {
   await runCheck("publieke relaties verwijzen alleen naar bestaande publieke items", () => {
     const suppliersById = byId(publicSuppliers.items);
     const articlesById = byId(publicArticles.items);
+    const brochuresById = byId(publicBrochures.items);
 
     publicArticles.items.forEach((article) => {
       assert.equal(Array.isArray(article.suppliers), true, `Artikel ${article.id} mist publieke leverancierslijst.`);
@@ -169,7 +231,7 @@ export async function runPublicContentChecks() {
     publicSuppliers.items.forEach((supplier) => {
       assert.equal(Array.isArray(supplier.relatedArticles), true, `Leverancier ${supplier.id} mist publieke artikellijst.`);
       supplier.relatedArticles.forEach((article) => {
-        assert.deepEqual(Object.keys(article), PUBLIC_RELATED_ARTICLE_KEYS);
+        assertKeys(article, PUBLIC_RELATED_ARTICLE_KEYS);
         const publicArticle = articlesById.get(article.id);
         assert.ok(publicArticle, `Leverancier ${supplier.id} verwijst naar niet-publiek artikel ${article.id}.`);
         assert.equal(article.slug, publicArticle.slug);
@@ -179,6 +241,32 @@ export async function runPublicContentChecks() {
           `Relatie tussen ${supplier.id} en ${article.id} is niet wederkerig in publieke projecties.`
         );
       });
+
+      assert.equal(Array.isArray(supplier.relatedBrochures), true, `Leverancier ${supplier.id} mist publieke brochurelijst.`);
+      supplier.relatedBrochures.forEach((brochure) => {
+        assertKeys(brochure, PUBLIC_RELATED_BROCHURE_KEYS, PUBLIC_BROCHURE_OPTIONAL_KEYS);
+        const publicBrochure = brochuresById.get(brochure.id);
+        assert.ok(publicBrochure, `Leverancier ${supplier.id} verwijst naar niet-publieke brochure ${brochure.id}.`);
+        assert.equal(publicBrochure.supplierId, supplier.id);
+        assert.equal(brochure.slug, publicBrochure.slug);
+        assert.equal(brochure.title, publicBrochure.title);
+      });
+    });
+
+    publicBrochures.items.forEach((brochure) => {
+      const publicSupplier = suppliersById.get(brochure.supplierId);
+      assert.ok(publicSupplier, `Brochure ${brochure.id} verwijst naar niet-publieke leverancier ${brochure.supplierId}.`);
+      assert.ok(
+        publicSupplier.relatedBrochures.some((relatedBrochure) => relatedBrochure.id === brochure.id),
+        `Relatie tussen ${brochure.supplierId} en ${brochure.id} is niet wederkerig in publieke projecties.`
+      );
+    });
+  });
+
+  await runCheck("publieke downloadlinks bestaan alleen voor valide PDF-bestanden", () => {
+    [...publicBrochures.items, ...publicSuppliers.items.flatMap((supplier) => supplier.relatedBrochures)].forEach((item) => {
+      if (!("downloadUrl" in item)) return;
+      assert.equal(isPublicDownload(item.downloadUrl), true, `Ongeldige publieke downloadlink: ${item.downloadUrl}`);
     });
   });
 
@@ -218,6 +306,16 @@ export async function runPublicContentChecks() {
     assert.doesNotMatch(pageHtml, /data\/suppliers\.json/);
   });
 
+  await runCheck("brochurepagina gebruikt publieke projectie in plaats van ruwe Studio-data", () => {
+    const pageHtml = readText("pages/brochures-catalogi.html");
+    const publicJs = readText("assets/js/main.js");
+
+    assert.match(pageHtml, /data-public-brochure-grid/);
+    assert.match(publicJs, /data\/public\/brochures\.json/);
+    assert.doesNotMatch(publicJs, /data\/brochures\.json/);
+    assert.doesNotMatch(pageHtml, /data\/brochures\.json/);
+  });
+
   await runCheck("publieke website gebruikt Bidfood niet als platformnaam", () => {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
     FORBIDDEN_PLATFORM_BRANDING.forEach((pattern) => {
@@ -229,10 +327,12 @@ export async function runPublicContentChecks() {
     const changedRuntime = [
       readText("shared/public-content.js"),
       readText("shared/public-articles.js"),
+      readText("shared/public-brochures.js"),
       readText("shared/public-suppliers.js"),
       readText("assets/js/main.js"),
       readText("pages/inspiratie.html"),
-      readText("pages/leveranciers.html")
+      readText("pages/leveranciers.html"),
+      readText("pages/brochures-catalogi.html")
     ].join("\n");
 
     assert.doesNotMatch(changedRuntime, /localStorage|sessionStorage|indexedDB|file:\/\/|\/Users\/|\\Users\\|[A-Za-z]:[\\/]+Users[\\/]/i);

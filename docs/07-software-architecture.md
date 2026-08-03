@@ -213,7 +213,8 @@ relation engine.
 Vanaf Sprint 11B/11C rendert de publieke website kennisbankartikelen niet meer
 rechtstreeks uit `data/articles.json`. Studio blijft de bron, maar de website
 leest een gecontroleerde projectie uit `data/public/articles.json`. Vanaf
-Sprint 11D geldt hetzelfde voor leveranciers via `data/public/suppliers.json`.
+Sprint 11D geldt hetzelfde voor leveranciers via `data/public/suppliers.json`
+en vanaf Sprint 11F voor brochures via `data/public/brochures.json`.
 
 De projectie bevat alleen bezoekersvelden en wordt berekend met gedeelde
 helpers in `shared/`. Interne Studio-velden zoals status, ruwe relatievelden,
@@ -229,13 +230,18 @@ berekend uit de bestaande Studio-id-relaties, maar alleen wanneer beide kanten
 publiek zijn. Ruwe relatievelden zoals `supplierIds` en interne governance- of
 readinessdata blijven buiten de websiteprojecties.
 
+Vanaf Sprint 11F geldt dit ook voor brochures. Publieke brochures verwijzen
+alleen naar publieke leveranciers, en publieke leveranciers kunnen gerelateerde
+publieke brochures tonen. Downloadlinks worden alleen gepubliceerd wanneer het
+relatieve PDF-bestand daadwerkelijk beschikbaar is.
+
 Voor leveranciers bevat de eerste publieke projectie alleen bestaande
 bezoekersvelden: id, slug, naam, type, samenvatting, omschrijving, categorieen,
 logo en afbeelding. Interne velden zoals status, sortering, uitlichting,
 relaties, governance en readiness blijven buiten de publieke projectie. De
 eerste publieke leverancierspagina toont alleen overzichtskaarten en een
-eenvoudige detailbasis; brochures, artikelen, media en bibliotheekrelaties
-blijven buiten scope.
+eenvoudige detailbasis. Media-, bibliotheek- en complexe relatieblokken blijven
+buiten scope.
 
 ## Content Governance
 

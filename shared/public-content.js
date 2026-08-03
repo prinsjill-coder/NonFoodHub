@@ -13,7 +13,26 @@ export const PUBLIC_DATASET_CONFIG = {
     label: "Leveranciers",
     sourcePath: "data/suppliers.json",
     publicPath: "data/public/suppliers.json",
-    itemKeys: ["id", "slug", "name", "type", "summary", "description", "categories", "logo", "image", "relatedArticles"]
+    itemKeys: [
+      "id",
+      "slug",
+      "name",
+      "type",
+      "summary",
+      "description",
+      "categories",
+      "logo",
+      "image",
+      "relatedArticles",
+      "relatedBrochures"
+    ]
+  },
+  brochures: {
+    label: "Brochures",
+    sourcePath: "data/brochures.json",
+    publicPath: "data/public/brochures.json",
+    itemKeys: ["id", "slug", "title", "summary", "supplierId", "category", "thumbnail", "updatedAt"],
+    optionalItemKeys: ["downloadUrl"]
   }
 };
 
