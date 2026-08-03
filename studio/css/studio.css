@@ -802,8 +802,40 @@ textarea:focus-visible {
   display: grid;
   gap: 8px;
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
   color: var(--studio-ink-soft);
+}
+
+.studio-readiness-reason {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid var(--studio-line);
+}
+
+.studio-readiness-reason:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.studio-readiness-reason-main {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.studio-readiness-priority {
+  color: var(--studio-ink);
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.studio-readiness-link {
+  white-space: nowrap;
 }
 
 .studio-list-empty {
@@ -1217,6 +1249,14 @@ textarea:focus-visible {
 
   .studio-issue-action .studio-button {
     width: 100%;
+  }
+
+  .studio-readiness-reason {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-readiness-link {
+    white-space: normal;
   }
 
   .studio-session-actions {

@@ -14,6 +14,7 @@ import {
   getContentReadinessReport
 } from "../shared/content-readiness.js";
 import { routeFromHash } from "../shared/routes.js";
+import { renderReadinessCard } from "../components/readiness-card.js";
 import { createArticleSession } from "../studio/js/state/article-session.js";
 import { createBrochureSession } from "../studio/js/state/brochure-session.js";
 import { createLibrarySession } from "../studio/js/state/library-session.js";
@@ -169,6 +170,12 @@ export async function runContentReadinessChecks() {
         assert.ok(item.score >= 0 && item.score <= 100);
         assert.ok(Array.isArray(item.issues));
         assert.ok(Array.isArray(item.reasons));
+        item.reasons.forEach((reason) => {
+          assert.equal(typeof reason.message, "string");
+          assert.equal(typeof reason.priority, "number");
+          assert.equal(typeof reason.priorityLabel, "string");
+          assert.equal(reason.governanceRoute, "#/governance");
+        });
       });
     });
   });
@@ -189,7 +196,7 @@ export async function runContentReadinessChecks() {
         );
       });
       assert.deepEqual(
-        item.reasons,
+        item.reasons.map((reason) => reason.message),
         item.issues.map((issue) => issue.message)
       );
     });
@@ -210,6 +217,13 @@ export async function runContentReadinessChecks() {
           {
             module: "articles",
             severity: "warning",
+            type: "relation",
+            message: "Later signaal",
+            targetRoute: "#/kennisbank/article-attention"
+          },
+          {
+            module: "articles",
+            severity: "warning",
             type: "missing-file",
             message: "Belangrijk signaal",
             targetRoute: "#/kennisbank/article-attention"
@@ -220,7 +234,19 @@ export async function runContentReadinessChecks() {
 
     assert.equal(findReadinessByRoute(report, "suppliers", "#/leveranciers/supplier-ready").status, "ready");
     assert.equal(findReadinessByRoute(report, "brochures", "#/brochures/brochure-review").status, "review");
-    assert.equal(findReadinessByRoute(report, "articles", "#/kennisbank/article-attention").status, "needs_attention");
+    const attention = findReadinessByRoute(report, "articles", "#/kennisbank/article-attention");
+    assert.equal(attention.status, "needs_attention");
+    assert.deepEqual(
+      attention.reasons.map((reason) => reason.message),
+      ["Belangrijk signaal", "Later signaal"]
+    );
+    assert.equal(attention.reasons[0].priority, 1);
+    assert.equal(attention.reasons[0].priorityLabel, "Eerst controleren");
+
+    const cardHtml = renderReadinessCard(attention);
+    assert.match(cardHtml, /Eerst controleren/);
+    assert.match(cardHtml, /Bekijk in governance/);
+    assert.match(cardHtml, /href="#\/governance"/);
   });
 
   await runCheck("readiness routes blijven bestaande read-only Studio-routes", () => {

@@ -68,6 +68,12 @@ function renderSignals(module) {
   `;
 }
 
+function readinessSummaryState(totals) {
+  if (totals.needs_attention) return "needs_attention";
+  if (totals.review) return "review";
+  return "ready";
+}
+
 function severityLabel(severity) {
   return severity === "error" ? "Fout" : "Waarschuwing";
 }
@@ -270,6 +276,39 @@ function renderModuleCard(module, readinessModule) {
   `;
 }
 
+function renderReadinessSummary(totals) {
+  const state = readinessSummaryState(totals);
+
+  return `
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Content readiness</h2>
+        ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
+      </div>
+      <div class="studio-grid studio-grid-3">
+        ${renderOverviewMetric({
+          label: "Klaar",
+          value: totals.ready,
+          note: "Items zonder belangrijke governance-issues.",
+          state: totals.ready ? "ready" : "foundation"
+        })}
+        ${renderOverviewMetric({
+          label: "Review nodig",
+          value: totals.review,
+          note: "Items die bruikbaar zijn, maar controle vragen.",
+          state: totals.review ? "review" : "foundation"
+        })}
+        ${renderOverviewMetric({
+          label: "Aandacht nodig",
+          value: totals.needs_attention,
+          note: "Items waar belangrijke informatie ontbreekt.",
+          state: totals.needs_attention ? "needs_attention" : "foundation"
+        })}
+      </div>
+    </section>
+  `;
+}
+
 export function renderGovernancePage({ supplierData, brochureData, mediaData, articleData, libraryData }) {
   const report = getContentGovernanceReport({
     suppliers: supplierData,
@@ -338,6 +377,8 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
           })}
         </div>
       </section>
+
+      ${renderReadinessSummary(readinessReport.totals)}
 
       <section class="studio-section">
         <div class="studio-section-head">

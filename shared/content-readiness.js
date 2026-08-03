@@ -18,9 +18,47 @@ export const CONTENT_READINESS_LABELS = {
 };
 
 const NEEDS_ATTENTION_ISSUE_TYPES = ["missing-file", "missing-alt"];
+const REVIEW_FIRST_ISSUE_TYPES = ["missing-media-registration", "relation", "rights-review"];
+const PRIORITY_LABELS = {
+  1: "Eerst controleren",
+  2: "Daarna controleren",
+  3: "Controle gewenst"
+};
 
 function issueNeedsAttention(issue) {
   return issue?.severity === "error" || NEEDS_ATTENTION_ISSUE_TYPES.includes(issue?.type);
+}
+
+function issuePriority(issue) {
+  if (issueNeedsAttention(issue)) return 1;
+  if (REVIEW_FIRST_ISSUE_TYPES.includes(issue?.type)) return 2;
+  return 3;
+}
+
+function sortIssuesByPriority(issues) {
+  return [...issues].sort((left, right) => {
+    const priorityDifference = issuePriority(left) - issuePriority(right);
+    if (priorityDifference) return priorityDifference;
+
+    const severityDifference = String(left?.severity || "").localeCompare(String(right?.severity || ""));
+    if (severityDifference) return severityDifference;
+
+    return String(left?.message || "").localeCompare(String(right?.message || ""));
+  });
+}
+
+function reasonFromIssue(issue) {
+  const priority = issuePriority(issue);
+
+  return {
+    message: issue.message,
+    priority,
+    priorityLabel: PRIORITY_LABELS[priority],
+    severity: issue.severity,
+    type: issue.type,
+    targetRoute: issue.targetRoute,
+    governanceRoute: "#/governance"
+  };
 }
 
 function readinessStatusForIssues(issues) {
@@ -43,6 +81,7 @@ function itemId(item) {
 }
 
 function itemReadiness({ moduleId, item, issues }) {
+  const sortedIssues = sortIssuesByPriority(issues);
   const status = readinessStatusForIssues(issues);
   const config = GOVERNANCE_MODULE_CONFIG[moduleId];
 
@@ -55,8 +94,8 @@ function itemReadiness({ moduleId, item, issues }) {
     status,
     label: CONTENT_READINESS_LABELS[status],
     score: readinessScoreForIssues(status, issues),
-    issues: issues.map((issue) => ({ ...issue })),
-    reasons: issues.map((issue) => issue.message)
+    issues: sortedIssues.map((issue) => ({ ...issue, priority: issuePriority(issue) })),
+    reasons: sortedIssues.map(reasonFromIssue)
   };
 }
 
