@@ -117,6 +117,13 @@ bibliotheek. Governance aggregeert bestaande validatie-, quality- en
 relatiesignalen, maar wijzigt geen data, voegt geen backend toe, publiceert
 niets en introduceert geen nieuw relationeel datamodel.
 
+Aanvullend Sprint 11B/11C-besluit: de eerste publieke contentlaag gebruikt
+kennisbankartikelen als gecontroleerde projectie. De website leest
+`data/public/articles.json` en niet de ruwe Studio-registry
+`data/articles.json`. Het patroon is voorbereid voor meerdere contenttypes via
+een klein public-content manifest, maar leveranciers, brochures, media en
+bibliotheek worden nog niet publiek vanuit Studio-data gerenderd.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

@@ -208,6 +208,26 @@ brochures, kennisbankartikelen en media op basis van bestaande id- en
 padvelden. De helper muteert geen data, schrijft niets weg en is geen generieke
 relation engine.
 
+## Publieke contentprojecties
+
+Vanaf Sprint 11B/11C rendert de publieke website kennisbankartikelen niet meer
+rechtstreeks uit `data/articles.json`. Studio blijft de bron, maar de website
+leest een gecontroleerde projectie uit `data/public/articles.json`.
+
+De projectie bevat alleen bezoekersvelden en wordt berekend met gedeelde
+helpers in `shared/`. Interne Studio-velden zoals status, relaties,
+governance, readiness, opslagmetadata en validatieinformatie worden niet in
+publieke datasets opgenomen. Checks vergelijken de publieke dataset met de
+bestaande Studio-data en signaleren afwijkingen; ze corrigeren niets
+automatisch.
+
+Voor toekomstige leverancierspublicatie geldt hetzelfde patroon. Geschikte
+publieke velden zijn naam, slug, type, samenvatting, omschrijving,
+categorieen, logo en afbeelding. Interne velden zoals status,
+sortering, uitlichting, relaties, governance en readiness blijven buiten de
+publieke projectie. Er is nog geen publieke leveranciersdataset of
+leverancierspagina vanuit Studio-data.
+
 ## Content Governance
 
 Vanaf Sprint 10A bestaat er een read-only governance-laag bovenop de bestaande

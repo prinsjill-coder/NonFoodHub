@@ -1,26 +1,24 @@
 import { getArticles, sortArticles } from "./article-model.js";
+import {
+  createPublicDataset,
+  isPublicContentItem,
+  pickPublicFields,
+  PUBLIC_DATASET_CONFIG
+} from "./public-content.js";
 
-export const PUBLIC_ARTICLE_KEYS = ["id", "slug", "title", "summary", "body", "category", "heroImage", "updatedAt"];
+export const PUBLIC_ARTICLE_DATASET = PUBLIC_DATASET_CONFIG.articles;
+export const PUBLIC_ARTICLE_KEYS = PUBLIC_ARTICLE_DATASET.itemKeys;
 
 function firstCategory(article) {
   return Array.isArray(article?.categories) && article.categories.length ? article.categories[0] : "Inspiratie";
 }
 
 function publicArticle(article) {
-  return {
-    id: article.id,
-    slug: article.slug,
-    title: article.title,
-    summary: article.summary,
-    body: article.body,
-    category: firstCategory(article),
-    heroImage: article.heroImage,
-    updatedAt: article.updatedAt
-  };
+  return pickPublicFields({ ...article, category: firstCategory(article) }, PUBLIC_ARTICLE_KEYS);
 }
 
 export function projectPublicArticles(articleData = {}) {
-  const items = sortArticles(getArticles(articleData).filter((article) => article.status === "published")).map(publicArticle);
+  const items = sortArticles(getArticles(articleData).filter(isPublicContentItem)).map(publicArticle);
 
-  return { items };
+  return createPublicDataset(items);
 }

@@ -80,10 +80,10 @@
     mount.outerHTML = `
       <header class="site-header">
         <div class="container header-inner">
-          <a class="brand" href="${href("index.html")}" aria-label="Bidfood Non-Food Hub home">
+          <a class="brand" href="${href("index.html")}" aria-label="Non-Food Hub home">
             <span class="brand-mark">B</span>
             <span class="brand-text">
-              <span class="brand-title">Bidfood Non-Food Hub</span>
+              <span class="brand-title">Non-Food Hub</span>
               <span class="brand-subtitle">Inspiratieomgeving</span>
             </span>
           </a>
@@ -125,7 +125,7 @@
       <footer class="site-footer">
         <div class="container footer-inner">
           <div>
-            <h3>Bidfood Non-Food Hub</h3>
+            <h3>Non-Food Hub</h3>
             <p>Een centrale inspiratieomgeving voor servies, glaswerk, buffetpresentatie, showroomadvies en non-food concepten.</p>
           </div>
           <div>
@@ -154,7 +154,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <div class="container">Fase 1 statische website. Broncontent: openbare Bidfood Non-Food Notion-pagina.</div>
+          <div class="container">Fase 1 statische website. Content wordt gecontroleerd via centrale publieke projecties.</div>
         </div>
       </footer>
     `;
@@ -289,7 +289,7 @@
     if (!grid || !bodyMount) return;
 
     try {
-      const response = await fetch(href("data/public-articles.json"), { cache: "no-store" });
+      const response = await fetch(href("data/public/articles.json"), { cache: "no-store" });
       if (!response.ok) throw new Error("Publieke kennisbankdata kon niet worden geladen.");
 
       const data = await response.json();

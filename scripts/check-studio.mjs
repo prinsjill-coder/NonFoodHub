@@ -189,6 +189,7 @@ async function runStudioChecks() {
     await import("../shared/media-file-validation.js");
     await import("../shared/media-normalizer.js");
     await import("../shared/media-validation.js");
+    await import("../shared/public-content.js");
     await import("../shared/public-articles.js");
     await import("../shared/supplier-file-validation.js");
     await import("../shared/supplier-normalizer.js");
