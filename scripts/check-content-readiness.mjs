@@ -170,6 +170,12 @@ export async function runContentReadinessChecks() {
         assert.ok(item.score >= 0 && item.score <= 100);
         assert.ok(Array.isArray(item.issues));
         assert.ok(Array.isArray(item.reasons));
+        assert.equal(typeof item.publication, "object");
+        assert.ok(["ready", "review", "not_public", "not_applicable"].includes(item.publication.status));
+        assert.equal(typeof item.publication.label, "string");
+        assert.equal(typeof item.publication.included, "boolean");
+        assert.ok(Array.isArray(item.publication.reasons));
+        assert.ok(Array.isArray(item.publication.checks));
         item.reasons.forEach((reason) => {
           assert.equal(typeof reason.message, "string");
           assert.equal(typeof reason.priority, "number");
@@ -178,6 +184,33 @@ export async function runContentReadinessChecks() {
         });
       });
     });
+  });
+
+  await runCheck("readiness toont publieke projectiefeedback zonder publicatieflow", () => {
+    const report = getContentReadinessReport(data);
+    const article = findReadinessByRoute(report, "articles", "#/kennisbank/terras-outdoor-inspiratie");
+    const supplier = findReadinessByRoute(report, "suppliers", "#/leveranciers/amefa");
+    const brochure = findReadinessByRoute(report, "brochures", "#/brochures/amefa-for-professionals-2026");
+    const reviewSupplier = findReadinessByRoute(report, "suppliers", "#/leveranciers/churchill");
+
+    assert.equal(report.totals.publication.visible, report.totals.publication.ready + report.totals.publication.review);
+    assert.ok(report.totals.publication.ready >= 1);
+    assert.ok(report.totals.publication.not_public >= 1);
+    assert.equal(article.publication.included, true);
+    assert.equal(article.publication.status, "review");
+    assert.match(JSON.stringify(article.publication.reasons), /Leveranciercontext ontbreekt|niet publiek zichtbaar/);
+    assert.equal(supplier.publication.included, true);
+    assert.match(JSON.stringify(supplier.publication.checks), /Logo is gekoppeld|Categorie is ingevuld/);
+    assert.equal(brochure.publication.status, "ready");
+    assert.match(JSON.stringify(brochure.publication.checks), /PDF-pad is ingevuld/);
+    assert.equal(reviewSupplier.publication.included, false);
+    assert.equal(reviewSupplier.publication.status, "not_public");
+    assert.match(JSON.stringify(reviewSupplier.publication.reasons), /status Ter controle/);
+
+    const cardHtml = renderReadinessCard(article);
+    assert.match(cardHtml, /Publieke website/);
+    assert.match(cardHtml, /Projectie: data\/public\/articles\.json/);
+    assert.match(cardHtml, /Nog controleren/);
   });
 
   await runCheck("readiness is afgeleid van bestaande governance issues", () => {
@@ -247,6 +280,7 @@ export async function runContentReadinessChecks() {
     assert.match(cardHtml, /Eerst controleren/);
     assert.match(cardHtml, /Bekijk in governance/);
     assert.match(cardHtml, /href="#\/governance"/);
+    assert.match(cardHtml, /Publieke website/);
   });
 
   await runCheck("readiness routes blijven bestaande read-only Studio-routes", () => {

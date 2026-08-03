@@ -838,6 +838,31 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.studio-publication-readiness {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--studio-line);
+}
+
+.studio-publication-readiness h3,
+.studio-publication-readiness h4 {
+  margin: 0;
+}
+
+.studio-publication-checks {
+  display: grid;
+  gap: 8px;
+}
+
+.studio-publication-checks ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--studio-ink-soft);
+}
+
 .studio-list-empty {
   margin-top: 16px;
   padding: 18px;

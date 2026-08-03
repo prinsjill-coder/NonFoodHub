@@ -37,6 +37,65 @@ function renderReason(reason, index) {
   `;
 }
 
+function renderPublicationItem(item, index) {
+  const normalized = normalizeReason(item, index);
+
+  return `
+    <li class="studio-readiness-reason">
+      <div class="studio-readiness-reason-main">
+        <span class="studio-readiness-priority">${escapeHtml(normalized.priorityLabel)}</span>
+        <span>${escapeHtml(normalized.message)}</span>
+      </div>
+    </li>
+  `;
+}
+
+function renderPublicationCheck(check) {
+  return `<li>${escapeHtml(check?.message || check || "Onderdeel is ingevuld.")}</li>`;
+}
+
+function renderPublication(publication) {
+  if (!publication) return "";
+
+  const reasons = Array.isArray(publication.reasons) ? publication.reasons : [];
+  const checks = Array.isArray(publication.checks) ? publication.checks : [];
+  const reasonHeading = publication.status === "not_applicable" ? "Context" : "Nog controleren";
+
+  return `
+    <section class="studio-publication-readiness">
+      <div class="studio-card-head">
+        <div>
+          <h3>Publieke website</h3>
+          ${
+            publication.dataset
+              ? `<p class="studio-muted">Projectie: ${escapeHtml(publication.dataset)}</p>`
+              : `<p class="studio-muted">Geen publieke dataset aangesloten voor deze module.</p>`
+          }
+        </div>
+        ${renderStatusBadge(publication.state || publication.status, publication.label)}
+      </div>
+      ${
+        checks.length
+          ? `<div class="studio-publication-checks">
+              <h4>Al klaar</h4>
+              <ul>${checks.map(renderPublicationCheck).join("")}</ul>
+            </div>`
+          : ""
+      }
+      ${
+        reasons.length
+          ? `<div>
+              <h4>${escapeHtml(reasonHeading)}</h4>
+              <ol class="studio-readiness-list">
+                ${reasons.map(renderPublicationItem).join("")}
+              </ol>
+            </div>`
+          : `<p class="studio-muted">Geen ontbrekende publieke velden of projectieredenen gevonden.</p>`
+      }
+    </section>
+  `;
+}
+
 export function renderReadinessCard(readiness) {
   const status = readiness?.status || "review";
   const label = readiness?.label || "Review nodig";
@@ -57,6 +116,7 @@ export function renderReadinessCard(readiness) {
             </ol>`
           : `<p class="studio-muted">Geen aandachtspunten gevonden in bestaande governance-issues.</p>`
       }
+      ${renderPublication(readiness?.publication)}
     </article>
   `;
 }

@@ -5,8 +5,13 @@ import {
 } from "./content-governance.js";
 import { getArticles } from "./article-model.js";
 import { getBrochures } from "./brochure-model.js";
+import { getContentStatusLabel } from "./content-status.js";
 import { getLibraryItems } from "./library-model.js";
 import { getMediaAssets } from "./media-model.js";
+import { projectPublicArticles } from "./public-articles.js";
+import { projectPublicBrochures } from "./public-brochures.js";
+import { PUBLIC_CONTENT_STATUS, PUBLIC_DATASET_CONFIG, isPublicContentItem } from "./public-content.js";
+import { projectPublicSuppliers } from "./public-suppliers.js";
 import { getSuppliers } from "./supplier-model.js";
 
 export const CONTENT_READINESS_STATUSES = ["ready", "review", "needs_attention"];
@@ -23,6 +28,26 @@ const PRIORITY_LABELS = {
   1: "Eerst controleren",
   2: "Daarna controleren",
   3: "Controle gewenst"
+};
+const PUBLICATION_STATUS_LABELS = {
+  ready: "Publicatiegereed",
+  review: "Nog controleren",
+  not_public: "Niet publiek",
+  not_applicable: "Geen publieke projectie"
+};
+const PUBLICATION_MODULE_CONFIG = {
+  suppliers: {
+    dataset: PUBLIC_DATASET_CONFIG.suppliers.publicPath,
+    routeLabel: "leverancierdetail"
+  },
+  brochures: {
+    dataset: PUBLIC_DATASET_CONFIG.brochures.publicPath,
+    routeLabel: "brochurepagina"
+  },
+  articles: {
+    dataset: PUBLIC_DATASET_CONFIG.articles.publicPath,
+    routeLabel: "inspiratiepagina"
+  }
 };
 
 function issueNeedsAttention(issue) {
@@ -61,6 +86,219 @@ function reasonFromIssue(issue) {
   };
 }
 
+function hasValue(value) {
+  return String(value ?? "").trim().length > 0;
+}
+
+function byId(items = []) {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+function publicationReason(message, priority = 2, type = "public-projection") {
+  return {
+    message,
+    priority,
+    priorityLabel: PRIORITY_LABELS[priority] || PRIORITY_LABELS[3],
+    type
+  };
+}
+
+function publicationCheck(message, type = "public-projection") {
+  return { message, type };
+}
+
+function publicProjectionContext({ suppliers = {}, brochures = {}, articles = {} } = {}, options = {}) {
+  const publicSuppliers = projectPublicSuppliers(suppliers, articles, brochures, options).items;
+  const publicBrochures = projectPublicBrochures(brochures, suppliers, options).items;
+  const publicArticles = projectPublicArticles(articles, suppliers).items;
+
+  return {
+    publicByModule: {
+      suppliers: byId(publicSuppliers),
+      brochures: byId(publicBrochures),
+      articles: byId(publicArticles)
+    },
+    sourceByModule: {
+      suppliers: byId(getSuppliers(suppliers)),
+      brochures: byId(getBrochures(brochures)),
+      articles: byId(getArticles(articles))
+    }
+  };
+}
+
+function publicSupplierExists(supplierId, projectionContext) {
+  return projectionContext.publicByModule.suppliers.has(supplierId);
+}
+
+function publicationStatusFor({ included, reasons }) {
+  if (!included) return "not_public";
+  return reasons.length ? "review" : "ready";
+}
+
+function publicationState(status) {
+  if (status === "ready") return "ready";
+  if (status === "review") return "review";
+  if (status === "not_public") return "disabled";
+  return "foundation";
+}
+
+function articlePublicationFeedback(item, projectedItem, projectionContext) {
+  const supplierIds = Array.isArray(item?.supplierIds) ? item.supplierIds.filter(Boolean) : [];
+  const publicSuppliers = Array.isArray(projectedItem?.suppliers) ? projectedItem.suppliers : [];
+  const reasons = [];
+  const checks = [];
+
+  if (hasValue(item?.title)) checks.push(publicationCheck("Titel is ingevuld."));
+  if (hasValue(item?.summary)) checks.push(publicationCheck("Samenvatting is ingevuld."));
+  if (hasValue(item?.heroImage)) checks.push(publicationCheck("Hero-afbeelding is gekoppeld."));
+
+  if (!supplierIds.length) {
+    reasons.push(publicationReason("Geen leverancierrelatie zichtbaar; koppel een leverancier als dit artikel naar een merk moet leiden.", 3, "relation"));
+  } else if (!publicSuppliers.length) {
+    reasons.push(
+      publicationReason(
+        "Leveranciercontext ontbreekt in de publieke projectie, omdat geen gekoppelde leverancier gepubliceerd is.",
+        2,
+        "relation"
+      )
+    );
+  } else {
+    checks.push(publicationCheck("Publieke leveranciercontext is beschikbaar."));
+  }
+
+  supplierIds
+    .filter((supplierId) => !publicSupplierExists(supplierId, projectionContext))
+    .forEach((supplierId) => {
+      const supplier = projectionContext.sourceByModule.suppliers.get(supplierId);
+      const label = supplier?.name || supplierId;
+      reasons.push(publicationReason(`Gekoppelde leverancier ${label} is niet publiek zichtbaar.`, 2, "relation"));
+    });
+
+  return { reasons, checks };
+}
+
+function supplierPublicationFeedback(item, projectedItem) {
+  const relatedArticles = Array.isArray(projectedItem?.relatedArticles) ? projectedItem.relatedArticles : [];
+  const relatedBrochures = Array.isArray(projectedItem?.relatedBrochures) ? projectedItem.relatedBrochures : [];
+  const reasons = [];
+  const checks = [];
+
+  if (hasValue(item?.name)) checks.push(publicationCheck("Naam is ingevuld."));
+  if (hasValue(item?.description)) checks.push(publicationCheck("Beschrijving is ingevuld."));
+  if (hasValue(item?.logo)) checks.push(publicationCheck("Logo is gekoppeld."));
+  if (Array.isArray(item?.categories) && item.categories.length) checks.push(publicationCheck("Categorie is ingevuld."));
+
+  if (relatedBrochures.length) {
+    checks.push(publicationCheck("Heeft publieke brochurekoppeling."));
+  } else {
+    reasons.push(publicationReason("Geen publieke brochure gekoppeld; bezoekers kunnen nog niet door naar een collectie.", 2, "relation"));
+  }
+
+  if (relatedArticles.length) {
+    checks.push(publicationCheck("Heeft publieke kennisbankkoppeling."));
+  } else {
+    reasons.push(publicationReason("Geen publiek kennisbankartikel gekoppeld aan deze leverancier.", 3, "relation"));
+  }
+
+  return { reasons, checks };
+}
+
+function brochurePublicationFeedback(item, projectedItem, projectionContext) {
+  const reasons = [];
+  const checks = [];
+
+  if (hasValue(item?.title)) checks.push(publicationCheck("Titel is ingevuld."));
+  if (hasValue(item?.description)) checks.push(publicationCheck("Samenvatting is ingevuld."));
+  if (hasValue(item?.thumbnail)) checks.push(publicationCheck("Afbeelding of thumbnail is gekoppeld."));
+
+  if (hasValue(item?.pdfFile)) {
+    checks.push(publicationCheck("PDF-pad is ingevuld; de publieke PDF-actie verschijnt alleen als het bestand beschikbaar is."));
+  } else {
+    reasons.push(publicationReason("PDF-pad ontbreekt; vul een PDF-pad in voordat bezoekers een brochurebestand kunnen openen.", 1, "missing-file"));
+  }
+
+  if (!hasValue(item?.supplierId)) {
+    reasons.push(publicationReason("Leverancier ontbreekt; een publieke brochure heeft een publieke leverancier nodig.", 1, "relation"));
+  } else if (!publicSupplierExists(item.supplierId, projectionContext)) {
+    const supplier = projectionContext.sourceByModule.suppliers.get(item.supplierId);
+    const label = supplier?.name || item.supplierId;
+    reasons.push(publicationReason(`Gekoppelde leverancier ${label} is niet publiek zichtbaar.`, 1, "relation"));
+  } else {
+    checks.push(publicationCheck("Publieke leverancierrelatie is beschikbaar."));
+  }
+
+  if (!projectedItem && isPublicContentItem(item) && !reasons.length) {
+    reasons.push(publicationReason("Niet opgenomen in de publieke brochureprojectie; controleer bestaande governance-issues.", 2));
+  }
+
+  return { reasons, checks };
+}
+
+function modulePublicationFeedback(moduleId, item, projectedItem, projectionContext) {
+  if (moduleId === "articles") return articlePublicationFeedback(item, projectedItem, projectionContext);
+  if (moduleId === "suppliers") return supplierPublicationFeedback(item, projectedItem);
+  if (moduleId === "brochures") return brochurePublicationFeedback(item, projectedItem, projectionContext);
+  return { reasons: [], checks: [] };
+}
+
+function publicationForItem(moduleId, item, issues, projectionContext) {
+  const config = PUBLICATION_MODULE_CONFIG[moduleId];
+
+  if (!config) {
+    return {
+      status: "not_applicable",
+      label: PUBLICATION_STATUS_LABELS.not_applicable,
+      state: publicationState("not_applicable"),
+      included: false,
+      dataset: "",
+      reasons: [
+        publicationReason("Deze module heeft nog geen publieke projectie onder data/public/*.", 3, "not-applicable")
+      ],
+      checks: []
+    };
+  }
+
+  const projectedItem = projectionContext.publicByModule[moduleId].get(item?.id);
+  const included = Boolean(projectedItem);
+  const feedback = modulePublicationFeedback(moduleId, item, projectedItem, projectionContext);
+  const reasons = [...feedback.reasons];
+  const checks = [...feedback.checks];
+
+  if (isPublicContentItem(item)) {
+    checks.unshift(publicationCheck("Contentstatus is Gepubliceerd."));
+  } else {
+    reasons.unshift(
+      publicationReason(
+        `Niet zichtbaar omdat de status ${getContentStatusLabel(item?.status || "onbekend")} is. Publieke projecties nemen alleen ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)} op.`,
+        1,
+        "status"
+      )
+    );
+  }
+
+  if (included) {
+    checks.unshift(publicationCheck(`Publieke projectie bevat dit item voor de ${config.routeLabel}.`));
+  }
+
+  const status = publicationStatusFor({ included, reasons });
+
+  return {
+    status,
+    label: PUBLICATION_STATUS_LABELS[status],
+    state: publicationState(status),
+    included,
+    dataset: config.dataset,
+    reasons,
+    checks,
+    issues: issues.map((issue) => ({
+      message: issue.message,
+      severity: issue.severity,
+      type: issue.type,
+      targetRoute: issue.targetRoute
+    }))
+  };
+}
+
 function readinessStatusForIssues(issues) {
   if (issues.some(issueNeedsAttention)) return "needs_attention";
   if (issues.length) return "review";
@@ -80,10 +318,11 @@ function itemId(item) {
   return item?.id || item?.slug || "";
 }
 
-function itemReadiness({ moduleId, item, issues }) {
+function itemReadiness({ moduleId, item, issues, projectionContext }) {
   const sortedIssues = sortIssuesByPriority(issues);
   const status = readinessStatusForIssues(issues);
   const config = GOVERNANCE_MODULE_CONFIG[moduleId];
+  const publication = publicationForItem(moduleId, item, sortedIssues, projectionContext);
 
   return {
     module: moduleId,
@@ -95,7 +334,8 @@ function itemReadiness({ moduleId, item, issues }) {
     label: CONTENT_READINESS_LABELS[status],
     score: readinessScoreForIssues(status, issues),
     issues: sortedIssues.map((issue) => ({ ...issue, priority: issuePriority(issue) })),
-    reasons: sortedIssues.map(reasonFromIssue)
+    reasons: sortedIssues.map(reasonFromIssue),
+    publication
   };
 }
 
@@ -119,6 +359,19 @@ function readinessCounts(items) {
   );
 }
 
+function publicationCounts(items) {
+  return items.reduce(
+    (counts, item) => {
+      const status = item.publication?.status || "not_applicable";
+      counts[status] += 1;
+      if (item.publication?.included) counts.visible += 1;
+      if (status === "ready" || status === "review") counts.connected += 1;
+      return counts;
+    },
+    { ready: 0, review: 0, not_public: 0, not_applicable: 0, visible: 0, connected: 0 }
+  );
+}
+
 function issuesForRoute(issues, targetRoute) {
   return issues.filter((issue) => issue.targetRoute === targetRoute);
 }
@@ -126,6 +379,7 @@ function issuesForRoute(issues, targetRoute) {
 export function getContentReadinessReport(data = {}, options = {}) {
   const governanceReport = options.governanceReport || getContentGovernanceReport(data);
   const sourceItems = itemsByModule(data);
+  const projectionContext = publicProjectionContext(data, options.publicProjectionOptions || {});
 
   const modules = GOVERNANCE_MODULE_IDS.map((moduleId) => {
     const config = GOVERNANCE_MODULE_CONFIG[moduleId];
@@ -134,10 +388,12 @@ export function getContentReadinessReport(data = {}, options = {}) {
       return itemReadiness({
         moduleId,
         item,
-        issues: issuesForRoute(governanceReport.issues, route)
+        issues: issuesForRoute(governanceReport.issues, route),
+        projectionContext
       });
     });
     const counts = readinessCounts(items);
+    const publication = publicationCounts(items);
 
     return {
       id: moduleId,
@@ -147,6 +403,7 @@ export function getContentReadinessReport(data = {}, options = {}) {
       ready: counts.ready,
       review: counts.review,
       needs_attention: counts.needs_attention,
+      publication,
       items
     };
   });
@@ -157,6 +414,12 @@ export function getContentReadinessReport(data = {}, options = {}) {
       summary.ready += module.ready;
       summary.review += module.review;
       summary.needs_attention += module.needs_attention;
+      summary.publication.ready += module.publication.ready;
+      summary.publication.review += module.publication.review;
+      summary.publication.not_public += module.publication.not_public;
+      summary.publication.not_applicable += module.publication.not_applicable;
+      summary.publication.visible += module.publication.visible;
+      summary.publication.connected += module.publication.connected;
       return summary;
     },
     {
@@ -164,7 +427,15 @@ export function getContentReadinessReport(data = {}, options = {}) {
       totalItems: 0,
       ready: 0,
       review: 0,
-      needs_attention: 0
+      needs_attention: 0,
+      publication: {
+        ready: 0,
+        review: 0,
+        not_public: 0,
+        not_applicable: 0,
+        visible: 0,
+        connected: 0
+      }
     }
   );
 

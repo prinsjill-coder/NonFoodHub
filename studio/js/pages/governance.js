@@ -254,7 +254,7 @@ function renderModuleCard(module, readinessModule) {
         })}
       </div>
 
-      <div class="studio-grid studio-grid-2">
+      <div class="studio-grid studio-grid-3">
         <section>
           <h4>Statusverdeling</h4>
           ${renderStatusDistribution(module)}
@@ -263,6 +263,7 @@ function renderModuleCard(module, readinessModule) {
           <h4>Governance-signalen</h4>
           ${renderSignals(module)}
         </section>
+        ${renderModulePublication(readinessModule)}
       </div>
 
       <div class="studio-actions">
@@ -305,6 +306,75 @@ function renderReadinessSummary(totals) {
           state: totals.needs_attention ? "needs_attention" : "foundation"
         })}
       </div>
+    </section>
+  `;
+}
+
+function publicationSummaryState(publication = {}) {
+  if (publication.not_public) return "review";
+  if (publication.review) return "warning";
+  return "ready";
+}
+
+function renderPublicationSummary(publication = {}) {
+  const state = publicationSummaryState(publication);
+
+  return `
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Publieke projectie</h2>
+        ${renderStatusBadge(state, state === "ready" ? "Publicatiegereed" : "Nog controleren")}
+      </div>
+      <div class="studio-grid studio-grid-4">
+        ${renderOverviewMetric({
+          label: "Publicatiegereed",
+          value: publication.ready,
+          note: "Items die zichtbaar zijn in een publieke projectie zonder extra publicatiefeedback.",
+          state: publication.ready ? "ready" : "foundation"
+        })}
+        ${renderOverviewMetric({
+          label: "Nog controleren",
+          value: publication.review,
+          note: "Zichtbare items waar relaties, context of PDF-acties extra aandacht vragen.",
+          state: publication.review ? "review" : "foundation"
+        })}
+        ${renderOverviewMetric({
+          label: "Niet publiek",
+          value: publication.not_public,
+          note: "Items die niet in data/public worden opgenomen, meestal door status of ontbrekende publieke relatie.",
+          state: publication.not_public ? "review" : "foundation"
+        })}
+        ${renderOverviewMetric({
+          label: "Geen projectie",
+          value: publication.not_applicable,
+          note: "Modules die nog geen publieke data/public-projectie hebben.",
+          state: publication.not_applicable ? "foundation" : "ready"
+        })}
+      </div>
+    </section>
+  `;
+}
+
+function renderModulePublication(module) {
+  const publication = module?.publication || {};
+
+  return `
+    <section>
+      <h4>Publieke projectie</h4>
+      <dl class="studio-detail-list">
+        <div>
+          <dt>Publicatiegereed</dt>
+          <dd>${Number(publication.ready || 0)} ${renderStatusBadge(publication.ready ? "ready" : "foundation")}</dd>
+        </div>
+        <div>
+          <dt>Nog controleren</dt>
+          <dd>${Number(publication.review || 0)} ${renderStatusBadge(publication.review ? "review" : "foundation")}</dd>
+        </div>
+        <div>
+          <dt>Niet publiek</dt>
+          <dd>${Number(publication.not_public || 0)} ${renderStatusBadge(publication.not_public ? "review" : "foundation")}</dd>
+        </div>
+      </dl>
     </section>
   `;
 }
@@ -379,6 +449,7 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
       </section>
 
       ${renderReadinessSummary(readinessReport.totals)}
+      ${renderPublicationSummary(readinessReport.totals.publication)}
 
       <section class="studio-section">
         <div class="studio-section-head">
