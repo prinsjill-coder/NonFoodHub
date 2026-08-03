@@ -131,6 +131,12 @@ detailinformatie vanuit die dataset, niet rechtstreeks uit
 `data/suppliers.json`. Relaties met brochures, artikelen, media en bibliotheek
 blijven voor latere sprints.
 
+Aanvullend Sprint 11E-besluit: de publieke projecties ondersteunen nu de eerste
+read-only contentrelaties tussen leveranciers en kennisbankartikelen. De
+website toont alleen relaties wanneer zowel leverancier als artikel in
+`data/public` staan. Interne relatievelden uit de Studio-data worden niet op de
+publieke website gerenderd.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

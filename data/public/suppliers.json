@@ -12,7 +12,8 @@
         "Tafelpresentatie"
       ],
       "logo": "assets/images/supplier-amefa.jpg",
-      "image": "assets/images/supplier-amefa.jpg"
+      "image": "assets/images/supplier-amefa.jpg",
+      "relatedArticles": []
     }
   ]
 }

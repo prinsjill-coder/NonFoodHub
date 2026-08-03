@@ -250,12 +250,24 @@
     return article.heroImage ? href(article.heroImage) : href("assets/images/inspiration.png");
   }
 
+  function articleSuppliers(article) {
+    return Array.isArray(article.suppliers) ? article.suppliers.filter((supplier) => supplier?.name) : [];
+  }
+
+  function publicArticleSupplierMeta(article) {
+    const supplier = articleSuppliers(article)[0];
+    return supplier ? `<span class="tag sky">Door ${escapeHtml(supplier.name)}</span>` : "";
+  }
+
   function renderPublicArticleCard(article) {
     return `
       <a class="article-card fade-in" href="#${escapeHtml(article.slug)}">
         <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
         <div class="article-card-body">
-          <div class="card-meta"><span class="tag">${escapeHtml(article.category || "Inspiratie")}</span></div>
+          <div class="card-meta">
+            <span class="tag">${escapeHtml(article.category || "Inspiratie")}</span>
+            ${publicArticleSupplierMeta(article)}
+          </div>
           <h3>${escapeHtml(article.title)}</h3>
           <p>${escapeHtml(article.summary)}</p>
         </div>
@@ -351,20 +363,60 @@
     `;
   }
 
+  function relatedArticles(supplier) {
+    return Array.isArray(supplier.relatedArticles) ? supplier.relatedArticles : [];
+  }
+
+  function renderSupplierRelatedArticleCard(article) {
+    return `
+      <a class="article-card fade-in" href="${href("pages/inspiratie.html")}#${escapeHtml(article.slug)}">
+        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
+        <div class="article-card-body">
+          <div class="card-meta"><span class="tag">${escapeHtml(article.category || "Inspiratie")}</span></div>
+          <h3>${escapeHtml(article.title)}</h3>
+          <p>${escapeHtml(article.summary)}</p>
+          <span class="card-link">Lees artikel</span>
+        </div>
+      </a>
+    `;
+  }
+
+  function renderSupplierRelatedArticles(supplier) {
+    const articles = relatedArticles(supplier);
+
+    if (!articles.length) {
+      return `
+        <div class="contact-card fade-in">
+          <h3>Geen gekoppelde kennisbankartikelen</h3>
+          <p>Voor deze leverancier zijn nog geen publieke kennisbankartikelen gekoppeld.</p>
+        </div>
+      `;
+    }
+
+    return `<div class="grid grid-3">${articles.map(renderSupplierRelatedArticleCard).join("")}</div>`;
+  }
+
   function renderPublicSupplierDetail(supplier) {
     const description = supplier.description ? `<p>${escapeHtml(supplier.description)}</p>` : "";
 
     return `
-      <article id="${escapeHtml(supplier.slug)}" class="split fade-in">
-        <div>
-          <p class="kicker">${supplierCategories(supplier).map(escapeHtml).join(" / ") || "Leverancier"}</p>
-          <h2>${escapeHtml(supplier.name)}</h2>
-          <p class="lead">${escapeHtml(supplier.summary)}</p>
-          ${description}
+      <article id="${escapeHtml(supplier.slug)}" class="fade-in">
+        <div class="split">
+          <div>
+            <p class="kicker">${supplierCategories(supplier).map(escapeHtml).join(" / ") || "Leverancier"}</p>
+            <h2>${escapeHtml(supplier.name)}</h2>
+            <p class="lead">${escapeHtml(supplier.summary)}</p>
+            ${description}
+          </div>
+          <div class="split-media">
+            <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+          </div>
         </div>
-        <div class="split-media">
-          <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+        <div class="section-heading">
+          <p class="kicker">Kennisbank</p>
+          <h3>Gerelateerde artikelen</h3>
         </div>
+        ${renderSupplierRelatedArticles(supplier)}
       </article>
     `;
   }

@@ -7,13 +7,13 @@ export const PUBLIC_DATASET_CONFIG = {
     label: "Kennisbankartikelen",
     sourcePath: "data/articles.json",
     publicPath: "data/public/articles.json",
-    itemKeys: ["id", "slug", "title", "summary", "body", "category", "heroImage", "updatedAt"]
+    itemKeys: ["id", "slug", "title", "summary", "body", "category", "heroImage", "updatedAt", "suppliers"]
   },
   suppliers: {
     label: "Leveranciers",
     sourcePath: "data/suppliers.json",
     publicPath: "data/public/suppliers.json",
-    itemKeys: ["id", "slug", "name", "type", "summary", "description", "categories", "logo", "image"]
+    itemKeys: ["id", "slug", "name", "type", "summary", "description", "categories", "logo", "image", "relatedArticles"]
   }
 };
 

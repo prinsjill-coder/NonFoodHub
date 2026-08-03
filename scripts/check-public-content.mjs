@@ -53,6 +53,8 @@ const FORBIDDEN_PLATFORM_BRANDING = [
   /Bidfood Non Food Hub/i,
   /Bidfood NonFood Hub/i
 ];
+const PUBLIC_SUPPLIER_REFERENCE_KEYS = ["id", "slug", "name"];
+const PUBLIC_RELATED_ARTICLE_KEYS = ["id", "slug", "title", "summary", "category", "heroImage", "updatedAt"];
 
 function readText(relativePath) {
   return readFileSync(resolve(rootDir, relativePath), "utf8");
@@ -86,6 +88,10 @@ function collectForbiddenKeys(value, forbiddenKeys, path = "$") {
   });
 }
 
+function byId(items) {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
 async function runCheck(name, check) {
   await check();
   console.log(`ok - ${name}`);
@@ -108,12 +114,12 @@ export async function runPublicContentChecks() {
   });
 
   await runCheck("publieke artikelprojectie is afgeleid van gepubliceerde Studio-artikelen", () => {
-    assert.deepEqual(publicArticles, projectPublicArticles(articles));
+    assert.deepEqual(publicArticles, projectPublicArticles(articles, suppliers));
     assert.ok(publicArticles.items.length > 0);
   });
 
   await runCheck("publieke leveranciersprojectie is afgeleid van gepubliceerde Studio-leveranciers", () => {
-    assert.deepEqual(publicSuppliers, projectPublicSuppliers(suppliers));
+    assert.deepEqual(publicSuppliers, projectPublicSuppliers(suppliers, articles));
     assert.ok(publicSuppliers.items.length > 0);
   });
 
@@ -141,6 +147,37 @@ export async function runPublicContentChecks() {
       assert.deepEqual(Object.keys(item), PUBLIC_SUPPLIER_KEYS);
       FORBIDDEN_ITEM_FIELDS.forEach((field) => {
         assert.equal(field in item, false, `Verboden itemveld in publieke leveranciersprojectie: ${field}`);
+      });
+    });
+  });
+
+  await runCheck("publieke relaties verwijzen alleen naar bestaande publieke items", () => {
+    const suppliersById = byId(publicSuppliers.items);
+    const articlesById = byId(publicArticles.items);
+
+    publicArticles.items.forEach((article) => {
+      assert.equal(Array.isArray(article.suppliers), true, `Artikel ${article.id} mist publieke leverancierslijst.`);
+      article.suppliers.forEach((supplier) => {
+        assert.deepEqual(Object.keys(supplier), PUBLIC_SUPPLIER_REFERENCE_KEYS);
+        const publicSupplier = suppliersById.get(supplier.id);
+        assert.ok(publicSupplier, `Artikel ${article.id} verwijst naar niet-publieke leverancier ${supplier.id}.`);
+        assert.equal(supplier.slug, publicSupplier.slug);
+        assert.equal(supplier.name, publicSupplier.name);
+      });
+    });
+
+    publicSuppliers.items.forEach((supplier) => {
+      assert.equal(Array.isArray(supplier.relatedArticles), true, `Leverancier ${supplier.id} mist publieke artikellijst.`);
+      supplier.relatedArticles.forEach((article) => {
+        assert.deepEqual(Object.keys(article), PUBLIC_RELATED_ARTICLE_KEYS);
+        const publicArticle = articlesById.get(article.id);
+        assert.ok(publicArticle, `Leverancier ${supplier.id} verwijst naar niet-publiek artikel ${article.id}.`);
+        assert.equal(article.slug, publicArticle.slug);
+        assert.equal(article.title, publicArticle.title);
+        assert.ok(
+          publicArticle.suppliers.some((articleSupplier) => articleSupplier.id === supplier.id),
+          `Relatie tussen ${supplier.id} en ${article.id} is niet wederkerig in publieke projecties.`
+        );
       });
     });
   });

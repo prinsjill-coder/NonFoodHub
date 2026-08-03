@@ -216,11 +216,18 @@ leest een gecontroleerde projectie uit `data/public/articles.json`. Vanaf
 Sprint 11D geldt hetzelfde voor leveranciers via `data/public/suppliers.json`.
 
 De projectie bevat alleen bezoekersvelden en wordt berekend met gedeelde
-helpers in `shared/`. Interne Studio-velden zoals status, relaties,
+helpers in `shared/`. Interne Studio-velden zoals status, ruwe relatievelden,
 governance, readiness, opslagmetadata en validatieinformatie worden niet in
 publieke datasets opgenomen. Checks vergelijken de publieke dataset met de
 bestaande Studio-data en signaleren afwijkingen; ze corrigeren niets
 automatisch.
+
+Vanaf Sprint 11E mogen publieke projecties onderling veilige relatieobjecten
+bevatten, bijvoorbeeld publieke leveranciers bij kennisbankartikelen en
+publieke kennisbankartikelen bij leveranciers. Deze relaties worden nog steeds
+berekend uit de bestaande Studio-id-relaties, maar alleen wanneer beide kanten
+publiek zijn. Ruwe relatievelden zoals `supplierIds` en interne governance- of
+readinessdata blijven buiten de websiteprojecties.
 
 Voor leveranciers bevat de eerste publieke projectie alleen bestaande
 bezoekersvelden: id, slug, naam, type, samenvatting, omschrijving, categorieen,
