@@ -370,6 +370,16 @@ textarea:focus-visible {
   background: var(--studio-warning-bg);
 }
 
+.studio-badge.is-warning {
+  color: var(--studio-warning);
+  background: var(--studio-warning-bg);
+}
+
+.studio-badge.is-error {
+  color: var(--studio-error);
+  background: var(--studio-error-bg);
+}
+
 .studio-badge.is-concept {
   color: var(--studio-blue-dark);
   background: var(--studio-blue-soft);
@@ -700,6 +710,48 @@ textarea:focus-visible {
 .studio-inline-link:hover,
 .studio-inline-link:focus-visible {
   color: var(--studio-blue-dark);
+}
+
+.studio-issue-list {
+  display: grid;
+  gap: 10px;
+}
+
+.studio-issue-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius);
+  background: var(--studio-white);
+  box-shadow: var(--studio-shadow);
+}
+
+.studio-issue-main {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.studio-issue-main p {
+  margin: 0;
+  color: var(--studio-ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.studio-issue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.studio-issue-action {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .studio-list-empty {
@@ -1061,6 +1113,18 @@ textarea:focus-visible {
 
   .studio-session-banner {
     grid-template-columns: 1fr;
+  }
+
+  .studio-issue-row {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-issue-action {
+    justify-content: stretch;
+  }
+
+  .studio-issue-action .studio-button {
+    width: 100%;
   }
 
   .studio-session-actions {

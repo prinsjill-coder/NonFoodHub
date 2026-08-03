@@ -159,12 +159,12 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
     }
 
     if (metric.id === "governanceAttention") {
-      const value = governanceReport.totals.warnings + governanceReport.totals.blockers;
+      const value = governanceReport.totals.issueCount;
       return {
         ...metric,
         value,
         state: value ? "review" : "foundation",
-        note: "Som van waarschuwingen en blokkades uit het read-only governance-overzicht."
+        note: "Actiegerichte issues uit het read-only governance-overzicht."
       };
     }
 

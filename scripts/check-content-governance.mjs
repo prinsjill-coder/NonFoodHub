@@ -4,6 +4,7 @@ import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  GOVERNANCE_ISSUE_SEVERITIES,
   GOVERNANCE_MODULE_IDS,
   getContentGovernanceReport
 } from "../shared/content-governance.js";
@@ -49,6 +50,12 @@ function assertNoPattern({ roots, pattern, label }) {
       matches.push(file.replace(`${rootDir}/`, ""));
     }
   });
+
+  assert.deepEqual(matches, [], `${label}: ${matches.join(", ")}`);
+}
+
+function assertNoPatternInFiles({ files, pattern, label }) {
+  const matches = files.filter((file) => pattern.test(readFileSync(resolve(rootDir, file), "utf8")));
 
   assert.deepEqual(matches, [], `${label}: ${matches.join(", ")}`);
 }
@@ -101,6 +108,9 @@ export async function runContentGovernanceChecks() {
     assert.equal(report.totals.totalItems, report.modules.reduce((sum, module) => sum + module.total, 0));
     assert.equal(typeof report.totals.warnings, "number");
     assert.equal(typeof report.totals.blockers, "number");
+    assert.equal(report.totals.issueCount, report.issues.length);
+    assert.equal(report.totals.issueErrors + report.totals.issueWarnings, report.totals.issueCount);
+    assert.ok(report.modules.every((module) => Array.isArray(module.issues)));
   });
 
   await runCheck("governance gebruikt bestaande validatie- en qualitysignalen", () => {
@@ -119,6 +129,34 @@ export async function runContentGovernanceChecks() {
     assert.ok(libraryModule.missingFiles > 0);
     assert.ok(mediaModule.usageSignals >= 0);
     assert.ok(articlesModule.missingMedia >= 0);
+  });
+
+  await runCheck("governance issues hebben uniforme structuur", () => {
+    const report = getContentGovernanceReport({ suppliers, brochures, media, articles, library });
+
+    assert.ok(report.issues.length > 0);
+    report.issues.forEach((issue) => {
+      assert.ok(GOVERNANCE_MODULE_IDS.includes(issue.module), `Onbekende module: ${issue.module}`);
+      assert.ok(GOVERNANCE_ISSUE_SEVERITIES.includes(issue.severity), `Onbekende ernst: ${issue.severity}`);
+      assert.equal(typeof issue.type, "string");
+      assert.notEqual(issue.type.trim(), "");
+      assert.equal(typeof issue.message, "string");
+      assert.notEqual(issue.message.trim(), "");
+      assert.equal(typeof issue.targetRoute, "string");
+      assert.match(issue.targetRoute, /^#\//);
+    });
+  });
+
+  await runCheck("governance issue-routes gebruiken bestaande read-only Studio-routes", () => {
+    const report = getContentGovernanceReport({ suppliers, brochures, media, articles, library });
+    const forbiddenActionRoute = /\/(?:nieuw|import|export)$|\/bewerken$/;
+
+    report.issues.forEach((issue) => {
+      const route = routeFromHash(issue.targetRoute);
+      assert.notEqual(route.id, "notFound", `Ongeldige issue-route: ${issue.targetRoute}`);
+      assert.equal(route.enabled, true, `Issue-route is niet actief: ${issue.targetRoute}`);
+      assert.doesNotMatch(issue.targetRoute, forbiddenActionRoute, `Issue-route mag geen actieformulier zijn: ${issue.targetRoute}`);
+    });
   });
 
   await runCheck("governanceroute en dashboardkoppeling bestaan", () => {
@@ -144,6 +182,8 @@ export async function runContentGovernanceChecks() {
     assert.match(html, /Kennisbank/);
     assert.match(html, /Media/);
     assert.match(html, /Bibliotheek/);
+    assert.match(html, /Issue-overzicht/);
+    assert.match(html, /Modules met aandacht/);
     assert.doesNotMatch(html, /is nog niet actief|Pagina niet gevonden/);
   });
 
@@ -152,6 +192,11 @@ export async function runContentGovernanceChecks() {
       roots: ["shared", "studio", "data"],
       pattern: /localStorage|sessionStorage|indexedDB|api\.github|Octokit/i,
       label: "Verboden opslag- of integratiepatroon gevonden"
+    });
+    assertNoPatternInFiles({
+      files: ["shared/content-governance.js", "studio/js/pages/governance.js"],
+      pattern: /localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|api\.github|Octokit|download|createObjectURL|writeFile|appendFile|setItem|removeItem/i,
+      label: "Governance mag geen opslag-, download- of integratiegedrag bevatten"
     });
   });
 }

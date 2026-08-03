@@ -61,6 +61,53 @@ function renderSignals(module) {
   `;
 }
 
+function severityLabel(severity) {
+  return severity === "error" ? "Fout" : "Waarschuwing";
+}
+
+function severityState(severity) {
+  return severity === "error" ? "error" : "warning";
+}
+
+function renderIssueRow(issue) {
+  return `
+    <article class="studio-issue-row">
+      <div class="studio-issue-main">
+        <div class="studio-issue-meta">
+          <strong>${escapeHtml(issue.moduleLabel || issue.module)}</strong>
+          ${renderStatusBadge(severityState(issue.severity), severityLabel(issue.severity))}
+        </div>
+        <p>${escapeHtml(issue.message)}</p>
+      </div>
+      <div class="studio-issue-action">
+        ${renderButton({
+          label: "Openen",
+          href: issue.targetRoute,
+          variant: "secondary",
+          ariaLabel: `${severityLabel(issue.severity)} openen: ${issue.message}`
+        })}
+      </div>
+    </article>
+  `;
+}
+
+function renderIssueOverview(issues) {
+  if (!issues.length) {
+    return `
+      <article class="studio-card">
+        <h3>Geen issues gevonden</h3>
+        <p class="studio-muted">De bestaande governance-signalen bevatten geen fouten of waarschuwingen.</p>
+      </article>
+    `;
+  }
+
+  return `
+    <div class="studio-issue-list">
+      ${issues.map(renderIssueRow).join("")}
+    </div>
+  `;
+}
+
 function renderModuleCard(module) {
   const state = module.blockers ? "review" : module.warnings || module.missingFiles || module.missingMedia || module.brokenRelations ? "review" : "foundation";
 
@@ -76,7 +123,7 @@ function renderModuleCard(module) {
 
       <div class="studio-grid studio-grid-4">
         ${renderOverviewMetric({
-          label: "Totaal",
+          label: "Items",
           value: module.total,
           note: "Geregistreerde items.",
           state: "foundation"
@@ -90,7 +137,7 @@ function renderModuleCard(module) {
         ${renderOverviewMetric({
           label: "Blokkades",
           value: module.blockers,
-          note: "Validatiefouten.",
+          note: "Actiegerichte fouten.",
           state: module.blockers ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
@@ -154,28 +201,38 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderOverviewMetric({
-          label: "Modules",
-          value: report.totals.moduleCount,
-          note: "Actieve Studio-modules in dit governance-overzicht."
+          label: "Issues",
+          value: report.totals.issueCount,
+          note: "Concrete aandachtspunten met een doelroute.",
+          state: report.totals.issueCount ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Items",
-          value: report.totals.totalItems,
-          note: "Alle geregistreerde items samen."
+          label: "Fouten",
+          value: report.totals.issueErrors,
+          note: "Blokkerende issues uit bestaande validators.",
+          state: report.totals.issueErrors ? "error" : "foundation"
         })}
         ${renderOverviewMetric({
           label: "Waarschuwingen",
-          value: report.totals.warnings,
-          note: "Niet-blokkerende signalen uit bestaande checks.",
-          state: report.totals.warnings ? "review" : "foundation"
+          value: report.totals.issueWarnings,
+          note: "Niet-blokkerende issues uit bestaande checks.",
+          state: report.totals.issueWarnings ? "warning" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Blokkades",
-          value: report.totals.blockers,
-          note: "Validatiefouten uit bestaande validators.",
-          state: report.totals.blockers ? "review" : "foundation"
+          label: "Modules met aandacht",
+          value: report.totals.modulesWithAttention,
+          note: "Modules met minimaal een issue.",
+          state: report.totals.modulesWithAttention ? "review" : "foundation"
         })}
       </div>
+    </section>
+
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Issue-overzicht</h2>
+        ${renderStatusBadge(report.totals.issueCount ? "review" : "foundation")}
+      </div>
+      ${renderIssueOverview(report.issues)}
     </section>
 
     <section class="studio-section">
