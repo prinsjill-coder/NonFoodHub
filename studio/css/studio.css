@@ -717,6 +717,29 @@ textarea:focus-visible {
   gap: 10px;
 }
 
+.studio-issue-groups {
+  display: grid;
+  gap: 18px;
+}
+
+.studio-issue-group {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.studio-issue-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.studio-issue-group-head h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
 .studio-issue-row {
   min-width: 0;
   display: grid;
@@ -916,6 +939,42 @@ textarea:focus-visible {
   outline-offset: 3px;
 }
 
+.studio-governance-filters {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.studio-governance-filter-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+  gap: 18px;
+  align-items: end;
+}
+
+.studio-governance-filter-group {
+  display: grid;
+  gap: 7px;
+}
+
+.studio-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.studio-active-filters span {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: var(--studio-radius);
+  color: var(--studio-blue-dark);
+  background: var(--studio-blue-soft);
+  font-size: 0.8rem;
+  font-weight: 760;
+}
+
 .studio-form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1109,6 +1168,10 @@ textarea:focus-visible {
   .studio-detail-row {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .studio-governance-filter-form {
+    grid-template-columns: 1fr;
   }
 
   .studio-session-banner {

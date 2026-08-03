@@ -1,7 +1,7 @@
 import { routeFromHash } from "../../shared/routes.js";
 import { renderBrochuresRoute, setupBrochuresRoute } from "./pages/brochures/index.js";
 import { renderDashboard, renderRouteNotFound, renderRoutePlaceholder } from "./pages/dashboard.js";
-import { renderGovernancePage } from "./pages/governance.js";
+import { renderGovernancePage, setupGovernancePage } from "./pages/governance.js";
 import { renderKnowledgeRoute, setupKnowledgeRoute } from "./pages/knowledge/index.js";
 import { renderLibraryRoute, setupLibraryRoute } from "./pages/library/index.js";
 import { renderMediaRoute, setupMediaRoute } from "./pages/media/index.js";
@@ -146,6 +146,10 @@ export function renderRoute(route, state) {
 }
 
 export function setupRoute(route, state, options = {}) {
+  if (route.id === "governance") {
+    setupGovernancePage();
+  }
+
   if (route.sectionId === "suppliers") {
     setupSuppliersRoute(route, state.supplierSession, options);
   }

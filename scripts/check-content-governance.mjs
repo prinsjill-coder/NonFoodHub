@@ -14,6 +14,7 @@ import { createBrochureSession } from "../studio/js/state/brochure-session.js";
 import { createLibrarySession } from "../studio/js/state/library-session.js";
 import { createMediaSession } from "../studio/js/state/media-session.js";
 import { createSupplierSession } from "../studio/js/state/supplier-session.js";
+import { setupGovernancePage } from "../studio/js/pages/governance.js";
 import { renderRoute } from "../studio/js/router.js";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,6 +85,80 @@ function createState({ suppliers, brochures, media, articles, library }) {
     mediaSession,
     articleSession,
     librarySession
+  };
+}
+
+function createGovernanceFilterDom() {
+  const mediaCount = { textContent: "" };
+  const libraryCount = { textContent: "" };
+  const emptyState = { hidden: true };
+  const activeSeverity = { textContent: "" };
+  const activeModule = { textContent: "" };
+  const rows = [
+    { dataset: { module: "media", severity: "warning" }, hidden: false },
+    { dataset: { module: "media", severity: "error" }, hidden: false },
+    { dataset: { module: "library", severity: "warning" }, hidden: false }
+  ];
+  const groups = [
+    {
+      dataset: { module: "media" },
+      hidden: false,
+      querySelector(selector) {
+        return selector === "[data-governance-group-count]" ? mediaCount : null;
+      }
+    },
+    {
+      dataset: { module: "library" },
+      hidden: false,
+      querySelector(selector) {
+        return selector === "[data-governance-group-count]" ? libraryCount : null;
+      }
+    }
+  ];
+  const form = {
+    elements: {
+      severity: { value: "all" },
+      module: {
+        value: "all",
+        selectedOptions: [{ textContent: "Alle modules" }]
+      }
+    },
+    addEventListener(name, callback) {
+      this.listenerName = name;
+      this.listener = callback;
+    }
+  };
+  const page = {
+    querySelector(selector) {
+      const selectors = {
+        "[data-governance-filters]": form,
+        "[data-governance-issue-empty]": emptyState,
+        "[data-governance-active-severity]": activeSeverity,
+        "[data-governance-active-module]": activeModule
+      };
+      return selectors[selector] || null;
+    },
+    querySelectorAll(selector) {
+      if (selector === "[data-governance-issue]") return rows;
+      if (selector === "[data-governance-issue-group]") return groups;
+      return [];
+    }
+  };
+
+  return {
+    root: {
+      querySelector(selector) {
+        return selector === "[data-governance-page]" ? page : null;
+      }
+    },
+    form,
+    rows,
+    groups,
+    mediaCount,
+    libraryCount,
+    emptyState,
+    activeSeverity,
+    activeModule
   };
 }
 
@@ -184,7 +259,52 @@ export async function runContentGovernanceChecks() {
     assert.match(html, /Bibliotheek/);
     assert.match(html, /Issue-overzicht/);
     assert.match(html, /Modules met aandacht/);
+    assert.match(html, /data-governance-filters/);
+    assert.match(html, /value="warning"/);
+    assert.match(html, /value="error"/);
+    assert.match(html, /data-governance-issue-group/);
+    assert.match(html, /data-governance-group-count/);
+    assert.match(html, /Geen issues zichtbaar met deze filters/);
     assert.doesNotMatch(html, /is nog niet actief|Pagina niet gevonden/);
+  });
+
+  await runCheck("governancefilters werken zonder opslag en groepering blijft intact", () => {
+    const dom = createGovernanceFilterDom();
+
+    setupGovernancePage(dom.root);
+    assert.equal(dom.form.listenerName, "change");
+    assert.equal(dom.rows.every((row) => row.hidden === false), true);
+    assert.equal(dom.groups.every((group) => group.hidden === false), true);
+    assert.equal(dom.mediaCount.textContent, "2 issues");
+    assert.equal(dom.libraryCount.textContent, "1 issue");
+    assert.equal(dom.emptyState.hidden, true);
+    assert.equal(dom.activeSeverity.textContent, "Alle issues");
+    assert.equal(dom.activeModule.textContent, "Alle modules");
+
+    dom.form.elements.severity.value = "error";
+    dom.form.elements.module.value = "media";
+    dom.form.elements.module.selectedOptions = [{ textContent: "Media" }];
+    dom.form.listener();
+
+    assert.equal(dom.rows[0].hidden, true);
+    assert.equal(dom.rows[1].hidden, false);
+    assert.equal(dom.rows[2].hidden, true);
+    assert.equal(dom.groups[0].hidden, false);
+    assert.equal(dom.groups[1].hidden, true);
+    assert.equal(dom.mediaCount.textContent, "1 issue");
+    assert.equal(dom.libraryCount.textContent, "0 issues");
+    assert.equal(dom.emptyState.hidden, true);
+    assert.equal(dom.activeSeverity.textContent, "Alleen fouten");
+    assert.equal(dom.activeModule.textContent, "Media");
+
+    dom.form.elements.module.value = "library";
+    dom.form.elements.module.selectedOptions = [{ textContent: "Bibliotheek" }];
+    dom.form.listener();
+
+    assert.equal(dom.rows.every((row) => row.hidden === true), true);
+    assert.equal(dom.groups.every((group) => group.hidden === true), true);
+    assert.equal(dom.emptyState.hidden, false);
+    assert.equal(dom.activeModule.textContent, "Bibliotheek");
   });
 
   await runCheck("governance voegt geen opslag, backend of GitHub-integratie toe", () => {
@@ -197,6 +317,11 @@ export async function runContentGovernanceChecks() {
       files: ["shared/content-governance.js", "studio/js/pages/governance.js"],
       pattern: /localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|api\.github|Octokit|download|createObjectURL|writeFile|appendFile|setItem|removeItem/i,
       label: "Governance mag geen opslag-, download- of integratiegedrag bevatten"
+    });
+    assertNoPatternInFiles({
+      files: ["shared/content-governance.js", "studio/js/pages/governance.js", "studio/js/router.js", "studio/css/studio.css"],
+      pattern: /\/Users\/|file:\/\/|[A-Za-z]:\\Users\\/i,
+      label: "Governance mag geen Mac-, file-url- of absolute Windows-gebruikerspaden bevatten"
     });
   });
 }
