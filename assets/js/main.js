@@ -4,6 +4,12 @@
   const currentPage = body.dataset.page || "home";
 
   const href = (path) => `${base}/${path}`.replace("//", "/");
+  const escapeHtml = (value) => String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
   const links = [
     { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
@@ -240,6 +246,83 @@
     });
   }
 
+  function publicArticleImage(article) {
+    return article.heroImage ? href(article.heroImage) : href("assets/images/inspiration.png");
+  }
+
+  function renderPublicArticleCard(article) {
+    return `
+      <a class="article-card fade-in" href="#${escapeHtml(article.slug)}">
+        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
+        <div class="article-card-body">
+          <div class="card-meta"><span class="tag">${escapeHtml(article.category || "Inspiratie")}</span></div>
+          <h3>${escapeHtml(article.title)}</h3>
+          <p>${escapeHtml(article.summary)}</p>
+        </div>
+      </a>
+    `;
+  }
+
+  function renderPublicArticleBody(article) {
+    const paragraphs = String(article.body || "")
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+      .join("");
+
+    return `
+      <article id="${escapeHtml(article.slug)}" class="fade-in">
+        <p class="kicker">${escapeHtml(article.category || "Inspiratie")}${article.updatedAt ? ` - Bijgewerkt ${escapeHtml(article.updatedAt)}` : ""}</p>
+        <h2>${escapeHtml(article.title)}</h2>
+        <p class="lead">${escapeHtml(article.summary)}</p>
+        ${paragraphs}
+      </article>
+    `;
+  }
+
+  async function setupPublicArticles() {
+    if (currentPage !== "inspiratie") return;
+
+    const grid = document.querySelector("[data-public-article-grid]");
+    const bodyMount = document.querySelector("[data-public-article-body]");
+    if (!grid || !bodyMount) return;
+
+    try {
+      const response = await fetch(href("data/public-articles.json"), { cache: "no-store" });
+      if (!response.ok) throw new Error("Publieke kennisbankdata kon niet worden geladen.");
+
+      const data = await response.json();
+      const articles = Array.isArray(data.items) ? data.items : [];
+
+      if (!articles.length) {
+        grid.innerHTML = `
+          <article class="contact-card fade-in">
+            <h3>Geen artikelen beschikbaar</h3>
+            <p>Er zijn nog geen gepubliceerde kennisbankartikelen beschikbaar.</p>
+          </article>
+        `;
+        bodyMount.innerHTML = "";
+        setupAnimations();
+        return;
+      }
+
+      grid.innerHTML = articles.map(renderPublicArticleCard).join("");
+      bodyMount.innerHTML = articles.map(renderPublicArticleBody).join("");
+      setupAnimations();
+    } catch (error) {
+      grid.innerHTML = `
+        <article class="contact-card fade-in">
+          <h3>Kennisbank niet geladen</h3>
+          <p>De kennisbankartikelen konden niet worden geladen. Probeer de pagina later opnieuw.</p>
+        </article>
+      `;
+      bodyMount.innerHTML = "";
+      setupAnimations();
+      console.error(error);
+    }
+  }
+
   function setupAnimations() {
     const items = document.querySelectorAll(".fade-in");
     if (!items.length) return;
@@ -264,4 +347,5 @@
   setupSearch();
   setupFilters();
   setupAnimations();
+  setupPublicArticles();
 })();

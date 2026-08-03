@@ -33,6 +33,7 @@ import { runContentReadinessChecks } from "./check-content-readiness.mjs";
 import { runLibraryChecks } from "./check-library.mjs";
 import { runLibraryQualityChecks } from "./check-library-quality.mjs";
 import { runMediaChecks } from "./check-media.mjs";
+import { runPublicContentChecks } from "./check-public-content.mjs";
 import { runSupplierChecks } from "./check-suppliers.mjs";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -188,6 +189,7 @@ async function runStudioChecks() {
     await import("../shared/media-file-validation.js");
     await import("../shared/media-normalizer.js");
     await import("../shared/media-validation.js");
+    await import("../shared/public-articles.js");
     await import("../shared/supplier-file-validation.js");
     await import("../shared/supplier-normalizer.js");
     await import("../studio/js/shared/form-errors.js");
@@ -827,6 +829,7 @@ async function runStudioChecks() {
   await runContentRelationChecks();
   await runContentGovernanceChecks();
   await runContentReadinessChecks();
+  await runPublicContentChecks();
 }
 
 runStudioChecks()
