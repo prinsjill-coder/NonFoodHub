@@ -41,8 +41,8 @@
       "name": "Amefa",
       "slug": "amefa",
       "type": "leverancier",
-      "summary": "Demo-leverancier voor bestek en tafelpresentatie.",
-      "description": "Amefa is opgenomen als demo-record om het leveranciersoverzicht, de detailweergave en formulierflow in Studio te testen. Deze data voedt de publieke website nog niet.",
+      "summary": "Bestek en tafelpresentatie voor professionele horeca.",
+      "description": "Amefa ondersteunt horecaondernemers met bestek en tafelpresentatie die dagelijks intensief gebruikt wordt. De collectie helpt om een herkenbare tafelsetting te maken voor restaurant, hotel en catering.",
       "categories": [
         "Bestek",
         "Tafelpresentatie"

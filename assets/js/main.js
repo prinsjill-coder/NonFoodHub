@@ -323,6 +323,94 @@
     }
   }
 
+  function publicSupplierImage(supplier) {
+    return supplier.image || supplier.logo ? href(supplier.image || supplier.logo) : href("assets/images/assortment.png");
+  }
+
+  function supplierCategories(supplier) {
+    return Array.isArray(supplier.categories) ? supplier.categories.filter(Boolean) : [];
+  }
+
+  function renderPublicSupplierTags(supplier) {
+    const categories = supplierCategories(supplier);
+    const tags = [supplier.type, ...categories].filter(Boolean).slice(0, 4);
+    return tags.map((tag, index) => `<span class="tag${index === 0 ? " blue" : ""}">${escapeHtml(tag)}</span>`).join("");
+  }
+
+  function renderPublicSupplierCard(supplier) {
+    return `
+      <a class="supplier-card fade-in" href="#${escapeHtml(supplier.slug)}">
+        <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+        <div class="supplier-card-body">
+          <div class="card-meta">${renderPublicSupplierTags(supplier)}</div>
+          <h3>${escapeHtml(supplier.name)}</h3>
+          <p>${escapeHtml(supplier.summary)}</p>
+          <span class="card-link">Bekijk leverancier</span>
+        </div>
+      </a>
+    `;
+  }
+
+  function renderPublicSupplierDetail(supplier) {
+    const description = supplier.description ? `<p>${escapeHtml(supplier.description)}</p>` : "";
+
+    return `
+      <article id="${escapeHtml(supplier.slug)}" class="split fade-in">
+        <div>
+          <p class="kicker">${supplierCategories(supplier).map(escapeHtml).join(" / ") || "Leverancier"}</p>
+          <h2>${escapeHtml(supplier.name)}</h2>
+          <p class="lead">${escapeHtml(supplier.summary)}</p>
+          ${description}
+        </div>
+        <div class="split-media">
+          <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+        </div>
+      </article>
+    `;
+  }
+
+  async function setupPublicSuppliers() {
+    if (currentPage !== "leveranciers") return;
+
+    const grid = document.querySelector("[data-public-supplier-grid]");
+    const detailMount = document.querySelector("[data-public-supplier-detail]");
+    if (!grid || !detailMount) return;
+
+    try {
+      const response = await fetch(href("data/public/suppliers.json"), { cache: "no-store" });
+      if (!response.ok) throw new Error("Publieke leveranciersdata kon niet worden geladen.");
+
+      const data = await response.json();
+      const suppliers = Array.isArray(data.items) ? data.items : [];
+
+      if (!suppliers.length) {
+        grid.innerHTML = `
+          <article class="contact-card fade-in">
+            <h3>Geen leveranciers beschikbaar</h3>
+            <p>Er zijn nog geen gepubliceerde leveranciers beschikbaar.</p>
+          </article>
+        `;
+        detailMount.innerHTML = "";
+        setupAnimations();
+        return;
+      }
+
+      grid.innerHTML = suppliers.map(renderPublicSupplierCard).join("");
+      detailMount.innerHTML = suppliers.map(renderPublicSupplierDetail).join("");
+      setupAnimations();
+    } catch (error) {
+      grid.innerHTML = `
+        <article class="contact-card fade-in">
+          <h3>Leveranciers niet geladen</h3>
+          <p>De leveranciers konden niet worden geladen. Probeer de pagina later opnieuw.</p>
+        </article>
+      `;
+      detailMount.innerHTML = "";
+      setupAnimations();
+      console.error(error);
+    }
+  }
+
   function setupAnimations() {
     const items = document.querySelectorAll(".fade-in");
     if (!items.length) return;
@@ -348,4 +436,5 @@
   setupFilters();
   setupAnimations();
   setupPublicArticles();
+  setupPublicSuppliers();
 })();

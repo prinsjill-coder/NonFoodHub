@@ -124,6 +124,13 @@ kennisbankartikelen als gecontroleerde projectie. De website leest
 een klein public-content manifest, maar leveranciers, brochures, media en
 bibliotheek worden nog niet publiek vanuit Studio-data gerenderd.
 
+Aanvullend Sprint 11D-besluit: leveranciers gebruiken nu dezelfde
+gecontroleerde publieke projectielaag via `data/public/suppliers.json`. De
+publieke leverancierspagina rendert overzichtskaarten en eenvoudige
+detailinformatie vanuit die dataset, niet rechtstreeks uit
+`data/suppliers.json`. Relaties met brochures, artikelen, media en bibliotheek
+blijven voor latere sprints.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

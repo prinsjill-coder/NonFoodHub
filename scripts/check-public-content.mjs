@@ -4,22 +4,28 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { projectPublicArticles, PUBLIC_ARTICLE_KEYS } from "../shared/public-articles.js";
+import { projectPublicSuppliers, PUBLIC_SUPPLIER_KEYS } from "../shared/public-suppliers.js";
 import {
   PUBLIC_DATASET_CONFIG,
-  PUBLIC_DATASET_ROOT_KEYS,
-  PUBLIC_SUPPLIER_PROJECTION_PROPOSAL
+  PUBLIC_DATASET_ROOT_KEYS
 } from "../shared/public-content.js";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC_ARTICLE_FILE = PUBLIC_DATASET_CONFIG.articles.publicPath;
+const PUBLIC_SUPPLIER_FILE = PUBLIC_DATASET_CONFIG.suppliers.publicPath;
 const FORBIDDEN_PUBLIC_TEXT = [
   /Notion/i,
   /bronkaart/i,
   /bronpagina/i,
   /\bbron\b/i,
+  /\bdemo\b/i,
+  /demo-record/i,
+  /Demo-leverancier/i,
   /pilot/i,
   /prototype/i,
+  /\bStudio\b/i,
   /browsergeheugen/i,
+  /website nog niet/i,
   /opslag/i,
   /storage/i,
   /governance/i,
@@ -87,18 +93,28 @@ async function runCheck(name, check) {
 
 export async function runPublicContentChecks() {
   const articles = readJson("data/articles.json");
+  const suppliers = readJson("data/suppliers.json");
   const publicArticles = readJson(PUBLIC_ARTICLE_FILE);
+  const publicSuppliers = readJson(PUBLIC_SUPPLIER_FILE);
+  const publicDatasets = [publicArticles, publicSuppliers];
 
   await runCheck("publieke datasetstructuur bestaat voor contentprojecties", () => {
     assert.equal(existsSync(resolve(rootDir, "data/public")), true);
-    assert.equal(existsSync(resolve(rootDir, PUBLIC_DATASET_CONFIG.articles.sourcePath)), true);
-    assert.equal(existsSync(resolve(rootDir, PUBLIC_ARTICLE_FILE)), true);
+    Object.values(PUBLIC_DATASET_CONFIG).forEach((config) => {
+      assert.equal(existsSync(resolve(rootDir, config.sourcePath)), true, `Brondata ontbreekt: ${config.sourcePath}`);
+      assert.equal(existsSync(resolve(rootDir, config.publicPath)), true, `Publieke dataset ontbreekt: ${config.publicPath}`);
+    });
     assert.equal(existsSync(resolve(rootDir, "data/public-articles.json")), false);
   });
 
   await runCheck("publieke artikelprojectie is afgeleid van gepubliceerde Studio-artikelen", () => {
     assert.deepEqual(publicArticles, projectPublicArticles(articles));
     assert.ok(publicArticles.items.length > 0);
+  });
+
+  await runCheck("publieke leveranciersprojectie is afgeleid van gepubliceerde Studio-leveranciers", () => {
+    assert.deepEqual(publicSuppliers, projectPublicSuppliers(suppliers));
+    assert.ok(publicSuppliers.items.length > 0);
   });
 
   await runCheck("publieke artikelprojectie bevat alleen websitevelden", () => {
@@ -115,14 +131,28 @@ export async function runPublicContentChecks() {
     });
   });
 
+  await runCheck("publieke leveranciersprojectie bevat alleen websitevelden", () => {
+    FORBIDDEN_ROOT_FIELDS.forEach((field) => {
+      assert.equal(field in publicSuppliers, false, `Verboden rootveld in publieke leveranciersprojectie: ${field}`);
+    });
+    assert.deepEqual(Object.keys(publicSuppliers), PUBLIC_DATASET_ROOT_KEYS);
+
+    publicSuppliers.items.forEach((item) => {
+      assert.deepEqual(Object.keys(item), PUBLIC_SUPPLIER_KEYS);
+      FORBIDDEN_ITEM_FIELDS.forEach((field) => {
+        assert.equal(field in item, false, `Verboden itemveld in publieke leveranciersprojectie: ${field}`);
+      });
+    });
+  });
+
   await runCheck("publieke datasets bevatten geen interne metadata", () => {
-    const forbiddenKeys = new Set([...FORBIDDEN_ROOT_FIELDS, ...FORBIDDEN_ITEM_FIELDS]);
-    const matches = collectForbiddenKeys(publicArticles, forbiddenKeys);
+    const forbiddenKeys = new Set(FORBIDDEN_ITEM_FIELDS);
+    const matches = publicDatasets.flatMap((dataset) => collectForbiddenKeys(dataset.items, forbiddenKeys, "$.items"));
     assert.deepEqual(matches, [], `Verboden publieke sleutel gevonden: ${matches.join(", ")}`);
   });
 
-  await runCheck("publieke artikelprojectie bevat geen interne of prototype-taal", () => {
-    const content = JSON.stringify(publicArticles);
+  await runCheck("publieke datasets bevatten geen interne of prototype-taal", () => {
+    const content = JSON.stringify(publicDatasets);
     FORBIDDEN_PUBLIC_TEXT.forEach((pattern) => {
       assert.equal(pattern.test(content), false, `Verboden publieke tekst gevonden: ${pattern}`);
     });
@@ -140,24 +170,15 @@ export async function runPublicContentChecks() {
     assert.doesNotMatch(pageHtml, /data\/articles\.json/);
   });
 
-  await runCheck("leveranciersprojectie is voorbereid zonder publieke leveranciersdataset", () => {
-    assert.equal(PUBLIC_SUPPLIER_PROJECTION_PROPOSAL.sourcePath, "data/suppliers.json");
-    assert.equal(PUBLIC_SUPPLIER_PROJECTION_PROPOSAL.futurePublicPath, "data/public/suppliers.json");
-    assert.deepEqual(PUBLIC_SUPPLIER_PROJECTION_PROPOSAL.publicFields, [
-      "id",
-      "slug",
-      "name",
-      "type",
-      "summary",
-      "description",
-      "categories",
-      "logo",
-      "image"
-    ]);
-    ["status", "governance", "readiness", "sortOrder"].forEach((field) => {
-      assert.ok(PUBLIC_SUPPLIER_PROJECTION_PROPOSAL.internalFields.includes(field));
-    });
-    assert.equal(existsSync(resolve(rootDir, "data/public/suppliers.json")), false);
+  await runCheck("leverancierspagina gebruikt publieke projectie in plaats van ruwe Studio-data", () => {
+    const pageHtml = readText("pages/leveranciers.html");
+    const publicJs = readText("assets/js/main.js");
+
+    assert.match(pageHtml, /data-public-supplier-grid/);
+    assert.match(pageHtml, /data-public-supplier-detail/);
+    assert.match(publicJs, /data\/public\/suppliers\.json/);
+    assert.doesNotMatch(publicJs, /data\/suppliers\.json/);
+    assert.doesNotMatch(pageHtml, /data\/suppliers\.json/);
   });
 
   await runCheck("publieke website gebruikt Bidfood niet als platformnaam", () => {
@@ -171,8 +192,10 @@ export async function runPublicContentChecks() {
     const changedRuntime = [
       readText("shared/public-content.js"),
       readText("shared/public-articles.js"),
+      readText("shared/public-suppliers.js"),
       readText("assets/js/main.js"),
-      readText("pages/inspiratie.html")
+      readText("pages/inspiratie.html"),
+      readText("pages/leveranciers.html")
     ].join("\n");
 
     assert.doesNotMatch(changedRuntime, /localStorage|sessionStorage|indexedDB|file:\/\/|\/Users\/|\\Users\\|[A-Za-z]:[\\/]+Users[\\/]/i);

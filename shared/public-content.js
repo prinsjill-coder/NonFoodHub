@@ -8,16 +8,22 @@ export const PUBLIC_DATASET_CONFIG = {
     sourcePath: "data/articles.json",
     publicPath: "data/public/articles.json",
     itemKeys: ["id", "slug", "title", "summary", "body", "category", "heroImage", "updatedAt"]
+  },
+  suppliers: {
+    label: "Leveranciers",
+    sourcePath: "data/suppliers.json",
+    publicPath: "data/public/suppliers.json",
+    itemKeys: ["id", "slug", "name", "type", "summary", "description", "categories", "logo", "image"]
   }
 };
 
 export const PUBLIC_SUPPLIER_PROJECTION_PROPOSAL = {
   label: "Leveranciers",
   sourcePath: "data/suppliers.json",
-  futurePublicPath: "data/public/suppliers.json",
-  publicFields: ["id", "slug", "name", "type", "summary", "description", "categories", "logo", "image"],
+  publicPath: "data/public/suppliers.json",
+  publicFields: PUBLIC_DATASET_CONFIG.suppliers.itemKeys,
   internalFields: ["status", "brochureIds", "relatedArticleIds", "featured", "sortOrder", "governance", "readiness"],
-  publicationCriteria: "Gebruik de bestaande contentstatus en neem alleen published leveranciers op wanneer deze projectie wordt gebouwd."
+  publicationCriteria: "Gebruik de bestaande contentstatus en neem alleen published leveranciers op."
 };
 
 export function isPublicContentItem(item) {
