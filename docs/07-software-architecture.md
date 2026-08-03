@@ -208,6 +208,17 @@ brochures, kennisbankartikelen en media op basis van bestaande id- en
 padvelden. De helper muteert geen data, schrijft niets weg en is geen generieke
 relation engine.
 
+## Content Governance
+
+Vanaf Sprint 10A bestaat er een read-only governance-laag bovenop de bestaande
+Studio-modules. Deze laag verzamelt bestaande validators, quality-rapporten,
+modulecounts en contentrelaties in een samenvattend overzicht.
+
+Governance introduceert geen nieuwe opslaglaag, backend, publicatieflow,
+repositorywrite of relationeel datamodel. De helper muteert geen data en
+dupliceert geen modulevalidatie; leveranciers, brochures, media, kennisbank en
+bibliotheek blijven hun eigen datamodel en validatieregels houden.
+
 ## Bibliotheekregistry
 
 Vanaf Sprint 9A bestaat Bibliotheek als eigen Studio-contentmodule voor

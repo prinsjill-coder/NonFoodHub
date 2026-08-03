@@ -1,7 +1,14 @@
 {
   "status": "foundation",
-  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer, bibliotheekbeheer en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer, bibliotheekbeheer, governance-overzicht en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
   "metrics": [
+    {
+      "id": "governanceAttention",
+      "label": "Governance signalen",
+      "value": null,
+      "state": "not_connected",
+      "note": "Wordt in Studio berekend uit bestaande validatie- en quality-rapporten."
+    },
     {
       "id": "suppliers",
       "label": "Leveranciers",
@@ -128,6 +135,13 @@
       "enabled": true,
       "route": "#/leveranciers/nieuw",
       "message": "Open het prototypeformulier voor leveranciersbeheer."
+    },
+    {
+      "id": "openGovernance",
+      "label": "Governance bekijken",
+      "enabled": true,
+      "route": "#/governance",
+      "message": "Open het read-only overzicht van contentkwaliteit en aandachtspunten."
     },
     {
       "id": "newBrochure",

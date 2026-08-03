@@ -6,6 +6,7 @@ import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getArticleCounts } from "../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
+import { getContentGovernanceReport } from "../../../shared/content-governance.js";
 import { getContentRelationStats } from "../../../shared/content-relations.js";
 import { getLibraryCounts } from "../../../shared/library-model.js";
 import { getLibraryQualityReport } from "../../../shared/library-quality.js";
@@ -23,6 +24,13 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
   const articleQuality = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
   const libraryQuality = getLibraryQualityReport(libraryData, supplierData, brochureData, articleData, mediaData);
   const relationStats = getContentRelationStats(supplierData, brochureData, mediaData, articleData);
+  const governanceReport = getContentGovernanceReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    media: mediaData,
+    articles: articleData,
+    library: libraryData
+  });
   return dashboardData.metrics.map((metric) => {
     if (metric.id === "suppliers") {
       return {
@@ -147,6 +155,16 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         value: relationStats.mediaWithoutUsage,
         state: relationStats.mediaWithoutUsage ? "review" : "foundation",
         note: "Media-assets zonder gebruik in bestaande contentpadvelden."
+      };
+    }
+
+    if (metric.id === "governanceAttention") {
+      const value = governanceReport.totals.warnings + governanceReport.totals.blockers;
+      return {
+        ...metric,
+        value,
+        state: value ? "review" : "foundation",
+        note: "Som van waarschuwingen en blokkades uit het read-only governance-overzicht."
       };
     }
 

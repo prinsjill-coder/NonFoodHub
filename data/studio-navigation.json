@@ -16,6 +16,13 @@
       "enabled": false
     },
     {
+      "id": "governance",
+      "label": "Governance",
+      "route": "#/governance",
+      "description": "Read-only overzicht van contentkwaliteit en aandachtspunten",
+      "enabled": true
+    },
+    {
       "id": "suppliers",
       "label": "Leveranciers",
       "route": "#/leveranciers",

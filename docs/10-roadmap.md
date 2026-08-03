@@ -111,6 +111,12 @@ handmatig: exporteren is een download, geen opslag, publicatie, commit of push.
 Uploads, publieke downloads, backendkoppelingen en mediaAssetId-migratie blijven
 buiten scope.
 
+Aanvullend Sprint 10A-besluit: Studio krijgt een eerste read-only
+governance-overzicht bovenop leveranciers, brochures, kennisbank, media en
+bibliotheek. Governance aggregeert bestaande validatie-, quality- en
+relatiesignalen, maar wijzigt geen data, voegt geen backend toe, publiceert
+niets en introduceert geen nieuw relationeel datamodel.
+
 ## Fase 1B - Content vullen
 
 Wanneer data en Studio-basis staan:

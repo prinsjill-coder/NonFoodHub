@@ -32,6 +32,7 @@ modulegenerator of generieke sessiekern.
 
 ```text
 Dashboard
+Governance
 Homepage
 Leveranciers
 Brochures
@@ -62,6 +63,7 @@ Het dashboard toont:
 
 Snelle acties:
 
+- governance bekijken;
 - nieuwe leverancier;
 - nieuwe brochure;
 - nieuw artikel;
@@ -90,6 +92,25 @@ Per sectie:
 - afbeelding;
 - CTA's;
 - gekoppelde content.
+
+## Content Governance
+
+Sprint 10A introduceert een read-only governance-overzicht in Studio. Dit
+overzicht verzamelt bestaande validatie-, quality- en relatiesignalen uit de
+actieve browserwerksessies van leveranciers, brochures, kennisbank, media en
+bibliotheek.
+
+Governance toont per module:
+
+- totaal aantal items;
+- statusverdeling;
+- waarschuwingen;
+- blokkades;
+- signalen rond ontbrekende bestanden, mediaregistraties en relaties.
+
+Het governance-overzicht wijzigt geen content, lost niets automatisch op,
+schrijft niets naar de repository en publiceert niets. Er is geen nieuwe
+opslaglaag, geen backend en geen nieuw relationeel datamodel.
 
 ## Leveranciersbeheer
 

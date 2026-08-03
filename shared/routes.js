@@ -12,6 +12,13 @@ export const STUDIO_ROUTES = [
     enabled: false
   },
   {
+    id: "governance",
+    path: "/governance",
+    title: "Governance",
+    enabled: true,
+    sectionId: "governance"
+  },
+  {
     id: "suppliers",
     path: "/leveranciers",
     title: "Leveranciers",

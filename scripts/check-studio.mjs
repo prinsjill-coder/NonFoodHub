@@ -28,6 +28,7 @@ import { runArticleChecks } from "./check-articles.mjs";
 import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
 import { runContentRelationChecks } from "./check-content-relations.mjs";
+import { runContentGovernanceChecks } from "./check-content-governance.mjs";
 import { runLibraryChecks } from "./check-library.mjs";
 import { runLibraryQualityChecks } from "./check-library-quality.mjs";
 import { runMediaChecks } from "./check-media.mjs";
@@ -170,6 +171,7 @@ async function runStudioChecks() {
     await import("../shared/article-normalizer.js");
     await import("../shared/article-quality.js");
     await import("../shared/article-validation.js");
+    await import("../shared/content-governance.js");
     await import("../shared/content-relations.js");
     await import("../shared/content-status.js");
     await import("../shared/library-file-validation.js");
@@ -199,6 +201,7 @@ async function runStudioChecks() {
     await import("../studio/js/pages/brochures/form.js");
     await import("../studio/js/pages/brochures/import-export.js");
     await import("../studio/js/pages/brochures/index.js");
+    await import("../studio/js/pages/governance.js");
     await import("../studio/js/pages/knowledge/form.js");
     await import("../studio/js/pages/knowledge/import.js");
     await import("../studio/js/pages/knowledge/export.js");
@@ -260,6 +263,8 @@ async function runStudioChecks() {
 
   await runCheck("route helpers geven expliciete routes terug", () => {
     assert.equal(routeFromHash("#/dashboard").id, "dashboard");
+    assert.equal(routeFromHash("#/governance").id, "governance");
+    assert.equal(routeFromHash("#/governance").sectionId, "governance");
     assert.equal(routeFromHash("#/leveranciers").id, "suppliers");
     assert.equal(routeFromHash("#/leveranciers/nieuw").id, "supplierNew");
     assert.equal(routeFromHash("#/leveranciers/amefa").id, "supplierDetail");
@@ -289,12 +294,18 @@ async function runStudioChecks() {
     const navigation = readJson("data/studio-navigation.json");
     const dashboard = readJson("data/studio-dashboard.json");
     const knowledgeItem = navigation.items.find((item) => item.id === "knowledge");
+    const governanceItem = navigation.items.find((item) => item.id === "governance");
     const libraryItem = navigation.items.find((item) => item.id === "library");
+    const governanceMetric = dashboard.metrics.find((metric) => metric.id === "governanceAttention");
     const articleMetric = dashboard.metrics.find((metric) => metric.id === "articles");
     const libraryMetric = dashboard.metrics.find((metric) => metric.id === "library");
     const articleAction = dashboard.quickActions.find((action) => action.id === "newArticle");
     const libraryAction = dashboard.quickActions.find((action) => action.id === "newLibraryItem");
 
+    assert.equal(governanceItem?.enabled, true);
+    assert.equal(governanceItem?.route, "#/governance");
+    assert.equal(governanceMetric?.state, "not_connected");
+    assert.match(governanceMetric?.note || "", /validatie- en quality-rapporten/);
     assert.equal(knowledgeItem?.enabled, true);
     assert.equal(knowledgeItem?.route, "#/kennisbank");
     assert.equal(libraryItem?.enabled, true);
@@ -307,6 +318,8 @@ async function runStudioChecks() {
     assert.equal(articleAction?.route, "#/kennisbank/nieuw");
     assert.equal(libraryAction?.enabled, true);
     assert.equal(libraryAction?.route, "#/bibliotheek/nieuw");
+    assert.equal(dashboard.quickActions.find((action) => action.id === "openGovernance")?.enabled, true);
+    assert.equal(dashboard.quickActions.find((action) => action.id === "openGovernance")?.route, "#/governance");
 
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articlePublished")?.state, "not_connected");
     assert.equal(dashboard.metrics.find((metric) => metric.id === "articleWarnings")?.state, "not_connected");
@@ -326,6 +339,7 @@ async function runStudioChecks() {
     const articleSession = createArticleSession(articles, suppliers, brochures, media);
     const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
     const state = { supplierSession, brochureSession, mediaSession, articleSession, librarySession };
+    assert.equal(getRouteTitle(routeFromHash("#/governance"), state), "Governance");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/amefa"), state), "Amefa");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/onbekend"), state), "Leverancier niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), "Amefa for Professionals 2026");
@@ -568,14 +582,18 @@ async function runStudioChecks() {
     };
     const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
     const brochureAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuwe brochure<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
+    const governanceAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Governance bekijken<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
     const mediaAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw media-asset<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
     const articleAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw artikel<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
     const libraryAction = dashboardHtml.match(/<article class="studio-card">[\s\S]*?<h3>Nieuw bibliotheekitem<\/h3>[\s\S]*?<\/article>/)?.[0] || "";
 
+    assert.match(dashboardHtml, /href="#\/governance"/);
     assert.match(dashboardHtml, /href="#\/brochures\/nieuw"/);
     assert.match(dashboardHtml, /href="#\/media\/nieuw"/);
     assert.match(dashboardHtml, /href="#\/kennisbank\/nieuw"/);
     assert.match(dashboardHtml, /href="#\/bibliotheek\/nieuw"/);
+    assert.match(governanceAction, /href="#\/governance"/);
+    assert.doesNotMatch(governanceAction, /Niet actief|is-disabled/);
     assert.match(brochureAction, /href="#\/brochures\/nieuw"/);
     assert.doesNotMatch(brochureAction, /Niet actief|is-disabled/);
     assert.match(mediaAction, /href="#\/media\/nieuw"/);
@@ -609,6 +627,7 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Leveranciers zonder brochures/);
     assert.match(dashboardHtml, /Media zonder gebruik/);
     assert.match(dashboardHtml, /Bibliotheekitems/);
+    assert.match(dashboardHtml, /Governance signalen/);
     assert.match(dashboardHtml, /Bibliotheek gepubliceerd/);
     assert.match(dashboardHtml, /Bibliotheekwaarschuwingen/);
     assert.match(dashboardHtml, /Bibliotheek zonder bestand/);
@@ -680,6 +699,32 @@ async function runStudioChecks() {
     assert.match(articleHtml, /Terug naar kennisbank/);
     assert.match(libraryHtml, /Bibliotheekitem niet gevonden/);
     assert.match(libraryHtml, /Terug naar bibliotheek/);
+  });
+
+  await runCheck("governanceroute rendert read-only overzicht", () => {
+    const supplierSession = createSupplierSession(suppliers);
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const mediaSession = createMediaSession(media);
+    const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
+    const state = {
+      dashboard: readJson("data/studio-dashboard.json"),
+      supplierSession,
+      brochureSession,
+      mediaSession,
+      articleSession,
+      librarySession
+    };
+    const html = renderRoute(routeFromHash("#/governance"), state);
+
+    assert.match(html, /Content Governance/);
+    assert.match(html, /Read-only overzicht/);
+    assert.match(html, /Leveranciers/);
+    assert.match(html, /Brochures/);
+    assert.match(html, /Kennisbank/);
+    assert.match(html, /Media/);
+    assert.match(html, /Bibliotheek/);
+    assert.doesNotMatch(html, /is nog niet actief|Pagina niet gevonden/);
   });
 
   await runCheck("import- en exportstatussen renderen begrijpelijk", () => {
@@ -777,6 +822,7 @@ async function runStudioChecks() {
   await runLibraryChecks();
   await runLibraryQualityChecks();
   await runContentRelationChecks();
+  await runContentGovernanceChecks();
 }
 
 runStudioChecks()

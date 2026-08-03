@@ -1,6 +1,7 @@
 import { routeFromHash } from "../../shared/routes.js";
 import { renderBrochuresRoute, setupBrochuresRoute } from "./pages/brochures/index.js";
 import { renderDashboard, renderRouteNotFound, renderRoutePlaceholder } from "./pages/dashboard.js";
+import { renderGovernancePage } from "./pages/governance.js";
 import { renderKnowledgeRoute, setupKnowledgeRoute } from "./pages/knowledge/index.js";
 import { renderLibraryRoute, setupLibraryRoute } from "./pages/library/index.js";
 import { renderMediaRoute, setupMediaRoute } from "./pages/media/index.js";
@@ -102,6 +103,16 @@ export function renderRoute(route, state) {
       state.articleSession?.getWorkingData(),
       state.librarySession?.getWorkingData()
     );
+  }
+
+  if (route.id === "governance") {
+    return renderGovernancePage({
+      supplierData: state.supplierSession.getWorkingData(),
+      brochureData: state.brochureSession?.getWorkingData(),
+      mediaData: state.mediaSession?.getWorkingData(),
+      articleData: state.articleSession?.getWorkingData(),
+      libraryData: state.librarySession?.getWorkingData()
+    });
   }
 
   if (route.sectionId === "suppliers") {
