@@ -2,6 +2,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
@@ -10,6 +11,7 @@ import {
   findArticleSuppliers,
   findMediaAssetByPath
 } from "../../../../shared/content-relations.js";
+import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import { getMediaRightsStatusLabel, getMediaUsageTypeLabel } from "../../../../shared/media-model.js";
 import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
@@ -90,10 +92,17 @@ function renderHeroMedia(article, mediaData, asset) {
   `;
 }
 
-export function renderArticleDetail({ article, supplierData, brochureData, mediaData = {} }) {
+export function renderArticleDetail({ article, articleData = {}, supplierData, brochureData, mediaData = {} }) {
   const relatedSuppliers = findArticleSuppliers(article, supplierData);
   const relatedBrochures = findArticleBrochures(article, brochureData);
   const heroAsset = findMediaAssetByPath(mediaData, article.heroImage);
+  const readinessReport = getContentReadinessReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    media: mediaData,
+    articles: articleData
+  });
+  const readiness = findReadinessByRoute(readinessReport, "articles", `#/kennisbank/${article.slug}`);
 
   return `
     ${renderPageHeader({
@@ -113,6 +122,10 @@ export function renderArticleDetail({ article, supplierData, brochureData, media
         "Dit artikel bestaat alleen in de Studio-contentregistry. De publieke website leest deze kennisbankdata nog niet.",
       tone: "info"
     })}
+
+    <section class="studio-section">
+      ${renderReadinessCard(readiness)}
+    </section>
 
     <section class="studio-section">
       <div class="studio-section-head">

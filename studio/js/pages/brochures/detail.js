@@ -2,6 +2,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import {
@@ -9,6 +10,7 @@ import {
   getBrochureStatusLabel
 } from "../../../../shared/brochure-model.js";
 import { findBrochureArticles } from "../../../../shared/content-relations.js";
+import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
@@ -55,6 +57,12 @@ function renderArticleRelations(articles) {
 export function renderBrochureDetail({ brochureData, supplierData, articleData = {}, brochure }) {
   const supplier = supplierForId(supplierData, brochure.supplierId);
   const relatedArticles = findBrochureArticles(brochure, articleData);
+  const readinessReport = getContentReadinessReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    articles: articleData
+  });
+  const readiness = findReadinessByRoute(readinessReport, "brochures", `#/brochures/${brochure.slug}`);
 
   return `
     ${renderPageHeader({
@@ -74,6 +82,10 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
         "Deze detailweergave leest de actieve browserdata. Dit schrijft niet naar /data/brochures.json en wijzigt de publieke website niet.",
       tone: "info"
     })}
+
+    <section class="studio-section">
+      ${renderReadinessCard(readiness)}
+    </section>
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">

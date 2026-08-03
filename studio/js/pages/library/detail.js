@@ -2,6 +2,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
@@ -11,6 +12,7 @@ import {
   findLibrarySuppliers,
   findMediaAssetByPath
 } from "../../../../shared/content-relations.js";
+import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import { getLibraryStatusLabel, getLibraryTypeLabel } from "../../../../shared/library-model.js";
 import { getMediaStatusLabel } from "../../../../shared/media-model.js";
 import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
@@ -67,6 +69,14 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
   const relatedSuppliers = findLibrarySuppliers(item, supplierData);
   const relatedBrochures = findLibraryBrochures(item, brochureData);
   const relatedArticles = findLibraryArticles(item, articleData);
+  const readinessReport = getContentReadinessReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    media: mediaData,
+    articles: articleData,
+    library: libraryData
+  });
+  const readiness = findReadinessByRoute(readinessReport, "library", `#/bibliotheek/${item.slug}`);
 
   return `
     ${renderPageHeader({
@@ -86,6 +96,10 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
         "Deze detailweergave registreert alleen metadata en relatieve projectpaden. Studio uploadt geen bestanden en biedt nog geen publieke downloadroute.",
       tone: "info"
     })}
+
+    <section class="studio-section">
+      ${renderReadinessCard(readiness)}
+    </section>
 
     <section class="studio-section">
       <div class="studio-section-head">

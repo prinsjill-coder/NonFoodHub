@@ -3,6 +3,7 @@ import { renderNotice } from "../../../components/notice.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getContentGovernanceReport } from "../../../shared/content-governance.js";
+import { CONTENT_READINESS_LABELS, getContentReadinessReport } from "../../../shared/content-readiness.js";
 import { escapeHtml } from "../../../shared/utils.js";
 
 const SEVERITY_FILTERS = [
@@ -16,7 +17,7 @@ function renderOverviewMetric({ label, value, note, state = "foundation" }) {
     <article class="studio-card studio-metric-card">
       <div class="studio-card-head">
         <h3>${escapeHtml(label)}</h3>
-        ${renderStatusBadge(state)}
+        ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
       </div>
       <p class="studio-metric-value">${Number(value || 0)}</p>
       <p class="studio-muted">${escapeHtml(note)}</p>
@@ -201,8 +202,14 @@ function renderIssueOverview(modules, issues) {
   `;
 }
 
-function renderModuleCard(module) {
-  const state = module.blockers ? "review" : module.warnings || module.missingFiles || module.missingMedia || module.brokenRelations ? "review" : "foundation";
+function renderModuleCard(module, readinessModule) {
+  const state = readinessModule?.needs_attention ? "needs_attention" : readinessModule?.review ? "review" : "ready";
+  const readiness = readinessModule || {
+    total: module.total,
+    ready: 0,
+    review: 0,
+    needs_attention: 0
+  };
 
   return `
     <article class="studio-card">
@@ -211,33 +218,33 @@ function renderModuleCard(module) {
           <h3>${escapeHtml(module.label)}</h3>
           <p class="studio-muted">Read-only samenvatting uit de actieve Studio-werksessie.</p>
         </div>
-        ${renderStatusBadge(state)}
+        ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
       </div>
 
       <div class="studio-grid studio-grid-4">
         ${renderOverviewMetric({
           label: "Items",
-          value: module.total,
+          value: readiness.total,
           note: "Geregistreerde items.",
           state: "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Waarschuwingen",
-          value: module.warnings,
-          note: "Niet-blokkerende signalen.",
-          state: module.warnings ? "review" : "foundation"
+          label: "Klaar",
+          value: readiness.ready,
+          note: "Geen belangrijke governance-issues.",
+          state: readiness.ready ? "ready" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Blokkades",
-          value: module.blockers,
-          note: "Actiegerichte fouten.",
-          state: module.blockers ? "review" : "foundation"
+          label: "Review nodig",
+          value: readiness.review,
+          note: "Bruikbaar, maar controle gewenst.",
+          state: readiness.review ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Relaties/media",
-          value: module.missingFiles + module.missingMedia + module.brokenRelations + module.usageSignals,
-          note: "Bestanden, mediaregistraties en relaties.",
-          state: module.missingFiles + module.missingMedia + module.brokenRelations + module.usageSignals ? "review" : "foundation"
+          label: "Aandacht nodig",
+          value: readiness.needs_attention,
+          note: "Belangrijke informatie ontbreekt.",
+          state: readiness.needs_attention ? "needs_attention" : "foundation"
         })}
       </div>
 
@@ -271,6 +278,17 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
     articles: articleData,
     library: libraryData
   });
+  const readinessReport = getContentReadinessReport(
+    {
+      suppliers: supplierData,
+      brochures: brochureData,
+      media: mediaData,
+      articles: articleData,
+      library: libraryData
+    },
+    { governanceReport: report }
+  );
+  const readinessModules = new Map(readinessReport.modules.map((module) => [module.id, module]));
 
   return `
     <div data-governance-page>
@@ -335,7 +353,7 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
           <h2>Modules</h2>
         </div>
         <div class="studio-grid studio-grid-1">
-          ${report.modules.map(renderModuleCard).join("")}
+          ${report.modules.map((module) => renderModuleCard(module, readinessModules.get(module.id))).join("")}
         </div>
       </section>
     </div>

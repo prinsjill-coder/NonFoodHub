@@ -2,10 +2,12 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
 import { findMediaUsage } from "../../../../shared/content-relations.js";
+import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import {
   getMediaRightsStatusLabel,
   getMediaTypeLabel,
@@ -35,6 +37,13 @@ function renderUsageList(items, { emptyText, hrefForItem, labelForItem, statusFo
 
 export function renderMediaDetail({ mediaData, supplierData = {}, brochureData = {}, articleData = {}, asset }) {
   const usage = findMediaUsage(asset, supplierData, brochureData, articleData);
+  const readinessReport = getContentReadinessReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    media: mediaData,
+    articles: articleData
+  });
+  const readiness = findReadinessByRoute(readinessReport, "media", `#/media/${asset.id}`);
 
   return `
     ${renderPageHeader({
@@ -54,6 +63,10 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
         "Deze detailweergave registreert alleen metadata en een relatief projectpad. Studio uploadt of verplaatst geen bestanden.",
       tone: "info"
     })}
+
+    <section class="studio-section">
+      ${renderReadinessCard(readiness)}
+    </section>
 
     <section class="studio-section">
       <div class="studio-section-head">

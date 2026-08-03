@@ -29,6 +29,7 @@ import { runArticleQualityChecks } from "./check-article-quality.mjs";
 import { runBrochureChecks } from "./check-brochures.mjs";
 import { runContentRelationChecks } from "./check-content-relations.mjs";
 import { runContentGovernanceChecks } from "./check-content-governance.mjs";
+import { runContentReadinessChecks } from "./check-content-readiness.mjs";
 import { runLibraryChecks } from "./check-library.mjs";
 import { runLibraryQualityChecks } from "./check-library-quality.mjs";
 import { runMediaChecks } from "./check-media.mjs";
@@ -172,6 +173,7 @@ async function runStudioChecks() {
     await import("../shared/article-quality.js");
     await import("../shared/article-validation.js");
     await import("../shared/content-governance.js");
+    await import("../shared/content-readiness.js");
     await import("../shared/content-relations.js");
     await import("../shared/content-status.js");
     await import("../shared/library-file-validation.js");
@@ -215,6 +217,7 @@ async function runStudioChecks() {
     await import("../studio/js/pages/suppliers/form.js");
     await import("../studio/js/pages/suppliers/import-export.js");
     await import("../components/confirm-dialog.js");
+    await import("../components/readiness-card.js");
   });
 
   await runCheck("contentstatussen zijn centraal, volledig en deterministisch", () => {
@@ -823,6 +826,7 @@ async function runStudioChecks() {
   await runLibraryQualityChecks();
   await runContentRelationChecks();
   await runContentGovernanceChecks();
+  await runContentReadinessChecks();
 }
 
 runStudioChecks()

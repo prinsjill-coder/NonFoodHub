@@ -14,7 +14,7 @@ export const GOVERNANCE_MODULE_IDS = ["suppliers", "brochures", "articles", "med
 
 export const GOVERNANCE_ISSUE_SEVERITIES = ["error", "warning"];
 
-const MODULE_CONFIG = {
+export const GOVERNANCE_MODULE_CONFIG = {
   suppliers: {
     label: "Leveranciers",
     route: "#/leveranciers",
@@ -46,6 +46,8 @@ const MODULE_CONFIG = {
     itemLabel: (item) => item?.title || item?.slug || item?.id || "Bibliotheekitem"
   }
 };
+
+const MODULE_CONFIG = GOVERNANCE_MODULE_CONFIG;
 
 function moduleRoute(moduleId) {
   return MODULE_CONFIG[moduleId]?.route || "#/governance";
