@@ -246,6 +246,31 @@
     });
   }
 
+  function publicItems(data) {
+    return Array.isArray(data?.items) ? data.items : [];
+  }
+
+  function featuredItems(items, limit = 3) {
+    return Array.isArray(items) ? items.slice(0, limit) : [];
+  }
+
+  function renderHomepageEmptyState(title, message) {
+    return `
+      <article class="contact-card fade-in">
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(message)}</p>
+      </article>
+    `;
+  }
+
+  async function fetchPublicItems(path, label) {
+    const response = await fetch(href(path), { cache: "no-store" });
+    if (!response.ok) throw new Error(`${label} kon niet worden geladen.`);
+
+    const data = await response.json();
+    return publicItems(data);
+  }
+
   function publicArticleImage(article) {
     return article.heroImage ? href(article.heroImage) : href("assets/images/inspiration.png");
   }
@@ -263,9 +288,12 @@
     return `${href("pages/leveranciers.html")}#${escapeHtml(supplier.slug)}`;
   }
 
-  function renderPublicArticleCard(article) {
+  function renderPublicArticleCard(article, options = {}) {
+    const cardLink = options.linkToArticlePage ? `${href("pages/inspiratie.html")}#${escapeHtml(article.slug)}` : `#${escapeHtml(article.slug)}`;
+    const action = options.actionLabel ? `<span class="card-link">${escapeHtml(options.actionLabel)}</span>` : "";
+
     return `
-      <a class="article-card fade-in" href="#${escapeHtml(article.slug)}">
+      <a class="article-card fade-in" href="${cardLink}">
         <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
         <div class="article-card-body">
           <div class="card-meta">
@@ -274,6 +302,7 @@
           </div>
           <h3>${escapeHtml(article.title)}</h3>
           <p>${escapeHtml(article.summary)}</p>
+          ${action}
         </div>
       </a>
     `;
@@ -369,15 +398,19 @@
     return tags.map((tag, index) => `<span class="tag${index === 0 ? " blue" : ""}">${escapeHtml(tag)}</span>`).join("");
   }
 
-  function renderPublicSupplierCard(supplier) {
+  function renderPublicSupplierCard(supplier, options = {}) {
+    const cardLink = options.linkToSupplierPage ? supplierPageLink(supplier) : `#${escapeHtml(supplier.slug)}`;
+    const summary = options.useDescription ? supplier.description || supplier.summary : supplier.summary;
+    const actionLabel = options.actionLabel || "Bekijk leverancier";
+
     return `
-      <a class="supplier-card fade-in" href="#${escapeHtml(supplier.slug)}">
+      <a class="supplier-card fade-in" href="${cardLink}">
         <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
         <div class="supplier-card-body">
           <div class="card-meta">${renderPublicSupplierTags(supplier)}</div>
           <h3>${escapeHtml(supplier.name)}</h3>
-          <p>${escapeHtml(supplier.summary)}</p>
-          <span class="card-link">Bekijk leverancier</span>
+          <p>${escapeHtml(summary)}</p>
+          <span class="card-link">${escapeHtml(actionLabel)}</span>
         </div>
       </a>
     `;
@@ -612,6 +645,63 @@
     }
   }
 
+  async function setupHomepageDiscovery() {
+    if (currentPage !== "home") return;
+
+    const articleGrid = document.querySelector("[data-home-article-grid]");
+    const supplierGrid = document.querySelector("[data-home-supplier-grid]");
+    const brochureGrid = document.querySelector("[data-home-brochure-grid]");
+    if (!articleGrid && !supplierGrid && !brochureGrid) return;
+
+    function renderGrid(mount, items, renderer, emptyTitle, emptyMessage) {
+      if (!mount) return;
+      const selected = featuredItems(items);
+      mount.innerHTML = selected.length ? selected.map(renderer).join("") : renderHomepageEmptyState(emptyTitle, emptyMessage);
+    }
+
+    try {
+      const [articles, suppliers, brochures] = await Promise.all([
+        fetchPublicItems("data/public/articles.json", "Publieke inspiratie"),
+        fetchPublicItems("data/public/suppliers.json", "Publieke leveranciers"),
+        fetchPublicItems("data/public/brochures.json", "Publieke brochures")
+      ]);
+      const suppliersById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+
+      renderGrid(
+        articleGrid,
+        articles,
+        (article) => renderPublicArticleCard(article, { linkToArticlePage: true, actionLabel: "Lees inspiratie" }),
+        "Geen inspiratie beschikbaar",
+        "Er zijn nog geen publieke kennisbankartikelen beschikbaar."
+      );
+      renderGrid(
+        supplierGrid,
+        suppliers,
+        (supplier) => renderPublicSupplierCard(supplier, { linkToSupplierPage: true, useDescription: true }),
+        "Geen leveranciers beschikbaar",
+        "Er zijn nog geen publieke leveranciers beschikbaar."
+      );
+      renderGrid(
+        brochureGrid,
+        brochures,
+        (brochure) => renderPublicBrochureCard(brochure, suppliersById, { linkToBrochurePage: true }),
+        "Geen brochures beschikbaar",
+        "Er zijn nog geen publieke brochures beschikbaar."
+      );
+      setupAnimations();
+    } catch (error) {
+      const errorState = renderHomepageEmptyState(
+        "Publieke content niet geladen",
+        "De publieke content kon niet worden geladen. Probeer de pagina later opnieuw."
+      );
+      [articleGrid, supplierGrid, brochureGrid].filter(Boolean).forEach((mount) => {
+        mount.innerHTML = errorState;
+      });
+      setupAnimations();
+      console.error(error);
+    }
+  }
+
   function setupAnimations() {
     const items = document.querySelectorAll(".fade-in");
     if (!items.length) return;
@@ -639,4 +729,5 @@
   setupPublicArticles();
   setupPublicSuppliers();
   setupPublicBrochures();
+  setupHomepageDiscovery();
 })();

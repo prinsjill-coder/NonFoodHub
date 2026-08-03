@@ -283,6 +283,27 @@ export async function runPublicContentChecks() {
     });
   });
 
+  await runCheck("homepage gebruikt publieke projecties als ontdeklaag", () => {
+    const pageHtml = readText("index.html");
+    const publicJs = readText("assets/js/main.js");
+
+    assert.match(pageHtml, /data-home-article-grid/);
+    assert.match(pageHtml, /data-home-supplier-grid/);
+    assert.match(pageHtml, /data-home-brochure-grid/);
+    assert.match(publicJs, /setupHomepageDiscovery/);
+    assert.match(publicJs, /data\/public\/articles\.json/);
+    assert.match(publicJs, /data\/public\/suppliers\.json/);
+    assert.match(publicJs, /data\/public\/brochures\.json/);
+    assert.match(publicJs, /linkToArticlePage/);
+    assert.match(publicJs, /linkToSupplierPage/);
+    assert.match(publicJs, /linkToBrochurePage/);
+    assert.match(publicJs, /Geen inspiratie beschikbaar/);
+    assert.match(publicJs, /Geen leveranciers beschikbaar/);
+    assert.match(publicJs, /Geen brochures beschikbaar/);
+    assert.doesNotMatch(pageHtml, /data\/articles\.json|data\/suppliers\.json|data\/brochures\.json/);
+    assert.doesNotMatch(publicJs, /fetch\(href\("data\/articles\.json"|fetch\(href\("data\/suppliers\.json"|fetch\(href\("data\/brochures\.json"/);
+  });
+
   await runCheck("inspiratiepagina gebruikt publieke projectie in plaats van ruwe Studio-data", () => {
     const pageHtml = readText("pages/inspiratie.html");
     const publicJs = readText("assets/js/main.js");
@@ -357,6 +378,7 @@ export async function runPublicContentChecks() {
       readText("shared/public-brochures.js"),
       readText("shared/public-suppliers.js"),
       readText("assets/js/main.js"),
+      readText("index.html"),
       readText("pages/inspiratie.html"),
       readText("pages/leveranciers.html"),
       readText("pages/brochures-catalogi.html")
