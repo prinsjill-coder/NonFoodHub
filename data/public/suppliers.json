@@ -13,7 +13,17 @@
       ],
       "logo": "assets/images/supplier-amefa.jpg",
       "image": "assets/images/supplier-amefa.jpg",
-      "relatedArticles": [],
+      "relatedArticles": [
+        {
+          "id": "article-terras-outdoor-inspiratie",
+          "slug": "terras-outdoor-inspiratie",
+          "title": "Terras & outdoor tafelpresentatie",
+          "summary": "Praktische inspiratie voor een gastvrij terras met slimme routing, stevige materialen en een verzorgde tafelsetting.",
+          "category": "Terras & Outdoor",
+          "heroImage": "assets/images/blog-terrace.png",
+          "updatedAt": "2026-07-31"
+        }
+      ],
       "relatedBrochures": [
         {
           "id": "brochure-amefa-2026",

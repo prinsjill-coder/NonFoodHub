@@ -12,7 +12,7 @@ function renderSidebarItem(item, currentRoute) {
       title="${escapeHtml(item.description)}"
     >
       <span>${escapeHtml(item.label)}</span>
-      <small>${escapeHtml(item.enabled ? item.description : "Placeholder voor latere sprint")}</small>
+      <small>${escapeHtml(item.enabled ? item.description : "Nog niet actief")}</small>
     </a>
   `;
 }
@@ -27,12 +27,12 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
           <span class="studio-brand-mark">B</span>
             <span class="studio-brand-text">
               <span class="studio-brand-title">${escapeHtml(STUDIO_CONFIG.appName)}</span>
-              <span class="studio-brand-subtitle">Studio prototype</span>
+              <span class="studio-brand-subtitle">Content Studio</span>
             </span>
           </a>
         <nav class="studio-nav" aria-label="Studio navigatie">${navItems}</nav>
         <p class="studio-sidebar-note">
-          Studio bevat tijdelijke browserwerksessies. Uploads, echte opslag, repositorywrites en publicatie-acties zijn niet actief.
+          Studio werkt met lokale browserwerksessies. Uploads, repositorywrites en automatische publicatie zijn niet actief.
         </p>
       </aside>
       <main class="studio-main">
@@ -41,7 +41,7 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
             <strong>${escapeHtml(STUDIO_CONFIG.projectName)}</strong>
             <span>${escapeHtml(currentRoute.title)}</span>
           </div>
-          <input class="studio-search" type="search" placeholder="Zoeken komt in een latere sprint" aria-label="Studio zoeken placeholder" disabled>
+          <input class="studio-search" type="search" placeholder="Zoeken is nog niet actief" aria-label="Studio zoeken" disabled>
           ${renderAuthPlaceholder(authState)}
         </header>
         <div class="studio-content" id="studio-route-content">${content}</div>

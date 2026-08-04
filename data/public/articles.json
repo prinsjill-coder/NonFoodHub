@@ -3,13 +3,19 @@
     {
       "id": "article-terras-outdoor-inspiratie",
       "slug": "terras-outdoor-inspiratie",
-      "title": "Terras & Outdoor inspiratie",
-      "summary": "Inspiratie voor een gastvrij terras met duurzame materialen, slimme routing en sterke presentatie.",
-      "body": "Een goed terras voelt als een verlengstuk van de zaak. Denk aan comfortabele routing, servies dat tegen intensief gebruik kan en presentatie die past bij het moment van de dag.\n\nCombineer praktische keuzes zoals stapelbare stoelen en stevig glaswerk met details die de gastbeleving versterken, zoals tafelpresentatie, menukaarten en herkenbare signing.",
+      "title": "Terras & outdoor tafelpresentatie",
+      "summary": "Praktische inspiratie voor een gastvrij terras met slimme routing, stevige materialen en een verzorgde tafelsetting.",
+      "body": "Een goed terras voelt als een verlengstuk van de zaak. Denk aan comfortabele routing, materialen die intensief gebruik aankunnen en een tafelsetting die past bij het moment van de dag.\n\nCombineer praktische keuzes zoals stapelbare stoelen en stevig glaswerk met details die de gastbeleving versterken: bestek, servies, menukaarten en herkenbare signing. Zo ontstaat een terras dat prettig werkt voor het team en uitnodigend is voor gasten.",
       "category": "Terras & Outdoor",
       "heroImage": "assets/images/blog-terrace.png",
       "updatedAt": "2026-07-31",
-      "suppliers": []
+      "suppliers": [
+        {
+          "id": "supplier-amefa",
+          "slug": "amefa",
+          "name": "Amefa"
+        }
+      ]
     }
   ]
 }

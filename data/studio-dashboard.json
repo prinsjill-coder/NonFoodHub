@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bevat leveranciersbeheer, brochurebeheer, kennisbankbeheer, bibliotheekbeheer, governance-overzicht en een eerste mediaregister binnen statische browserwerksessies. Er is nog geen echte authenticatie en geen koppeling met de publieke website.",
+  "summary": "Studio bundelt contentbeheer, kwaliteitscontrole, readiness en publieke projectie-inzichten voor de Non-Food Hub. Content blijft lokaal beheerd en wordt niet automatisch gepubliceerd.",
   "metrics": [
     {
       "id": "governanceAttention",
@@ -119,7 +119,7 @@
       "id": "drafts",
       "title": "Concepten",
       "state": "empty",
-      "message": "Concepten bestaan als contentstatus, maar er is nog geen publicatie-, opslag- of auditworkflow."
+      "message": "Concepten bestaan als contentstatus. Automatische publicatie en audittrail zijn niet actief."
     },
     {
       "id": "missingFiles",
@@ -134,7 +134,7 @@
       "label": "Nieuwe leverancier",
       "enabled": true,
       "route": "#/leveranciers/nieuw",
-      "message": "Open het prototypeformulier voor leveranciersbeheer."
+      "message": "Open het formulier voor leveranciersbeheer."
     },
     {
       "id": "openGovernance",
@@ -148,7 +148,7 @@
       "label": "Nieuwe brochure",
       "enabled": true,
       "route": "#/brochures/nieuw",
-      "message": "Open het prototypeformulier voor brochurebeheer."
+      "message": "Open het formulier voor brochurebeheer."
     },
     {
       "id": "newMedia",
@@ -162,7 +162,7 @@
       "label": "Nieuw artikel",
       "enabled": true,
       "route": "#/kennisbank/nieuw",
-      "message": "Open het prototypeformulier voor kennisbankbeheer."
+      "message": "Open het formulier voor kennisbankbeheer."
     },
     {
       "id": "newLibraryItem",

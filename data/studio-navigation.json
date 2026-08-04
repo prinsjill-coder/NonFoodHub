@@ -12,7 +12,7 @@
       "id": "homepage",
       "label": "Homepage",
       "route": "#/homepage",
-      "description": "Placeholder voor toekomstig homepagebeheer",
+      "description": "Nog niet actief: homepagebeheer",
       "enabled": false
     },
     {
@@ -26,21 +26,21 @@
       "id": "suppliers",
       "label": "Leveranciers",
       "route": "#/leveranciers",
-      "description": "Leveranciers beheren in de Studio-prototypefase",
+      "description": "Leveranciers beheren en publicatie-readiness volgen",
       "enabled": true
     },
     {
       "id": "brochures",
       "label": "Brochures",
       "route": "#/brochures",
-      "description": "Brochures beheren in de Studio-prototypefase",
+      "description": "Brochures beheren en publicatie-readiness volgen",
       "enabled": true
     },
     {
       "id": "knowledge",
       "label": "Kennisbank",
       "route": "#/kennisbank",
-      "description": "Kennisbankartikelen beheren in de Studio-prototypefase",
+      "description": "Kennisbankartikelen beheren en publicatie-readiness volgen",
       "enabled": true
     },
     {
@@ -54,49 +54,49 @@
       "id": "showroom",
       "label": "Virtuele Showroom",
       "route": "#/showroom",
-      "description": "Placeholder voor toekomstig showroombeheer",
+      "description": "Nog niet actief: showroombeheer",
       "enabled": false
     },
     {
       "id": "dryice",
       "label": "Droogijsshop",
       "route": "#/droogijsshop",
-      "description": "Placeholder voor toekomstig droogijsbeheer",
+      "description": "Nog niet actief: droogijsbeheer",
       "enabled": false
     },
     {
       "id": "specialists",
       "label": "Specialisten",
       "route": "#/specialisten",
-      "description": "Placeholder voor toekomstig specialistenbeheer",
+      "description": "Nog niet actief: specialistenbeheer",
       "enabled": false
     },
     {
       "id": "media",
       "label": "Media",
       "route": "#/media",
-      "description": "Registry voor bestaande media-assets en padmetadata",
+      "description": "Register voor bestaande media-assets en padmetadata",
       "enabled": true
     },
     {
       "id": "ctas",
       "label": "CTA's",
       "route": "#/ctas",
-      "description": "Placeholder voor toekomstig CTA-beheer",
+      "description": "Nog niet actief: CTA-beheer",
       "enabled": false
     },
     {
       "id": "navigation",
       "label": "Navigatie",
       "route": "#/navigatie",
-      "description": "Placeholder voor toekomstig navigatiebeheer",
+      "description": "Nog niet actief: navigatiebeheer",
       "enabled": false
     },
     {
       "id": "settings",
       "label": "Instellingen",
       "route": "#/instellingen",
-      "description": "Placeholder voor toekomstige instellingen",
+      "description": "Nog niet actief: instellingen",
       "enabled": false
     }
   ]

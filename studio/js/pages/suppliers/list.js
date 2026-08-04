@@ -186,12 +186,12 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
         <article class="studio-card studio-metric-card">
           <h3>Gepubliceerd</h3>
           <p class="studio-metric-value">${counts.statuses.published || 0}</p>
-          <p class="studio-muted">Demo-status; nog niet gekoppeld aan de publieke website.</p>
+          <p class="studio-muted">Contentstatus; publieke weergave loopt via gecontroleerde projecties.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Ter controle</h3>
           <p class="studio-metric-value">${counts.statuses.review || 0}</p>
-          <p class="studio-muted">Voorbereid voor toekomstige publicatieworkflow.</p>
+          <p class="studio-muted">Controleer deze items voordat ze publiek zichtbaar kunnen worden.</p>
         </article>
       </div>
     </section>

@@ -354,7 +354,7 @@ async function runStudioChecks() {
     assert.equal(getRouteTitle(routeFromHash("#/brochures/onbekend"), state), "Brochure niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/media/media-brochures-overview"), state), "Brochures overzichtsbeeld");
     assert.equal(getRouteTitle(routeFromHash("#/media/onbekend"), state), "Media-asset niet gevonden");
-    assert.equal(getRouteTitle(routeFromHash("#/kennisbank/terras-outdoor-inspiratie"), state), "Terras & Outdoor inspiratie");
+    assert.equal(getRouteTitle(routeFromHash("#/kennisbank/terras-outdoor-inspiratie"), state), "Terras & outdoor tafelpresentatie");
     assert.equal(getRouteTitle(routeFromHash("#/kennisbank/onbekend"), state), "Kennisbankartikel niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/import"), state), "Bibliotheek importeren");
     assert.equal(getRouteTitle(routeFromHash("#/bibliotheek/export"), state), "Bibliotheek exporteren");
@@ -502,7 +502,7 @@ async function runStudioChecks() {
     const editHtml = renderRoute(routeFromHash("#/kennisbank/terras-outdoor-inspiratie/bewerken"), state);
 
     assert.match(listHtml, /Kennisbankbeheer/);
-    assert.match(listHtml, /Terras &amp; Outdoor inspiratie/);
+    assert.match(listHtml, /Terras &amp; outdoor tafelpresentatie/);
     assert.match(listHtml, /data-article-import-button/);
     assert.match(listHtml, /data-article-export-button/);
     assert.match(listHtml, /articles\.json importeren/);
@@ -515,15 +515,19 @@ async function runStudioChecks() {
     assert.match(newHtml, /Inspiratie/);
     assert.doesNotMatch(newHtml, /Hoofdafbeelding/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
-    assert.match(detailHtml, /Terras &amp; Outdoor inspiratie/);
+    assert.match(detailHtml, /Terras &amp; outdoor tafelpresentatie/);
     assert.match(detailHtml, /Gekoppelde leveranciers/);
     assert.match(detailHtml, /Churchill/);
+    assert.match(detailHtml, /Amefa/);
     assert.match(detailHtml, /Gekoppelde brochures/);
     assert.match(detailHtml, /Churchill Combined Brochure 2026/);
+    assert.match(detailHtml, /Amefa for Professionals 2026/);
     assert.match(detailHtml, /href="#\/leveranciers\/churchill"/);
+    assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
+    assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
     assert.match(detailHtml, /Hero afbeelding/);
-    assert.match(editHtml, /Terras &amp; Outdoor inspiratie bewerken/);
+    assert.match(editHtml, /Terras &amp; outdoor tafelpresentatie bewerken/);
   });
 
   await runCheck("bibliotheekroutes renderen lijst, detail, nieuw en bewerken", () => {

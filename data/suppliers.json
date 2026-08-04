@@ -60,8 +60,8 @@
       "name": "Churchill",
       "slug": "churchill",
       "type": "leverancier",
-      "summary": "Demo-leverancier voor servies en hospitality-presentatie.",
-      "description": "Churchill is opgenomen als tweede demo-record zodat filters, statussen en bewerkvalidatie met meerdere leveranciers kunnen worden getest.",
+      "summary": "Servies en hospitality-presentatie voor professionele horeca.",
+      "description": "Churchill is opgenomen als leverancier in review voor servies en hospitality-presentatie. De content wordt nog gecontroleerd voordat deze publiek zichtbaar wordt.",
       "categories": [
         "Servies",
         "Buffet & presentatie"

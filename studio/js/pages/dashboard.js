@@ -37,7 +37,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: supplierCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve Studio-werksessie; nog niet gekoppeld aan de publieke website."
+        note: "Gelezen uit de actieve Studio-werksessie; publieke weergave loopt via data/public."
       };
     }
 
@@ -46,7 +46,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: brochureCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve brochurewerksessie; nog niet gekoppeld aan de publieke website."
+        note: "Gelezen uit de actieve brochurewerksessie; publieke weergave loopt via data/public."
       };
     }
 
@@ -64,7 +64,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve kennisbankwerksessie; nog niet gekoppeld aan de publieke website."
+        note: "Gelezen uit de actieve kennisbankwerksessie; publieke weergave loopt via data/public."
       };
     }
 
@@ -73,7 +73,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve bibliotheekwerksessie; nog niet gekoppeld aan de publieke website."
+        note: "Gelezen uit de actieve bibliotheekwerksessie; nog geen publieke bibliotheekprojectie actief."
       };
     }
 
@@ -230,9 +230,8 @@ export function renderDashboard(dashboardData, supplierData, brochureData, media
 export function renderRoutePlaceholder(route) {
   return renderEmptyState({
     title: `${route.title} is nog niet actief`,
-    message:
-      "Deze route is bewust als placeholder opgenomen. Beheer voor dit onderdeel wordt pas in een latere sprint gebouwd.",
-    label: "Placeholder",
+    message: "Deze route is bewust nog niet actief. Gebruik het dashboard of de actieve contentmodules voor demo en review.",
+    label: "Nog niet actief",
     actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "secondary" })
   });
 }

@@ -440,7 +440,7 @@
   function renderPublicBrochureCard(brochure, suppliersById = new Map(), options = {}) {
     const downloadAction = brochure.downloadUrl
       ? `<a class="card-link" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
-      : `<p class="file-name">Download nog niet beschikbaar</p>`;
+      : `<p class="file-name">PDF nog niet beschikbaar</p>`;
     const cardLink = options.linkToBrochurePage ? `${href("pages/brochures-catalogi.html")}#${escapeHtml(brochure.slug)}` : `#${escapeHtml(brochure.slug)}`;
     const openAction = `<a class="card-link" href="${cardLink}">Bekijk brochure</a>`;
 
