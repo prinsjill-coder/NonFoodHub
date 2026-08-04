@@ -334,6 +334,7 @@ export async function runPublicContentChecks() {
     assert.match(pageHtml, /data-public-supplier-grid/);
     assert.match(pageHtml, /data-public-supplier-detail-section/);
     assert.match(pageHtml, /data-public-supplier-detail/);
+    assert.match(pageHtml, /data-public-supplier-extra/);
     assert.match(publicJs, /data\/public\/suppliers\.json/);
     assert.match(publicJs, /renderSupplierState/);
     assert.doesNotMatch(publicJs, /data\/suppliers\.json/);
@@ -344,6 +345,7 @@ export async function runPublicContentChecks() {
     const pageHtml = readText("pages/brochures-catalogi.html");
     const publicJs = readText("assets/js/main.js");
 
+    assert.match(pageHtml, /data-public-brochure-intro/);
     assert.match(pageHtml, /data-public-brochure-overview/);
     assert.match(pageHtml, /data-public-brochure-grid/);
     assert.match(pageHtml, /data-public-brochure-detail-section/);
@@ -363,10 +365,14 @@ export async function runPublicContentChecks() {
     assert.match(publicJs, /Terug naar inspiratie/);
     assert.match(publicJs, /Terug naar leveranciers/);
     assert.match(publicJs, /Terug naar brochures/);
+    assert.match(publicJs, /updateDocumentTitle/);
+    assert.match(publicJs, /body\.classList\.add\("is-detail-route"\)/);
     assert.match(publicJs, /window\.addEventListener\("hashchange"/);
+    assert.match(publicCss, /body\.is-detail-route/);
     assert.match(publicCss, /\.detail-breadcrumb/);
     assert.match(publicCss, /\.detail-status/);
     assert.match(publicCss, /\.card-link:hover/);
+    assert.match(publicCss, /\.contact-card a:not\(\.btn\)/);
   });
 
   await runCheck("publieke leveranciersdetailpagina koppelt relaties via bestaande websitepagina's", () => {
@@ -401,26 +407,42 @@ export async function runPublicContentChecks() {
     const config = readText("playwright.config.mjs");
     const publicSpec = readText("tests/public-demo-flow.spec.mjs");
     const studioSpec = readText("tests/studio-smoke.spec.mjs");
+    const e2eRunner = readText("tests/run-e2e.mjs");
+    const staticServer = readText("tests/serve-static.mjs");
     const testReadme = readText("tests/README.md");
 
-    assert.equal(packageJson.scripts["test:e2e"], "playwright test");
+    assert.equal(packageJson.scripts["test:e2e"], "node tests/run-e2e.mjs");
     assert.equal(packageJson.scripts["test:e2e:report"], "playwright show-report");
     assert.match(config, /webServer/);
+    assert.match(config, /PLAYWRIGHT_SKIP_WEBSERVER/);
     assert.match(config, /tests\/serve-static\.mjs/);
+    assert.match(config, /name: "desktop"/);
+    assert.match(config, /name: "tablet"/);
+    assert.match(config, /name: "mobile"/);
     assert.match(publicSpec, /data-home-article-grid/);
     assert.match(publicSpec, /data-public-article-overview/);
     assert.match(publicSpec, /data-public-supplier-overview/);
+    assert.match(publicSpec, /data-public-supplier-extra/);
+    assert.match(publicSpec, /data-public-brochure-intro/);
     assert.match(publicSpec, /data-public-brochure-overview/);
+    assert.match(publicSpec, /toHaveCSS\("color", "rgb\(255, 255, 255\)"\)/);
+    assert.match(publicSpec, /overzicht en detail blijven gescheiden/);
+    assert.match(publicSpec, /waitForLoadState\("networkidle", \{ timeout: 3000 \}\)/);
     assert.match(studioSpec, /#\/dashboard/);
     assert.match(studioSpec, /#\/governance/);
     assert.match(studioSpec, /#\/leveranciers/);
     assert.match(studioSpec, /#\/brochures/);
     assert.match(studioSpec, /#\/kennisbank/);
     assert.match(studioSpec, /#\/bibliotheek/);
+    assert.match(e2eRunner, /startStaticServer/);
+    assert.match(e2eRunner, /closeStaticServer/);
+    assert.match(e2eRunner, /PLAYWRIGHT_SKIP_WEBSERVER/);
+    assert.match(staticServer, /export function startStaticServer/);
+    assert.match(staticServer, /export function closeStaticServer/);
     assert.match(testReadme, /npm install/);
     assert.match(testReadme, /npx playwright install/);
     assert.doesNotMatch(
-      [config, publicSpec, studioSpec, testReadme].join("\n"),
+      [config, publicSpec, studioSpec, e2eRunner, staticServer, testReadme].join("\n"),
       /\.github|workflows|deploy|publicatieknop|cms-framework|database|backend|api\.github|Octokit/i
     );
   });

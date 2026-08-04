@@ -63,6 +63,14 @@ img {
   display: none !important;
 }
 
+body.is-detail-route [data-public-article-overview],
+body.is-detail-route [data-public-supplier-overview],
+body.is-detail-route [data-public-supplier-extra],
+body.is-detail-route [data-public-brochure-intro],
+body.is-detail-route [data-public-brochure-overview] {
+  display: none !important;
+}
+
 button,
 input {
   font: inherit;
@@ -339,13 +347,19 @@ input {
   transform: translateY(-1px);
 }
 
+.btn:active {
+  transform: translateY(0);
+}
+
 .btn-primary {
   color: var(--white);
   background: var(--blue);
   box-shadow: 0 15px 34px rgba(0, 79, 159, 0.24);
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  color: var(--white);
   background: var(--blue-dark);
 }
 
@@ -355,7 +369,9 @@ input {
   border-color: var(--line);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  color: var(--ink);
   border-color: rgba(0, 79, 159, 0.35);
   box-shadow: var(--shadow-soft);
 }
@@ -918,7 +934,8 @@ h4 {
 }
 
 .filter-button.is-active,
-.filter-button:hover {
+.filter-button:hover,
+.filter-button:focus-visible {
   color: var(--white);
   background: var(--blue);
   border-color: var(--blue);
@@ -1004,7 +1021,7 @@ h4 {
   gap: 8px;
 }
 
-.contact-card a {
+.contact-card a:not(.btn) {
   color: var(--blue);
   font-weight: 750;
 }

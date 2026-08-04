@@ -69,6 +69,10 @@
     `;
   }
 
+  if (selectedHashSlug()) {
+    body.classList.add("is-detail-route");
+  }
+
   const links = [
     { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
     { id: "leveranciers", title: "Leveranciers", path: "pages/leveranciers.html", description: "Partners, merken en productgroepen" },
@@ -408,6 +412,11 @@
     `;
   }
 
+  function updateDocumentTitle(title) {
+    if (!title) return;
+    document.title = `${title} | Non-Food Hub`;
+  }
+
   function renderArticleSupplierLinks(article) {
     const suppliers = articleSuppliers(article);
     if (!suppliers.length) return "";
@@ -460,6 +469,7 @@
         }
 
         if (selectedSlug) {
+          body.classList.add("is-detail-route");
           toggleElement(overviewSection, true);
           toggleElement(detailSection, false);
           bodyMount.innerHTML = selectedArticle
@@ -470,11 +480,14 @@
                 href("pages/inspiratie.html"),
                 "Terug naar inspiratie"
               );
+          updateDocumentTitle(selectedArticle?.title || "Artikel niet gevonden");
           setupAnimations();
           scrollToHashTarget();
           return;
         }
 
+        body.classList.remove("is-detail-route");
+        updateDocumentTitle("Inspiratie");
         toggleElement(overviewSection, false);
         toggleElement(detailSection, true);
         grid.innerHTML = articles.map(renderPublicArticleCard).join("");
@@ -727,6 +740,7 @@
     const detailMount = document.querySelector("[data-public-supplier-detail]");
     const overviewSection = document.querySelector("[data-public-supplier-overview]");
     const detailSection = document.querySelector("[data-public-supplier-detail-section]");
+    const extraSection = document.querySelector("[data-public-supplier-extra]");
     if (!grid || !detailMount) return;
 
     try {
@@ -755,8 +769,10 @@
         }
 
         if (selectedSlug) {
+          body.classList.add("is-detail-route");
           toggleElement(overviewSection, true);
           toggleElement(detailSection, false);
+          toggleElement(extraSection, true);
           detailMount.innerHTML = selectedSupplier
             ? renderPublicSupplierDetail(selectedSupplier)
             : renderDetailEmptyState(
@@ -765,13 +781,17 @@
                 href("pages/leveranciers.html"),
                 "Terug naar leveranciers"
               );
+          updateDocumentTitle(selectedSupplier?.name || "Leverancier niet gevonden");
           setupAnimations();
           scrollToHashTarget();
           return;
         }
 
+        body.classList.remove("is-detail-route");
+        updateDocumentTitle("Leveranciers");
         toggleElement(overviewSection, false);
         toggleElement(detailSection, true);
+        toggleElement(extraSection, false);
         grid.innerHTML = suppliers.map(renderPublicSupplierCard).join("");
         detailMount.innerHTML = "";
         setupAnimations();
@@ -797,6 +817,7 @@
 
     const grid = document.querySelector("[data-public-brochure-grid]");
     const detailMount = document.querySelector("[data-public-brochure-detail]");
+    const introSection = document.querySelector("[data-public-brochure-intro]");
     const overviewSection = document.querySelector("[data-public-brochure-overview]");
     const detailSection = document.querySelector("[data-public-brochure-detail-section]");
     if (!grid) return;
@@ -834,6 +855,8 @@
         }
 
         if (selectedSlug) {
+          body.classList.add("is-detail-route");
+          toggleElement(introSection, true);
           toggleElement(overviewSection, true);
           toggleElement(detailSection, false);
           if (detailMount) {
@@ -846,11 +869,15 @@
                   "Terug naar brochures"
                 );
           }
+          updateDocumentTitle(selectedBrochure?.title || "Brochure niet gevonden");
           setupAnimations();
           scrollToHashTarget();
           return;
         }
 
+        body.classList.remove("is-detail-route");
+        updateDocumentTitle("Brochures & Catalogi");
+        toggleElement(introSection, false);
         toggleElement(overviewSection, false);
         toggleElement(detailSection, true);
         grid.innerHTML = brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById)).join("");

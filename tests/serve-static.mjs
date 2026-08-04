@@ -2,7 +2,7 @@ import { createReadStream, existsSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve, sep } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const rootDir = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const port = Number(process.env.PORT || 4173);
@@ -38,7 +38,7 @@ async function existingFile(filePath) {
   return fileStat.isFile() ? filePath : "";
 }
 
-const server = createServer(async (request, response) => {
+export const server = createServer(async (request, response) => {
   try {
     const filePath = await existingFile(requestPath(request.url));
     if (!filePath || !existsSync(filePath)) {
@@ -56,6 +56,31 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Non-Food Hub testserver draait op http://127.0.0.1:${port}`);
-});
+export function startStaticServer({ host = "127.0.0.1", listenPort = port } = {}) {
+  return new Promise((resolveStart, rejectStart) => {
+    server.once("error", rejectStart);
+    server.listen(listenPort, host, () => {
+      server.off("error", rejectStart);
+      console.log(`Non-Food Hub testserver draait op http://${host}:${listenPort}`);
+      resolveStart(server);
+    });
+  });
+}
+
+export function closeStaticServer() {
+  return new Promise((resolveClose, rejectClose) => {
+    if (!server.listening) {
+      resolveClose();
+      return;
+    }
+
+    server.close((error) => {
+      if (error) rejectClose(error);
+      else resolveClose();
+    });
+  });
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startStaticServer();
+}

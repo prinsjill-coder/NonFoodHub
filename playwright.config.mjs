@@ -1,8 +1,9 @@
 import { defineConfig } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4173";
+const useManagedServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
 
-export default defineConfig({
+const config = {
   testDir: "./tests",
   testMatch: "**/*.spec.mjs",
   timeout: 30000,
@@ -15,13 +16,32 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    trace: "retain-on-failure",
-    viewport: { width: 1366, height: 900 }
+    trace: "retain-on-failure"
   },
-  webServer: {
-    command: "node tests/serve-static.mjs",
-    url: `${baseURL}/index.html`,
-    reuseExistingServer: true,
-    timeout: 15000
-  }
-});
+  projects: [
+    {
+      name: "desktop",
+      use: { viewport: { width: 1366, height: 900 } }
+    },
+    {
+      name: "tablet",
+      use: { viewport: { width: 820, height: 1100 } }
+    },
+    {
+      name: "mobile",
+      use: { viewport: { width: 390, height: 844 } }
+    }
+  ],
+  ...(useManagedServer
+    ? {
+        webServer: {
+          command: "node tests/serve-static.mjs",
+          url: `${baseURL}/index.html`,
+          reuseExistingServer: true,
+          timeout: 15000
+        }
+      }
+    : {})
+};
+
+export default defineConfig(config);

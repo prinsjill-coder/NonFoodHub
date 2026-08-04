@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:e2e": "playwright test",
+    "test:e2e": "node tests/run-e2e.mjs",
     "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
