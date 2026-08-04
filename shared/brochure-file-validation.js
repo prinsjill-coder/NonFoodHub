@@ -87,9 +87,9 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
   }
 
   if (!hasValue(brochure.slug)) {
-    errors.push(createIssue(`${path}.slug`, "slug is verplicht."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam is verplicht."));
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(brochure.slug))) {
-    errors.push(createIssue(`${path}.slug`, "slug moet lowercase kebab-case zijn."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
   if (!isContentStatus(brochure.status)) {
@@ -127,14 +127,14 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
 
   if (brochure.pdfFile) {
     if (!isRelativeProjectPath(String(brochure.pdfFile))) {
-      errors.push(createIssue(`${path}.pdfFile`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
+      errors.push(createIssue(`${path}.pdfFile`, "Gebruik een PDF-bestand binnen het project, geen lokaal computerpad."));
     } else if (!String(brochure.pdfFile).toLowerCase().endsWith(".pdf")) {
       errors.push(createIssue(`${path}.pdfFile`, "pdfFile moet eindigen op .pdf."));
     }
   }
 
   if (brochure.thumbnail && !isRelativeProjectPath(String(brochure.thumbnail))) {
-    errors.push(createIssue(`${path}.thumbnail`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
+    errors.push(createIssue(`${path}.thumbnail`, "Gebruik een afbeelding binnen het project, geen lokaal computerpad."));
   }
 
   if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {
@@ -209,7 +209,7 @@ export function validateBrochureFile(brochureData, supplierData) {
     const normalizedSlug = normalizeSlug(brochure?.slug);
     if (normalizedSlug) {
       if (slugs.has(normalizedSlug)) {
-        errors.push(createIssue(`items[${index}].slug`, `Dubbele genormaliseerde slug: ${normalizedSlug}.`));
+        errors.push(createIssue(`items[${index}].slug`, `Dubbele URL-naam: ${normalizedSlug}.`));
       }
       slugs.set(normalizedSlug, index);
     }

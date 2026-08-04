@@ -2,7 +2,7 @@ export const CONTENT_STATUSES = ["concept", "review", "published", "hidden", "ar
 
 export const CONTENT_STATUS_LABELS = {
   concept: "Concept",
-  review: "Ter controle",
+  review: "Review",
   published: "Gepubliceerd",
   hidden: "Verborgen",
   archived: "Gearchiveerd"

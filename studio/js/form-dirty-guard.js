@@ -74,7 +74,7 @@ export function createFormDirtyGuard() {
         title: options.title || "Niet-toegepaste formulierwijzigingen verwerpen?",
         message:
           options.message ||
-          "Er staan wijzigingen in het geopende formulier die nog niet zijn opgeslagen in de werksessie. Als je doorgaat, worden alleen deze formulierwijzigingen verworpen.",
+          "Er staan wijzigingen in het geopende formulier die nog niet zijn opgeslagen in de bewerkversie. Als je doorgaat, worden alleen deze formulierwijzigingen verworpen.",
         confirmLabel: options.confirmLabel || "Wijzigingen verwerpen",
         cancelLabel: options.cancelLabel || "Blijven bewerken",
         allowEscape: true,

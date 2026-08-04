@@ -45,7 +45,7 @@ function addMissingFileWarning({ item, index, key, label, registeredMedia, warni
   }
 
   if (!registeredMedia.has(value)) {
-    const issue = createIssue(path, `${label} staat niet geregistreerd in media.json.`);
+    const issue = createIssue(path, `${label} staat nog niet in Media.`);
     addUniqueIssue(warnings, issue);
     addUniqueIssue(missingFiles, issue);
   }
@@ -85,11 +85,11 @@ function collectPublishedWarnings(item, index, warnings) {
   }
 
   if (!hasValue(item.filePath)) {
-    addUniqueIssue(warnings, createIssue(`items[${index}].filePath`, "Bestandspad is belangrijk voor gepubliceerde bibliotheekitems."));
+    addUniqueIssue(warnings, createIssue(`items[${index}].filePath`, "Bestand is belangrijk voor gepubliceerde bibliotheekitems."));
   }
 
   if (!hasValue(item.thumbnailPath)) {
-    addUniqueIssue(warnings, createIssue(`items[${index}].thumbnailPath`, "Thumbnailpad is belangrijk voor gepubliceerde bibliotheekitems."));
+    addUniqueIssue(warnings, createIssue(`items[${index}].thumbnailPath`, "Afbeelding is belangrijk voor gepubliceerde bibliotheekitems."));
   }
 }
 
@@ -110,7 +110,7 @@ export function getLibraryQualityReport(libraryData = {}, supplierData = {}, bro
       item,
       index,
       key: "filePath",
-      label: "Bestandspad",
+      label: "Bestand",
       registeredMedia,
       warnings,
       missingFiles
@@ -119,7 +119,7 @@ export function getLibraryQualityReport(libraryData = {}, supplierData = {}, bro
       item,
       index,
       key: "thumbnailPath",
-      label: "Thumbnailpad",
+      label: "Afbeelding",
       registeredMedia,
       warnings,
       missingFiles

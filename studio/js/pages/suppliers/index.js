@@ -22,7 +22,7 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
     return renderNotFoundState({
       title: "Leverancier niet gevonden",
       message:
-        "Deze leverancier staat niet in de actieve Studio-sessie. Mogelijk is de URL-naam gewijzigd of is de leverancier niet aanwezig in het laatst geladen bestand.",
+        "Deze leverancier staat niet in de bewerkversie. Mogelijk is de URL-naam gewijzigd of staat de leverancier niet in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/leveranciers",
       backLabel: "Terug naar leveranciers"

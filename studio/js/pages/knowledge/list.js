@@ -131,9 +131,9 @@ function categoryOptions(articleData) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
-  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
-  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  if (snapshot.exportedCurrent) return "Gegevens geexporteerd, website nog niet bijgewerkt";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geexporteerd";
+  if (snapshot.dirty) return "Bewerkversie wijkt af van het geladen bestand";
   return "Gelijk aan het geladen bestand";
 }
 
@@ -143,7 +143,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
+      "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
     tone: "success"
   });
 }
@@ -152,8 +152,8 @@ function renderImportNotice(sessionSnapshot) {
   if (sessionSnapshot.sourceType !== "imported") return "";
 
   return renderNotice({
-    title: "Geïmporteerde kennisbankbron actief",
-    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    title: "Geimporteerde kennisbankgegevens actief",
+    message: `${sessionSnapshot.sourceFileName} is geladen als bewerkversie. Importeren publiceert niets en past het beheerbestand niet direct aan.`,
     tone: "info"
   });
 }
@@ -189,7 +189,7 @@ function renderQualitySummary(qualityReport) {
         <article class="studio-card studio-metric-card">
           <h3>Ontbrekende media</h3>
           <p class="studio-metric-value">${qualityReport.stats.missingMediaRegistrations}</p>
-          <p class="studio-muted">Hero-afbeeldingen zonder registratie in media.json.</p>
+          <p class="studio-muted">Headerafbeeldingen die nog niet in Media staan.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Blokkades</h3>
@@ -238,11 +238,11 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "articles.json",
       sourceDescription:
-        "Wijzigingen blijven alleen in deze Studio-sessie totdat je artikelgegevens exporteert.",
+        "Wijzigingen blijven alleen in de bewerkversie totdat je artikelgegevens exporteert.",
       exportMessage:
-        "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
+        "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
       statusText: renderSessionStatus,
-      restoreLabel: "Kennisbanksessie herstellen",
+      restoreLabel: "Bewerkversie herstellen",
       restoreAttributes: { "data-article-restore": true }
     })}
 
@@ -251,10 +251,10 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     ${renderImportSummary(sessionSnapshot.lastValidationReport)}
 
     ${renderNotice({
-      title: "Tijdelijke Studio-sessie",
+      title: "Bewerkversie",
       message:
         articleData.storage?.message ||
-        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
       tone: "warning"
     })}
 
@@ -270,7 +270,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       valid: qualityReport.valid,
       errors: qualityReport.errors,
       warnings: qualityReport.warnings,
-      sourceFileName: "actieve kennisbanksessie"
+      sourceFileName: "actieve bewerkversie"
     }, {
       title: "Kwaliteitsrapport kennisbank"
     })}
@@ -280,17 +280,17 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">In deze Studio-sessie geladen.</p>
+          <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Ter controle</h3>
+          <h3>Review</h3>
           <p class="studio-metric-value">${counts.statuses.review || 0}</p>
           <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Afbeelding ontbreekt</h3>
           <p class="studio-metric-value">${counts.missingHeroImage}</p>
-          <p class="studio-muted">Artikelen zonder hero-afbeeldingpad.</p>
+          <p class="studio-muted">Artikelen zonder bestand van de headerafbeelding.</p>
         </article>
       </div>
     </section>
@@ -300,7 +300,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     ${renderFilterToolbar({
       scope: "article",
       ariaLabel: "Kennisbankfilters",
-      searchPlaceholder: "Zoek op titel, slug of samenvatting",
+      searchPlaceholder: "Zoek op titel, URL-naam of samenvatting",
       filters: [
         { name: "status", label: "Status", options: statusOptions(articleData) },
         { name: "category", label: "Categorie", options: categoryOptions(articleData) }
@@ -358,10 +358,10 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
   restoreButton?.addEventListener("click", async () => {
     if (articleSession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Kennisbanksessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve kennisbanksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

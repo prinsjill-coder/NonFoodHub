@@ -29,7 +29,7 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
     return renderNotFoundState({
       title: "Kennisbankartikel niet gevonden",
       message:
-        "Dit artikel staat niet in de actieve Studio-sessie. Mogelijk is de URL-naam gewijzigd of is het artikel niet aanwezig in het laatst geladen bestand.",
+        "Dit artikel staat niet in de bewerkversie. Mogelijk is de URL-naam gewijzigd of staat het artikel niet in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/kennisbank",
       backLabel: "Terug naar kennisbank"

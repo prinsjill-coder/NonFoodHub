@@ -15,7 +15,7 @@ const DEFAULT_STEPS = [
   },
   {
     label: "Gepubliceerd",
-    text: "De content staat pas live na controle, overdracht, commit en push."
+    text: "De content staat pas live na controle, overdracht en Website bijwerken."
   }
 ];
 

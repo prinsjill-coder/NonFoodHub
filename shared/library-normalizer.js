@@ -33,7 +33,7 @@ export const LIBRARY_ITEM_KEYS = [
 ];
 
 export const LIBRARY_STORAGE_NOTICE =
-  "Bibliotheekitems worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen.";
+  "Bibliotheekitems worden in de bewerkversie aangepast. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

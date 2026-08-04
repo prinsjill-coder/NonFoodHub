@@ -34,7 +34,7 @@ export const MEDIA_ASSET_KEYS = [
 ];
 
 export const MEDIA_STORAGE_NOTICE =
-  "Media-assets worden alleen in deze Studio-sessie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief.";
+  "Mediabestanden worden alleen in de bewerkversie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

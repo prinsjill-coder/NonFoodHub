@@ -23,7 +23,7 @@ export const SUPPLIER_KEYS = [
 ];
 
 export const SUPPLIER_STORAGE_NOTICE =
-  "Leveranciers worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij.";
+  "Leveranciers worden in de bewerkversie aangepast. Gebruik Gegevens exporteren en daarna Website bijwerken voordat wijzigingen zichtbaar worden.";
 
 const DEFAULT_TYPE_LABELS = {
   leverancier: "Leverancier",

@@ -40,7 +40,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: supplierCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve Studio-sessie; websiteweergave loopt via gecontroleerde content."
+        note: "Gelezen uit de bewerkversie; de website gebruikt gecontroleerde publieke gegevens."
       };
     }
 
@@ -49,7 +49,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: brochureCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve brochuresessie; websiteweergave loopt via gecontroleerde content."
+        note: "Gelezen uit de bewerkversie; de website gebruikt gecontroleerde publieke gegevens."
       };
     }
 
@@ -67,7 +67,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve kennisbanksessie; websiteweergave loopt via gecontroleerde content."
+        note: "Gelezen uit de bewerkversie van de kennisbank; de website gebruikt gecontroleerde publieke gegevens."
       };
     }
 
@@ -76,7 +76,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve bibliotheeksessie; nog geen websiteweergave actief."
+        note: "Gelezen uit de bewerkversie van de bibliotheek; nog geen websiteweergave actief."
       };
     }
 
@@ -85,7 +85,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryQuality.stats.missingFiles,
         state: libraryQuality.stats.missingFiles ? "review" : "foundation",
-        note: "Bibliotheekitems met ontbrekende of niet geregistreerde bestands- en thumbnailpaden."
+        note: "Bibliotheekitems met ontbrekende of nog niet geregistreerde bestanden en afbeeldingen."
       };
     }
 
@@ -94,7 +94,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de actieve bibliotheeksessie; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de bewerkversie van de bibliotheek; contentstatus publiceert niets automatisch."
       };
     }
 
@@ -112,7 +112,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de actieve kennisbanksessie; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de bewerkversie van de kennisbank; contentstatus publiceert niets automatisch."
       };
     }
 
@@ -130,7 +130,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleQuality.stats.missingMediaRegistrations,
         state: articleQuality.stats.missingMediaRegistrations ? "review" : "foundation",
-        note: "Hero-afbeeldingen zonder registratie in media.json."
+        note: "Headerafbeeldingen die nog niet in Media staan."
       };
     }
 
@@ -157,7 +157,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: relationStats.mediaWithoutUsage,
         state: relationStats.mediaWithoutUsage ? "review" : "foundation",
-        note: "Media-assets zonder gebruik in bestaande contentpadvelden."
+        note: "Mediabestanden zonder gebruik in leveranciers, brochures of artikelen."
       };
     }
 
@@ -232,7 +232,7 @@ function renderPublicModuleOverview(readinessReport) {
       <div class="studio-card-head">
         <div>
           <h3>Websiteonderdelen actief</h3>
-          <p class="studio-muted">Aantallen uit de gecontroleerde websiteweergave.</p>
+          <p class="studio-muted">Aantallen uit de gecontroleerde publieke gegevens.</p>
         </div>
         ${renderStatusBadge("ready", `${modules.filter((module) => module.publication.visible).length} actief`)}
       </div>
@@ -279,7 +279,7 @@ function renderDemoReadinessSummary(readinessReport) {
     <section class="studio-section">
       <div class="studio-section-head">
         <h2>Website-overzicht</h2>
-        ${renderStatusBadge(state, state === "ready" ? "Publicatiegereed" : "Aandachtspunten")}
+        ${renderStatusBadge(state, state === "ready" ? "Publiceerbaar" : "Aandachtspunten")}
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderDashboardMetric({
@@ -290,21 +290,21 @@ function renderDemoReadinessSummary(readinessReport) {
           badgeLabel: totals.publication.visible ? "Live" : "Leeg"
         })}
         ${renderDashboardMetric({
-          label: "Publicatiegereed",
+          label: "Publiceerbaar",
           value: totals.publication.ready,
           note: "Zichtbare items zonder extra publicatiefeedback.",
           state: totals.publication.ready ? "ready" : "foundation",
           badgeLabel: "Klaar"
         })}
         ${renderDashboardMetric({
-          label: "Nog controleren",
+          label: "Review",
           value: totals.publication.review,
           note: "Zichtbare items waar relatie, context of PDF-actie nog review vraagt.",
           state: totals.publication.review ? "review" : "foundation",
           badgeLabel: "Review"
         })}
         ${renderDashboardMetric({
-          label: "Aandacht nodig",
+          label: "Nog niet publiceerbaar",
           value: totals.needs_attention,
           note: "Contentitems waar belangrijke informatie ontbreekt volgens bestaande signalen.",
           state: totals.needs_attention ? "needs_attention" : "foundation",

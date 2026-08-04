@@ -26,7 +26,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
     return renderNotFoundState({
       title: "Brochure niet gevonden",
       message:
-        "Deze brochure staat niet in de actieve Studio-sessie. Mogelijk is de URL-naam gewijzigd of is de brochure niet aanwezig in het laatst geladen bestand.",
+        "Deze brochure staat niet in de bewerkversie. Mogelijk is de URL-naam gewijzigd of staat de brochure niet in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/brochures",
       backLabel: "Terug naar brochures"

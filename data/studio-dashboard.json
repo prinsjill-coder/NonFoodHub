@@ -14,35 +14,35 @@
       "label": "Leveranciers",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit data/suppliers.json."
+      "note": "Wordt in Studio berekend uit de leveranciersgegevens."
     },
     {
       "id": "brochures",
       "label": "Brochures",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit data/brochures.json."
+      "note": "Wordt in Studio berekend uit de brochuregegevens."
     },
     {
       "id": "media",
       "label": "Media-assets",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit data/media.json."
+      "note": "Wordt in Studio berekend uit het mediaregister."
     },
     {
       "id": "articles",
       "label": "Kennisbankartikelen",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit data/articles.json."
+      "note": "Wordt in Studio berekend uit de kennisbankgegevens."
     },
     {
       "id": "articlePublished",
       "label": "Artikelen gepubliceerd",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit de actieve kennisbanksessie."
+      "note": "Wordt in Studio berekend uit de bewerkversie van de kennisbank."
     },
     {
       "id": "articleWarnings",
@@ -56,42 +56,42 @@
       "label": "Ontbrekende artikelmedia",
       "value": null,
       "state": "not_connected",
-      "note": "Hero-afbeeldingen zonder registratie in data/media.json."
+      "note": "Headerafbeeldingen die nog niet in Media staan."
     },
     {
       "id": "articlesWithoutSupplier",
       "label": "Artikelen zonder leverancier",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt berekend uit relaties tussen articles.json en suppliers.json."
+      "note": "Wordt berekend uit koppelingen tussen kennisbankartikelen en leveranciers."
     },
     {
       "id": "suppliersWithoutBrochures",
       "label": "Leveranciers zonder brochures",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt berekend uit relaties tussen suppliers.json en brochures.json."
+      "note": "Wordt berekend uit koppelingen tussen leveranciers en brochures."
     },
     {
       "id": "mediaWithoutUsage",
       "label": "Media zonder gebruik",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt berekend uit bestaande padvelden in leveranciers, brochures en artikelen."
+      "note": "Wordt berekend uit ingevulde bestanden bij leveranciers, brochures en artikelen."
     },
     {
       "id": "library",
       "label": "Bibliotheekitems",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit data/library.json."
+      "note": "Wordt in Studio berekend uit de bibliotheekgegevens."
     },
     {
       "id": "libraryPublished",
       "label": "Bibliotheek gepubliceerd",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit de actieve bibliotheeksessie."
+      "note": "Wordt in Studio berekend uit de bewerkversie van de bibliotheek."
     },
     {
       "id": "libraryWarnings",
@@ -105,7 +105,7 @@
       "label": "Bibliotheek zonder bestand",
       "value": null,
       "state": "not_connected",
-      "note": "Bibliotheekitems met ontbrekende of niet geregistreerde bestands- en thumbnailpaden."
+      "note": "Bibliotheekitems met ontbrekende of nog niet geregistreerde bestanden en afbeeldingen."
     }
   ],
   "panels": [
@@ -125,7 +125,7 @@
       "id": "missingFiles",
       "title": "Ontbrekende bestanden",
       "state": "foundation",
-      "message": "Media registreert paden en metadata. Diepere fysieke bestandscontrole gebeurt via lokale scripts en handmatige QA."
+      "message": "Media registreert bestaande bestanden en gebruiksgegevens. Bestandscontrole gebeurt via lokale checks en handmatige QA."
     }
   ],
   "quickActions": [
@@ -155,7 +155,7 @@
       "label": "Nieuw media-asset",
       "enabled": true,
       "route": "#/media/nieuw",
-      "message": "Registreer een bestaand media-asset in de statische werksessie."
+      "message": "Registreer een bestaand mediabestand in de bewerkversie."
     },
     {
       "id": "newArticle",
@@ -169,7 +169,7 @@
       "label": "Nieuw bibliotheekitem",
       "enabled": true,
       "route": "#/bibliotheek/nieuw",
-      "message": "Registreer een document of bron in de statische bibliotheeksessie."
+      "message": "Registreer een document of bron in de bewerkversie van de bibliotheek."
     },
     {
       "id": "newSpecialist",

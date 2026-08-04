@@ -75,7 +75,7 @@
       "id": "media",
       "label": "Media",
       "route": "#/media",
-      "description": "Register voor bestaande media-assets en padmetadata",
+      "description": "Register voor bestaande mediabestanden en gebruiksgegevens",
       "enabled": true
     },
     {

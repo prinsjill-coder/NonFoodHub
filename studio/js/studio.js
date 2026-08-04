@@ -101,7 +101,7 @@ function setupHashLinkGuard(state) {
     const confirmed = await state.formDirtyGuard.confirmDiscard({
       title: "Formulier verlaten?",
       message:
-        "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de werksessie."
+        "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de bewerkversie."
     });
 
     if (!confirmed) return;
@@ -139,7 +139,7 @@ async function initStudio() {
         const confirmed = await state.formDirtyGuard.confirmDiscard({
           title: "Route wijzigen?",
           message:
-            "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de werksessie."
+            "Er staan niet-toegepaste wijzigingen in het formulier. Als je doorgaat, worden deze formulierwijzigingen niet opgeslagen in de bewerkversie."
         });
 
         if (!confirmed) {

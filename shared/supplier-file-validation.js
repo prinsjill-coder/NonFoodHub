@@ -65,9 +65,9 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
   }
 
   if (!hasValue(supplier.slug)) {
-    errors.push(createIssue(`${path}.slug`, "slug is verplicht."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam is verplicht."));
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(supplier.slug))) {
-    errors.push(createIssue(`${path}.slug`, "slug moet lowercase kebab-case zijn."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
   const allowedTypes = typeIdsFromFile(supplierData);
@@ -108,7 +108,7 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
 
   ["logo", "image"].forEach((field) => {
     if (supplier[field] && !isRelativeProjectPath(String(supplier[field]))) {
-      errors.push(createIssue(`${path}.${field}`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
+      errors.push(createIssue(`${path}.${field}`, "Gebruik een bestand binnen het project, geen lokaal computerpad."));
     }
   });
 
@@ -194,7 +194,7 @@ export function validateSupplierFile(supplierData) {
     const normalizedSlug = normalizeSlug(supplier?.slug);
     if (normalizedSlug) {
       if (slugs.has(normalizedSlug)) {
-        errors.push(createIssue(`items[${index}].slug`, `Dubbele genormaliseerde slug: ${normalizedSlug}.`));
+        errors.push(createIssue(`items[${index}].slug`, `Dubbele URL-naam: ${normalizedSlug}.`));
       }
       slugs.set(normalizedSlug, index);
     }

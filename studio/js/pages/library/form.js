@@ -91,8 +91,8 @@ export function renderLibraryForm({
   const isEdit = mode === "edit";
   const title = isEdit ? `${item.title} bewerken` : "Nieuw bibliotheekitem";
   const description = isEdit
-    ? "Pas het bibliotheekitem aan in deze Studio-sessie. Bestanden en websitepublicatie blijven handmatige stappen."
-    : "Registreer een nieuw document of bron in deze Studio-sessie. Bestanden en websitepublicatie blijven handmatige stappen.";
+    ? "Pas het bibliotheekitem aan in de bewerkversie. Bestanden plaatsen en Website bijwerken blijven handmatige stappen."
+    : "Registreer een nieuw document of bron in de bewerkversie. Bestanden plaatsen en Website bijwerken blijven handmatige stappen.";
 
   return `
     ${renderPageHeader({
@@ -107,10 +107,10 @@ export function renderLibraryForm({
     </div>
 
     ${renderNotice({
-      title: "Opslaan in deze sessie",
+      title: "Opslaan in bewerkversie",
       message:
         libraryData.storage?.message ||
-        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
+        "Opslaan bewaart de wijziging in de bewerkversie. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -139,7 +139,7 @@ export function renderLibraryForm({
             label: "URL-naam",
             value: item.slug,
             required: true,
-            help: "Unieke korte naam voor routes en koppelingen."
+            help: "Deze tekst komt in de link naar dit bibliotheekitem. Voorbeeld: terras-outdoor-gids wordt #/bibliotheek/terras-outdoor-gids."
           })}
           ${renderSelectField({
             name: "status",
@@ -147,7 +147,7 @@ export function renderLibraryForm({
             value: item.status,
             options: getStatusOptions(libraryData),
             required: true,
-            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
+            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
           })}
           ${renderSelectField({
             name: "type",
@@ -176,7 +176,7 @@ export function renderLibraryForm({
             type: "number",
             value: String(item.sortOrder ?? 0),
             required: true,
-            help: "Lager getal komt eerder in overzichten."
+            help: "Lager nummer = eerder zichtbaar. Hoogste waarde: geen vaste limiet; gebruik bij voorkeur stappen van 10."
           })}
         </div>
       </section>
@@ -193,15 +193,15 @@ export function renderLibraryForm({
         <div class="studio-form-grid">
           ${renderTextField({
             name: "filePath",
-            label: "Bestandspad",
+            label: "Bestand",
             value: item.filePath,
-            help: "Optioneel relatief pad naar een bestaand bestand. Uploaden gebeurt nog niet in Studio."
+            help: "Vul het bestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/downloads/library/terras-outdoor-gids.pdf. Uploaden gebeurt nog niet."
           })}
           ${renderTextField({
             name: "thumbnailPath",
-            label: "Thumbnailpad",
+            label: "Afbeelding",
             value: item.thumbnailPath,
-            help: "Optioneel relatief projectpad naar een afbeelding."
+            help: "Vul het beeldbestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/library/terras-outdoor-gids.jpg."
           })}
           ${renderTextField({
             name: "tags",
@@ -219,30 +219,30 @@ export function renderLibraryForm({
           label: "Gekoppelde leveranciers",
           values: item.supplierIds,
           options: supplierOptions(supplierData),
-          help: "Relaties gebruiken bestaande leverancier-id's."
+          help: "Koppel leveranciers zodat duidelijk is bij welk assortiment dit document hoort."
         })}
         ${renderRelationCheckboxGroup({
           name: "brochureIds",
           label: "Gekoppelde brochures",
           values: item.brochureIds,
           options: brochureOptions(brochureData),
-          help: "Relaties gebruiken bestaande brochure-id's."
+          help: "Koppel brochures zodat bezoekers later vanuit collecties naar dit document kunnen gaan."
         })}
         ${renderRelationCheckboxGroup({
           name: "articleIds",
           label: "Gekoppelde kennisbankartikelen",
           values: item.articleIds,
           options: articleOptions(articleData),
-          help: "Relaties gebruiken bestaande artikel-id's."
+          help: "Koppel kennisbankartikelen zodat inspiratie en documenten bij elkaar blijven."
         })}
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in bewerkversie om ze vast te leggen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/bibliotheek",
@@ -319,7 +319,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     librarySession.applyLibraryItem(item, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in deze sessie",
+      title: "Opgeslagen in bewerkversie",
       message:
         "Het bibliotheekitem is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"

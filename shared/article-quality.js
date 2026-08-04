@@ -44,18 +44,18 @@ function addRequiredIssue({ article, index, field, label, errors, warnings, requ
 
 function validateArticleQuality(article, index, supplierIds, brochureIds, registeredMedia, errors, warnings) {
   addRequiredIssue({ article, index, field: "title", label: "Titel", errors, warnings, requiredForReview: true, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "slug", label: "Slug", errors, warnings, requiredForReview: true, requiredForPublished: true });
+  addRequiredIssue({ article, index, field: "slug", label: "URL-naam", errors, warnings, requiredForReview: true, requiredForPublished: true });
   addRequiredIssue({ article, index, field: "summary", label: "Samenvatting", errors, warnings, requiredForReview: true, requiredForPublished: true });
   addRequiredIssue({ article, index, field: "body", label: "Inhoud", errors, warnings, requiredForPublished: true });
   addRequiredIssue({ article, index, field: "categories", label: "Categorie", errors, warnings, requiredForReview: true, requiredForPublished: true });
   addRequiredIssue({ article, index, field: "updatedAt", label: "Bijgewerkt op", errors, warnings, requiredForPublished: true });
 
   if (article.status === "published" && !hasValue(article.heroImage)) {
-    errors.push(createIssue(`items[${index}].heroImage`, "Hero afbeelding is verplicht voor gepubliceerde artikelen."));
+    errors.push(createIssue(`items[${index}].heroImage`, "Headerafbeelding is verplicht voor gepubliceerde artikelen."));
   }
 
   if (hasValue(article.heroImage) && !registeredMedia.has(article.heroImage)) {
-    warnings.push(createIssue(`items[${index}].heroImage`, "Hero afbeelding staat niet geregistreerd in media.json"));
+    warnings.push(createIssue(`items[${index}].heroImage`, "Headerafbeelding staat nog niet in Media."));
   }
 
   arrayValues(article.supplierIds).forEach((supplierId, relationIndex) => {

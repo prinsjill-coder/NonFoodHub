@@ -319,9 +319,9 @@ async function runStudioChecks() {
     assert.equal(libraryItem?.enabled, true);
     assert.equal(libraryItem?.route, "#/bibliotheek");
     assert.equal(articleMetric?.state, "not_connected");
-    assert.match(articleMetric?.note || "", /data\/articles\.json/);
+    assert.match(articleMetric?.note || "", /kennisbankgegevens/);
     assert.equal(libraryMetric?.state, "not_connected");
-    assert.match(libraryMetric?.note || "", /data\/library\.json/);
+    assert.match(libraryMetric?.note || "", /bibliotheekgegevens/);
     assert.equal(articleAction?.enabled, true);
     assert.equal(articleAction?.route, "#/kennisbank/nieuw");
     assert.equal(libraryAction?.enabled, true);
@@ -475,7 +475,7 @@ async function runStudioChecks() {
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Brochures overzichtsbeeld/);
     assert.match(detailHtml, /Gebruikt door/);
-    assert.match(detailHtml, /Geen leveranciers gebruiken dit pad/);
+    assert.match(detailHtml, /Nog geen leveranciers gebruiken dit bestand/);
     assert.match(usedDetailHtml, /Amefa/);
     assert.match(usedDetailHtml, /Amefa for Professionals 2026/);
     assert.match(usedDetailHtml, /href="#\/leveranciers\/amefa"/);
@@ -511,8 +511,8 @@ async function runStudioChecks() {
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw artikel/);
     assert.match(newHtml, /data-article-form/);
-    assert.match(newHtml, /Hero afbeelding/);
-    assert.match(newHtml, /Relatief pad naar een bestaande afbeelding/);
+    assert.match(newHtml, /Bestand van de headerafbeelding/);
+    assert.match(newHtml, /assets\/images\/blog-terrace\.png/);
     assert.match(newHtml, /Inspiratie/);
     assert.doesNotMatch(newHtml, /Hoofdafbeelding/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
@@ -527,7 +527,7 @@ async function runStudioChecks() {
     assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
     assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
-    assert.match(detailHtml, /Hero afbeelding/);
+    assert.match(detailHtml, /Headerafbeelding/);
     assert.match(editHtml, /Terras &amp; outdoor tafelpresentatie bewerken/);
   });
 
@@ -573,7 +573,7 @@ async function runStudioChecks() {
     assert.match(exportHtml, /library\.json/);
     assert.doesNotMatch(exportHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Churchill Combined Brochure 2026/);
-    assert.match(detailHtml, /Bestandspad/);
+    assert.match(detailHtml, /Bestand/);
     assert.match(detailHtml, /href="#\/leveranciers\/churchill"/);
     assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
     assert.match(editHtml, /Churchill Combined Brochure 2026 bewerken/);
@@ -753,7 +753,7 @@ async function runStudioChecks() {
       supplierData: supplierSession.getWorkingData(),
       sessionSnapshot: supplierSession.snapshot()
     });
-    assert.match(html, /Geïmporteerde sessiebron actief/);
+    assert.match(html, /Geimporteerde bewerkversie actief/);
     assert.match(html, /Importeren publiceert niets/);
 
     const exportResult = supplierSession.prepareExport();
@@ -762,8 +762,8 @@ async function runStudioChecks() {
       supplierData: supplierSession.getWorkingData(),
       sessionSnapshot: supplierSession.snapshot()
     });
-    assert.match(html, /Dit bestand is alleen gedownload/);
-    assert.match(html, /GitHub Desktop/);
+    assert.match(html, /Dit bestand is gedownload/);
+    assert.match(html, /Website bijwerken/);
   });
 
   await runCheck("geen window.confirm, localStorage of sessionStorage in implementatie", () => {

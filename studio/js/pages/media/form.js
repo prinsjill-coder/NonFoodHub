@@ -36,8 +36,8 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
   const isEdit = mode === "edit";
   const title = isEdit ? `${asset.title} bewerken` : "Nieuw media-asset";
   const description = isEdit
-    ? "Pas de mediagegevens aan in deze Studio-sessie. Dit uploadt, verplaatst of publiceert geen bestanden."
-    : "Registreer een bestaand bestand in deze Studio-sessie. Dit uploadt, verplaatst of publiceert geen bestanden.";
+    ? "Pas de mediagegevens aan in de bewerkversie. Dit uploadt, verplaatst of publiceert geen bestanden."
+    : "Registreer een bestaand bestand in de bewerkversie. Dit uploadt, verplaatst of publiceert geen bestanden.";
 
   return `
     ${renderPageHeader({
@@ -52,10 +52,10 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
     </div>
 
     ${renderNotice({
-      title: "Opslaan in deze sessie",
+      title: "Opslaan in bewerkversie",
       message:
         mediaData.storage?.message ||
-        "Opslaan past alleen deze Studio-sessie aan. Het beheerbestand en de website veranderen pas na handmatige overdracht.",
+        "Opslaan past alleen de bewerkversie aan. Het beheerbestand en de website veranderen pas na handmatige overdracht.",
       tone: "warning"
     })}
 
@@ -86,10 +86,10 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
           })}
           ${renderTextField({
             name: "file",
-            label: "Bestandspad",
+            label: "Bestand",
             value: asset.file,
             required: true,
-            help: "Relatief projectpad, bijvoorbeeld assets/images/brochures.png. Geen lokaal pad of file-url."
+            help: "Vul het bestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/brochures.png. Uploaden gebeurt nog niet."
           })}
           ${renderSelectField({
             name: "type",
@@ -128,19 +128,19 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             type: "number",
             value: String(asset.sortOrder ?? 0),
             required: true,
-            help: "Lager getal komt eerder in overzichten."
+            help: "Lager nummer = eerder zichtbaar. Hoogste waarde: geen vaste limiet; gebruik bij voorkeur stappen van 10."
           })}
         </div>
       </section>
 
       <section class="studio-form-section">
-        <h2>Metadata</h2>
+        <h2>Gegevens</h2>
         <div class="studio-form-grid">
           ${renderTextField({
             name: "alt",
             label: "Alt-tekst",
             value: asset.alt,
-            help: "Verplicht voor afbeeldingsassets met status Ter controle of Gepubliceerd."
+            help: "Verplicht voor afbeeldingen met status Review of Gepubliceerd. Beschrijf kort wat op de afbeelding staat."
           })}
           ${renderTextField({
             name: "fileSize",
@@ -173,11 +173,11 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in bewerkversie om ze vast te leggen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/media",
@@ -233,9 +233,9 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     mediaSession.applyMediaAsset(asset, form.dataset.originalId || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in deze sessie",
+      title: "Opgeslagen in bewerkversie",
       message:
-        "Het media-asset is toegepast in deze Studio-sessie. Uploads, bestandsplaatsing en publicatie zijn niet actief.",
+        "Het media-asset is toegepast in de bewerkversie. Uploads, bestandsplaatsing en publicatie zijn niet actief.",
       tone: "success"
     });
     window.location.hash = `#/media/${asset.id}`;

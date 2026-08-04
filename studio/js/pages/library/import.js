@@ -54,7 +54,7 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
-      "Het lezen van het bestand is afgebroken. De actieve bibliotheeksessie is niet gewijzigd.",
+      "Het lezen van het bestand is afgebroken. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
@@ -62,14 +62,14 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
-      "Het bestand kon niet worden gelezen. De actieve bibliotheeksessie is niet gewijzigd.",
+      "Het bestand kon niet worden gelezen. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
 
   return createImportReport(
     "import.json",
-    "Het bestand heeft niet het verwachte gegevensformaat. De actieve bibliotheeksessie is niet gewijzigd.",
+    "Het bestand heeft niet het verwachte gegevensformaat. De bewerkversie is niet gewijzigd.",
     fileName || "onbekend bestand"
   );
 }
@@ -85,7 +85,7 @@ export function validateLibraryImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De actieve bibliotheeksessie is niet gewijzigd.",
+        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De bewerkversie is niet gewijzigd.",
         "geen bestand"
       )
     };
@@ -96,7 +96,7 @@ export function validateLibraryImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Kies een gegevensbestand met de extensie .json. De actieve bibliotheeksessie is niet gewijzigd.",
+        "Kies een gegevensbestand met de extensie .json. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -107,7 +107,7 @@ export function validateLibraryImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Het bestand is groter dan 1 MB. Kies een kleiner library.json-bestand. De actieve bibliotheeksessie is niet gewijzigd.",
+        "Het bestand is groter dan 1 MB. Kies een kleiner library.json-bestand. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -117,9 +117,9 @@ export function validateLibraryImportFile(file) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
-  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde bibliotheekwijzigingen";
-  if (snapshot.dirty) return "Niet-opgeslagen bibliotheekwijzigingen";
+  if (snapshot.exportedCurrent) return "Gegevens geexporteerd, overdracht nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Bibliotheekwijzigingen nog niet geexporteerd";
+  if (snapshot.dirty) return "Bibliotheekwijzigingen nog niet opgeslagen";
   return "Gelijk aan het geladen bestand";
 }
 
@@ -137,7 +137,7 @@ function renderImportSummary(report) {
         <article class="studio-card studio-metric-card">
           <h3>Nieuw</h3>
           <p class="studio-metric-value">${Number(report.newItems || 0)}</p>
-          <p class="studio-muted">Nog niet aanwezig in de huidige werksessie.</p>
+          <p class="studio-muted">Nog niet aanwezig in de bewerkversie.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Gewijzigd</h3>
@@ -156,12 +156,12 @@ function renderImportSummary(report) {
 
 async function confirmLibraryImport(report, snapshot) {
   const dirtyMessage = snapshot.dirty
-    ? " De actieve bibliotheeksessie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
+    ? " De bewerkversie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
     : "";
 
   return confirmStudioAction({
     title: "Bibliotheekbestand importeren?",
-    message: `${report.sourceFileName} bevat ${report.itemCount} bibliotheekitems. Importeren vervangt alleen deze Studio-sessie; de website verandert nog niet.${dirtyMessage}`,
+    message: `${report.sourceFileName} bevat ${report.itemCount} bibliotheekitems. Importeren vervangt alleen de bewerkversie; de website verandert nog niet.${dirtyMessage}`,
     confirmLabel: "Gegevens importeren",
     cancelLabel: "Annuleren",
     tone: "warning"
@@ -221,7 +221,7 @@ export function renderLibraryImportPage({ sessionSnapshot }) {
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
       title: "Bibliotheekgegevens importeren",
-      description: "Controleer een gegevensbestand en laad het alleen in deze Studio-sessie."
+      description: "Controleer een gegevensbestand en laad het alleen in de bewerkversie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -232,18 +232,18 @@ export function renderLibraryImportPage({ sessionSnapshot }) {
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Importeren vervangt alleen deze Studio-sessie. De website verandert nog niet.",
+        "Importeren vervangt alleen de bewerkversie. De website verandert nog niet.",
       exportMessage:
-        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en gebruik daarna Website bijwerken.",
       statusText: renderSessionStatus,
-      restoreLabel: "Bibliotheeksessie herstellen",
+      restoreLabel: "Bewerkversie herstellen",
       restoreAttributes: { "data-library-restore": true }
     })}
 
     ${renderNotice({
       title: "Importeren is geen publicatie",
       message:
-        "Een geldig bestand wordt lokaal gelezen en pas na bevestiging toegepast op deze Studio-sessie. De website verandert nog niet.",
+        "Een geldig bestand wordt gelezen en pas na bevestiging toegepast op de bewerkversie. De website verandert nog niet.",
       tone: "warning"
     })}
 
@@ -308,10 +308,10 @@ export function setupLibraryImport({
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Bibliotheeksessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve bibliotheeksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

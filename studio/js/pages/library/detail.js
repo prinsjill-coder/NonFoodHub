@@ -44,7 +44,8 @@ function renderPathReference({ label, path, mediaData }) {
     return `
       <article class="studio-card">
         <h2>${escapeHtml(label)}</h2>
-        <p class="studio-muted">Geen pad gekoppeld.</p>
+        <p class="studio-muted">Nog geen bestand gekoppeld.</p>
+        <p class="studio-meta">Voorbeeld: assets/downloads/library/terras-outdoor-gids.pdf</p>
       </article>
     `;
   }
@@ -59,7 +60,7 @@ function renderPathReference({ label, path, mediaData }) {
       ${
         asset
           ? `<p class="studio-meta">Geregistreerd in Media als <a class="studio-inline-link" href="#/media/${escapeHtml(asset.id)}">${escapeHtml(asset.title)}</a>.</p>`
-          : `<p class="studio-muted">Dit pad staat nog niet geregistreerd in media.json.</p>`
+          : `<p class="studio-muted">Dit bestand staat nog niet geregistreerd in Media.</p>`
       }
     </article>
   `;
@@ -82,7 +83,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
       title: item.title,
-      description: "Bekijk gegevens, bestandspaden en relaties van een bibliotheekitem binnen deze Studio-sessie."
+      description: "Bekijk gegevens, bestanden en relaties van een bibliotheekitem binnen de bewerkversie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -93,7 +94,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
     ${renderNotice({
       title: "Register zonder downloadservice",
       message:
-        "Deze detailweergave registreert alleen gegevens en relatieve bestandspaden. Studio uploadt geen bestanden en biedt nog geen publieke downloadroute.",
+        "Deze detailweergave registreert alleen gegevens en bestanden. Uploaden en publieke downloads blijven handmatige stappen.",
       tone: "info"
     })}
 
@@ -108,7 +109,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
       </div>
       ${renderDetailList([
         { label: "ID", value: item.id },
-        { label: "Slug", value: item.slug },
+        { label: "URL-naam", value: item.slug },
         { label: "Type", value: getLibraryTypeLabel(item.type, libraryData) },
         { label: "Categorie", value: item.category },
         { label: "Samenvatting", value: item.summary },
@@ -120,8 +121,8 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
-        ${renderPathReference({ label: "Bestandspad", path: item.filePath, mediaData })}
-        ${renderPathReference({ label: "Thumbnailpad", path: item.thumbnailPath, mediaData })}
+        ${renderPathReference({ label: "Bestand", path: item.filePath, mediaData })}
+        ${renderPathReference({ label: "Afbeelding", path: item.thumbnailPath, mediaData })}
       </div>
     </section>
 
@@ -133,7 +134,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
         <article class="studio-card">
           <h3>Leveranciers</h3>
           ${renderRelationList(relatedSuppliers, {
-            emptyText: "Geen leveranciers gekoppeld.",
+            emptyText: "Nog geen leverancier gekoppeld. Koppel een leverancier als dit document bij een merk of assortiment hoort.",
             hrefForItem: (supplier) => `#/leveranciers/${supplier.slug}`,
             labelForItem: (supplier) => supplier.name,
             statusForItem: (supplier) => supplier.status,
@@ -143,7 +144,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
         <article class="studio-card">
           <h3>Brochures</h3>
           ${renderRelationList(relatedBrochures, {
-            emptyText: "Geen brochures gekoppeld.",
+            emptyText: "Nog geen brochure gekoppeld. Koppel een brochure als dit document bij een collectie hoort.",
             hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
             labelForItem: (brochure) => brochure.title,
             statusForItem: (brochure) => brochure.status,
@@ -153,7 +154,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
         <article class="studio-card">
           <h3>Kennisbankartikelen</h3>
           ${renderRelationList(relatedArticles, {
-            emptyText: "Geen kennisbankartikelen gekoppeld.",
+            emptyText: "Nog geen kennisbankartikel gekoppeld. Koppel inspiratiecontent als dit document daarbij hoort.",
             hrefForItem: (article) => `#/kennisbank/${article.slug}`,
             labelForItem: (article) => article.title,
             statusForItem: (article) => article.status,

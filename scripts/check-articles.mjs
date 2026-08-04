@@ -221,7 +221,7 @@ export async function runArticleChecks() {
     );
 
     assert.equal(result.errors.heroImage, undefined);
-    assert.equal(result.warnings.heroImage, "Hero afbeelding staat niet geregistreerd in media.json");
+    assert.equal(result.warnings.heroImage, "Headerafbeelding staat nog niet in Media.");
   });
 
   await runCheck("formuliervalidatie rapporteert fouten en waarschuwingen apart", () => {
@@ -241,8 +241,8 @@ export async function runArticleChecks() {
     );
 
     assert.equal(result.errors.id, "Deze id is al in gebruik.");
-    assert.equal(result.errors.slug, "Deze slug is al in gebruik.");
-    assert.equal(result.warnings.heroImage, "Hero afbeelding staat niet geregistreerd in media.json");
+    assert.equal(result.errors.slug, "Deze URL-naam is al in gebruik.");
+    assert.equal(result.warnings.heroImage, "Headerafbeelding staat nog niet in Media.");
   });
 
   await runCheck("onbekende velden waarschuwen maar blokkeren laden niet", () => {

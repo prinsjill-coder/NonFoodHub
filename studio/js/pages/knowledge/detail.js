@@ -59,8 +59,9 @@ function renderHeroMedia(article, mediaData, asset) {
   if (!article.heroImage) {
     return `
       <article class="studio-card">
-        <h2>Hero afbeelding</h2>
-        <p class="studio-muted">Geen hero-afbeelding gekoppeld.</p>
+        <h2>Headerafbeelding</h2>
+        <p class="studio-muted">Nog geen headerafbeelding gekoppeld.</p>
+        <p class="studio-meta">Voorbeeld: assets/images/blog-terrace.png</p>
       </article>
     `;
   }
@@ -68,9 +69,9 @@ function renderHeroMedia(article, mediaData, asset) {
   if (!asset) {
     return `
       <article class="studio-card">
-        <h2>Hero afbeelding</h2>
+        <h2>Headerafbeelding</h2>
         <p><code>${escapeHtml(article.heroImage)}</code></p>
-        <p class="studio-muted">Dit pad staat nog niet geregistreerd in media.json.</p>
+        <p class="studio-muted">Dit bestand staat nog niet geregistreerd in Media.</p>
       </article>
     `;
   }
@@ -78,12 +79,12 @@ function renderHeroMedia(article, mediaData, asset) {
   return `
     <article class="studio-card">
       <div class="studio-card-head">
-        <h2>Hero afbeelding</h2>
+        <h2>Headerafbeelding</h2>
         ${renderStatusBadge(asset.status)}
       </div>
       ${renderDetailList([
         { label: "Titel", value: `<a class="studio-inline-link" href="${mediaDetailHref(asset)}">${escapeHtml(asset.title)}</a>`, html: true },
-        { label: "Pad", value: `<a class="studio-inline-link" href="${mediaDetailHref(asset)}"><code>${escapeHtml(asset.file)}</code></a>`, html: true },
+        { label: "Bestand", value: `<a class="studio-inline-link" href="${mediaDetailHref(asset)}"><code>${escapeHtml(asset.file)}</code></a>`, html: true },
         { label: "Gebruik", value: getMediaUsageTypeLabel(asset.usageType, mediaData) },
         { label: "Rechtenstatus", value: getMediaRightsStatusLabel(asset.rightsStatus, mediaData) },
         { label: "Alt-tekst", value: asset.alt }
@@ -108,7 +109,7 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
     ${renderPageHeader({
       eyebrow: "Kennisbankbeheer",
       title: article.title,
-      description: "Bekijk gegevens, relaties en inhoud van een kennisbankartikel binnen deze Studio-sessie."
+      description: "Bekijk gegevens, relaties en inhoud van een kennisbankartikel binnen de bewerkversie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -117,9 +118,9 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
     </div>
 
     ${renderNotice({
-      title: "Alleen deze Studio-sessie",
+      title: "Alleen bewerkversie",
       message:
-        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
+        "Deze detailweergave leest de bewerkversie. Het beheerbestand en de publieke website veranderen pas na Gegevens exporteren en Website bijwerken.",
       tone: "info"
     })}
 
@@ -134,10 +135,10 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
       </div>
       ${renderDetailList([
         { label: "ID", value: article.id },
-        { label: "Slug", value: article.slug },
+        { label: "URL-naam", value: article.slug },
         { label: "Categorieen", value: (article.categories || []).join(", ") },
         { label: "Samenvatting", value: article.summary },
-        { label: "Hero afbeelding", value: renderHeroImageValue(article, heroAsset), html: Boolean(heroAsset) },
+        { label: "Headerafbeelding", value: renderHeroImageValue(article, heroAsset), html: Boolean(heroAsset) },
         { label: "Bijgewerkt op", value: article.updatedAt },
         { label: "Sortering", value: String(article.sortOrder ?? 0) }
       ])}
@@ -148,7 +149,7 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
         <article class="studio-card">
           <h2>Gekoppelde leveranciers</h2>
           ${renderRelationList(relatedSuppliers, {
-            emptyText: "Geen leveranciers gekoppeld.",
+            emptyText: "Nog geen leverancier gekoppeld. Koppel een leverancier zodat bezoekers kunnen doorklikken naar het assortiment.",
             hrefForItem: (supplier) => `#/leveranciers/${supplier.slug}`,
             labelForItem: (supplier) => supplier.name,
             statusForItem: (supplier) => supplier.status,
@@ -158,7 +159,7 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
         <article class="studio-card">
           <h2>Gekoppelde brochures</h2>
           ${renderRelationList(relatedBrochures, {
-            emptyText: "Geen brochures gekoppeld.",
+            emptyText: "Nog geen brochure gekoppeld. Koppel een brochure zodat bezoekers een collectie kunnen bekijken.",
             hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
             labelForItem: (brochure) => brochure.title,
             statusForItem: (brochure) => brochure.status,

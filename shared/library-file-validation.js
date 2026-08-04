@@ -70,7 +70,7 @@ export function validateLibraryFile(libraryData, supplierData = {}, brochureData
   }
 
   if ("metadata" in libraryData && !isPlainObject(libraryData.metadata)) {
-    warnings.push(createIssue("metadata", "metadata moet een object zijn en wordt bij export genormaliseerd."));
+    warnings.push(createIssue("metadata", "Beheergegevens hebben niet het verwachte formaat en worden bij export opgeschoond."));
   }
 
   if (!Array.isArray(libraryData.statuses)) {
@@ -106,7 +106,7 @@ export function validateLibraryFile(libraryData, supplierData = {}, brochureData
 
   const items = getLibraryItems(libraryData);
   collectDuplicateIssues(items, "id", "id", errors);
-  collectDuplicateIssues(items, "slug", "slug", errors, normalizeSlug);
+  collectDuplicateIssues(items, "slug", "URL-naam", errors, normalizeSlug);
 
   items.forEach((item, index) => {
     if (!isPlainObject(item)) {

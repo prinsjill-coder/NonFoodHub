@@ -78,8 +78,8 @@ export function renderArticleForm({
   const isEdit = mode === "edit";
   const title = isEdit ? `${article.title} bewerken` : "Nieuw artikel";
   const description = isEdit
-    ? "Pas het artikel aan in deze Studio-sessie. De website verandert pas na export en handmatige publicatie."
-    : "Maak een nieuw artikel klaar in deze Studio-sessie. De website verandert pas na export en handmatige publicatie.";
+    ? "Pas het artikel aan in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken."
+    : "Maak een nieuw artikel klaar in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken.";
 
   return `
     ${renderPageHeader({
@@ -94,10 +94,10 @@ export function renderArticleForm({
     </div>
 
     ${renderNotice({
-      title: "Opslaan in deze sessie",
+      title: "Opslaan in bewerkversie",
       message:
         articleData.storage?.message ||
-        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
+        "Opslaan bewaart de wijziging in de bewerkversie. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -126,7 +126,7 @@ export function renderArticleForm({
             label: "URL-naam",
             value: article.slug,
             required: true,
-            help: "Unieke korte naam voor routes en koppelingen."
+            help: "Deze tekst komt in de link naar het artikel. Voorbeeld: professioneel-tafelconcept wordt #/inspiratie/professioneel-tafelconcept."
           })}
           ${renderSelectField({
             name: "status",
@@ -134,7 +134,7 @@ export function renderArticleForm({
             value: article.status,
             options: getStatusOptions(articleData),
             required: true,
-            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
+            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
           })}
           ${renderTextField({
             name: "updatedAt",
@@ -149,14 +149,14 @@ export function renderArticleForm({
             type: "number",
             value: String(article.sortOrder ?? 0),
             required: true,
-            help: "Lager getal komt eerder in overzichten."
+            help: "Lager nummer = eerder zichtbaar. Hoogste waarde: geen vaste limiet; gebruik bij voorkeur stappen van 10."
           })}
           ${renderTextField({
             name: "heroImage",
-            label: "Hero afbeelding",
+            label: "Bestand van de headerafbeelding",
             value: article.heroImage,
             help:
-              "Relatief pad naar een bestaande afbeelding, bijvoorbeeld assets/images/blog-terrace.png. Uploaden gebeurt nog niet in Studio."
+              "Vul het beeldbestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/blog-terrace.png. Uploaden gebeurt nog niet."
           })}
         </div>
       </section>
@@ -168,21 +168,21 @@ export function renderArticleForm({
           label: "Samenvatting",
           value: article.summary,
           rows: 4,
-          help: "Verplicht voor review en published. Concepten mogen nog onvolledig zijn."
+          help: "Verplicht voor Review en Gepubliceerd. Concepten mogen nog onvolledig zijn."
         })}
         ${renderTextAreaField({
           name: "body",
           label: "Inhoud",
           value: article.body,
           rows: 9,
-          help: "Verplicht voor published. Rich text en blokkeneditor zijn buiten scope van Sprint 8B."
+          help: "Verplicht voor Gepubliceerd. Gebruik gewone tekst; uitgebreide tekstopmaak komt later."
         })}
         ${renderCheckboxGroup({
           name: "categories",
           label: "Categorieen",
           values: article.categories,
           options: articleData.categories || [],
-          help: "Minimaal een categorie is verplicht voor review en published."
+          help: "Minimaal een categorie is verplicht voor Review en Gepubliceerd."
         })}
       </section>
 
@@ -200,16 +200,16 @@ export function renderArticleForm({
           label: "Gekoppelde brochures",
           values: article.brochureIds,
           options: brochureOptions(brochureData),
-          help: "Koppelingen gebruiken bestaande brochure-id's."
+          help: "Koppel brochures zodat bezoekers vanuit inspiratie kunnen doorklikken naar relevante collecties."
         })}
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in bewerkversie om ze vast te leggen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/kennisbank",
@@ -269,7 +269,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
     articleSession.applyArticle(article, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in deze sessie",
+      title: "Opgeslagen in bewerkversie",
       message:
         "Het artikel is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"

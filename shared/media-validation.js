@@ -87,9 +87,9 @@ export function validateMediaAsset(asset, existingAssets, options = {}) {
   }
 
   if (!hasValue(asset.file)) {
-    errors.file = "Vul een relatief bestandspad in.";
+    errors.file = "Vul een bestand in, bijvoorbeeld assets/images/brochures.png.";
   } else if (!isRelativeProjectPath(asset.file)) {
-    errors.file = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.file = "Gebruik een bestand binnen het project, bijvoorbeeld assets/images/brochures.png. Gebruik geen lokaal computerpad.";
   }
 
   if (!MEDIA_TYPES.includes(asset.type)) {

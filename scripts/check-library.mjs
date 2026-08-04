@@ -77,7 +77,7 @@ export async function runLibraryChecks() {
     assert.equal(report.valid, true);
     assert.deepEqual(report.errors, []);
     assert.ok(report.warnings.some((warning) => warning.path === "items[0].filePath"));
-    assert.ok(report.warnings.some((warning) => warning.message.includes("media.json")));
+    assert.ok(report.warnings.some((warning) => warning.message.includes("Media")));
   });
 
   await runCheck("bibliotheek gebruikt centrale statussen, types en categorieen", () => {
@@ -191,7 +191,7 @@ export async function runLibraryChecks() {
       media,
       { originalSlug: firstItem(library).slug, originalId: firstItem(library).id }
     );
-    assert.equal(result.errors.slug, "Deze slug is al in gebruik.");
+    assert.equal(result.errors.slug, "Deze URL-naam is al in gebruik.");
 
     result = validateLibraryItem(
       {

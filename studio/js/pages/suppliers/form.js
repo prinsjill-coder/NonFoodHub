@@ -24,7 +24,7 @@ function getTypeOptions(supplierData) {
 function getStatusOptions(supplierData) {
   const labels = {
     concept: "Concept",
-    review: "Ter controle",
+    review: "Review",
     published: "Gepubliceerd",
     hidden: "Verborgen",
     archived: "Gearchiveerd"
@@ -36,8 +36,8 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
   const isEdit = mode === "edit";
   const title = isEdit ? `${supplier.name} bewerken` : "Nieuwe leverancier";
   const description = isEdit
-    ? "Pas de leverancier aan in deze Studio-sessie. De website verandert pas na export en handmatige publicatie."
-    : "Maak een nieuwe leverancier klaar in deze Studio-sessie. De website verandert pas na export en handmatige publicatie.";
+    ? "Pas de leverancier aan in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken."
+    : "Maak een nieuwe leverancier klaar in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken.";
 
   return `
     ${renderPageHeader({
@@ -52,10 +52,10 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
     </div>
 
     ${renderNotice({
-      title: "Opslaan in deze sessie",
+      title: "Opslaan in bewerkversie",
       message:
         supplierData.storage?.message ||
-        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
+        "Opslaan bewaart de wijziging in de bewerkversie. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -74,18 +74,19 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             help: "De officiele leveranciers- of partnernaam."
           })}
           ${renderTextField({
-          name: "slug",
+            name: "slug",
             label: "URL-naam",
             value: supplier.slug,
             required: true,
-            help: "Unieke korte naam voor routes en koppelingen, bijvoorbeeld amefa."
+            help: "Deze tekst komt in de link naar de leverancier. Voorbeeld: amefa wordt #/leveranciers/amefa. Pas dit alleen aan als de URL moet veranderen."
           })}
           ${renderSelectField({
             name: "type",
             label: "Type",
             value: supplier.type,
             options: getTypeOptions(supplierData),
-            required: true
+            required: true,
+            help: "Leverancier = merk of producent. Partner = samenwerkingspartij. Servicepartner = dienstverlener rondom assortiment of service."
           })}
           ${renderSelectField({
             name: "status",
@@ -93,14 +94,14 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             value: supplier.status,
             options: getStatusOptions(supplierData),
             required: true,
-            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
+            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
           })}
           ${renderTextField({
             name: "sortOrder",
             label: "Sortering",
             type: "number",
             value: String(supplier.sortOrder ?? 0),
-            help: "Lager getal komt eerder in overzichten."
+            help: "Lager nummer = eerder zichtbaar. Hoogste waarde: geen vaste limiet; gebruik bij voorkeur stappen van 10."
           })}
           ${renderCheckboxField({
             name: "featured",
@@ -141,15 +142,15 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
         <div class="studio-form-grid">
           ${renderTextField({
             name: "logo",
-            label: "Logopad",
+            label: "Bestand van het logo",
             value: supplier.logo,
-            help: "Relatief pad naar een bestaand logo of beeld, bijvoorbeeld assets/images/supplier-amefa.jpg."
+            help: "Vul het bestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/logos/amefa.svg."
           })}
           ${renderTextField({
             name: "image",
-            label: "Afbeeldingspad",
+            label: "Bestand van de headerafbeelding",
             value: supplier.image,
-            help: "Relatief pad naar een bestaand beeld. Uploaden gebeurt nog niet in Studio."
+            help: "Vul het beeldbestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/supplier-amefa.jpg. Uploaden gebeurt nog niet."
           })}
         </div>
       </section>
@@ -169,11 +170,11 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in bewerkversie om ze vast te leggen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/leveranciers",
@@ -229,7 +230,7 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
     supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in deze sessie",
+      title: "Opgeslagen in bewerkversie",
       message:
         "De leverancier is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"

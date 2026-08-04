@@ -11,7 +11,7 @@
   "storage": {
     "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Bibliotheekitems worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen."
+    "message": "Bibliotheekitems worden in de bewerkversie aangepast. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen."
   },
   "statuses": [
     "concept",

@@ -138,9 +138,9 @@ function categoryOptions(libraryData) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
-  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
-  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  if (snapshot.exportedCurrent) return "Gegevens geexporteerd, overdracht nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geexporteerd";
+  if (snapshot.dirty) return "Bewerkversie wijkt af van het geladen bestand";
   return "Gelijk aan het geladen bestand";
 }
 
@@ -150,7 +150,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en gebruik daarna Website bijwerken.",
     tone: "success"
   });
 }
@@ -159,8 +159,8 @@ function renderImportNotice(sessionSnapshot) {
   if (sessionSnapshot.sourceType !== "imported") return "";
 
   return renderNotice({
-    title: "Geïmporteerde bibliotheekbron actief",
-    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    title: "Geimporteerde bibliotheekgegevens actief",
+    message: `${sessionSnapshot.sourceFileName} is geladen als bewerkversie. Importeren publiceert niets en past het beheerbestand niet direct aan.`,
     tone: "info"
   });
 }
@@ -186,12 +186,12 @@ function renderQualitySummary(qualityReport) {
         <article class="studio-card studio-metric-card">
           <h3>Bestandsmeldingen</h3>
           <p class="studio-metric-value">${qualityReport.stats.missingFiles}</p>
-          <p class="studio-muted">Ontbrekende of niet geregistreerde paden.</p>
+          <p class="studio-muted">Ontbrekende of nog niet geregistreerde bestanden.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Relatiemeldingen</h3>
           <p class="studio-metric-value">${qualityReport.stats.brokenRelations}</p>
-          <p class="studio-muted">Verwijzingen naar onbekende content-id's.</p>
+          <p class="studio-muted">Koppelingen naar content die nog niet bestaat.</p>
         </article>
       </div>
     </section>
@@ -219,11 +219,11 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Wijzigingen blijven alleen in deze Studio-sessie totdat je bibliotheekgegevens exporteert.",
+        "Wijzigingen blijven alleen in de bewerkversie totdat je bibliotheekgegevens exporteert.",
       exportMessage:
-        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en gebruik daarna Website bijwerken.",
       statusText: renderSessionStatus,
-      restoreLabel: "Bibliotheeksessie herstellen",
+      restoreLabel: "Bewerkversie herstellen",
       restoreAttributes: { "data-library-restore": true }
     })}
 
@@ -231,10 +231,10 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
     ${renderExportNotice(sessionSnapshot)}
 
     ${renderNotice({
-      title: "Tijdelijke Studio-sessie",
+      title: "Bewerkversie",
       message:
         libraryData.storage?.message ||
-        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren om het beheerbestand over te dragen.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren om het beheerbestand over te dragen.",
       tone: "warning"
     })}
 
@@ -250,7 +250,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
       valid: qualityReport.valid,
       errors: qualityReport.errors,
       warnings: qualityReport.warnings,
-      sourceFileName: "actieve bibliotheeksessie"
+      sourceFileName: "actieve bewerkversie"
     }, {
       title: "Kwaliteitsrapport bibliotheek"
     })}
@@ -260,10 +260,10 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">In deze Studio-sessie geladen.</p>
+          <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Ter controle</h3>
+          <h3>Review</h3>
           <p class="studio-metric-value">${counts.statuses.review || 0}</p>
           <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
         </article>
@@ -280,7 +280,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
     ${renderFilterToolbar({
       scope: "library",
       ariaLabel: "Bibliotheekfilters",
-      searchPlaceholder: "Zoek op titel, slug of samenvatting",
+      searchPlaceholder: "Zoek op titel, URL-naam of samenvatting",
       filters: [
         { name: "status", label: "Status", options: statusOptions(libraryData) },
         { name: "type", label: "Type", options: typeOptions(libraryData) },
@@ -337,10 +337,10 @@ export function setupLibraryList({ librarySession, rerender }) {
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Bibliotheeksessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve bibliotheeksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

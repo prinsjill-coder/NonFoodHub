@@ -47,13 +47,13 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
   }
 
   if (!hasValue(supplier.slug)) {
-    errors.slug = "Vul een slug in.";
+    errors.slug = "Vul een URL-naam in.";
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(supplier.slug)) {
-    errors.slug = "Gebruik alleen kleine letters, cijfers en koppeltekens.";
+    errors.slug = "Gebruik kleine letters, cijfers en koppeltekens, bijvoorbeeld amefa.";
   } else {
     const duplicate = existingSuppliers.some((item) => item.slug === supplier.slug && item.slug !== originalSlug);
     if (duplicate) {
-      errors.slug = "Deze slug is al in gebruik.";
+      errors.slug = "Deze URL-naam is al in gebruik.";
     }
   }
 
@@ -70,11 +70,11 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
   }
 
   if (!isRelativeProjectPath(supplier.logo)) {
-    errors.logo = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.logo = "Gebruik een bestand binnen het project, bijvoorbeeld assets/images/logos/amefa.svg. Gebruik geen lokaal computerpad.";
   }
 
   if (!isRelativeProjectPath(supplier.image)) {
-    errors.image = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.image = "Gebruik een bestand binnen het project, bijvoorbeeld assets/images/supplier-amefa.jpg. Gebruik geen lokaal computerpad.";
   }
 
   if (supplier.status === "published") {

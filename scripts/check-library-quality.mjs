@@ -128,7 +128,7 @@ export async function runLibraryQualityChecks() {
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(firstItem(importData).slug).title, "Gewijzigd via import");
 
-    session.applyLibraryItem({ ...firstItem(importData), title: "Werksessie wijziging" }, firstItem(importData).slug);
+    session.applyLibraryItem({ ...firstItem(importData), title: "Bewerkversie wijziging" }, firstItem(importData).slug);
     assert.equal(session.snapshot().dirty, true);
     assert.equal(session.snapshot().hasUnexportedChanges, true);
 

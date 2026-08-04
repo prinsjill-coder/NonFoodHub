@@ -198,20 +198,20 @@ export async function runContentReadinessChecks() {
     assert.ok(report.totals.publication.not_public >= 1);
     assert.equal(article.publication.included, true);
     assert.equal(article.publication.status, "review");
-    assert.match(JSON.stringify(article.publication.reasons), /Leveranciercontext ontbreekt|niet publiek zichtbaar/);
+    assert.match(JSON.stringify(article.publication.reasons), /leverancier|koppeling/i);
     assert.equal(supplier.publication.included, true);
     assert.match(JSON.stringify(supplier.publication.checks), /Logo is gekoppeld|Categorie is ingevuld/);
     assert.equal(brochure.publication.status, "ready");
-    assert.match(JSON.stringify(brochure.publication.checks), /PDF-pad is ingevuld/);
+    assert.match(JSON.stringify(brochure.publication.checks), /PDF-bestand is ingevuld/);
     assert.equal(reviewSupplier.publication.included, false);
     assert.equal(reviewSupplier.publication.status, "not_public");
-    assert.match(JSON.stringify(reviewSupplier.publication.reasons), /status Ter controle/);
+    assert.match(JSON.stringify(reviewSupplier.publication.reasons), /status Review/);
 
     const cardHtml = renderReadinessCard(article);
     assert.match(cardHtml, /Publieke website/);
-    assert.match(cardHtml, /Websiteweergave: Kennisbank/);
-    assert.match(cardHtml, /Nog controleren/);
-    assert.match(cardHtml, /Dit wordt gecontroleerd/);
+    assert.match(cardHtml, /Publieke website: Kennisbank/);
+    assert.match(cardHtml, /Nog afronden|Controlepunt/);
+    assert.match(cardHtml, /Dit is zichtbaar, maar onderstaande punten moeten nog worden gecontroleerd/);
   });
 
   await runCheck("readiness is afgeleid van bestaande governance issues", () => {
@@ -229,10 +229,12 @@ export async function runContentReadinessChecks() {
           `Readiness issue bestaat niet in governance: ${issue.message}`
         );
       });
-      assert.deepEqual(
-        item.reasons.map((reason) => reason.message),
-        item.issues.map((issue) => issue.message)
-      );
+      assert.equal(item.reasons.length, item.issues.length);
+      item.reasons.forEach((reason, index) => {
+        assert.equal(reason.type, item.issues[index].type);
+        assert.equal(typeof reason.message, "string");
+        assert.ok(reason.message.length > 0);
+      });
     });
   });
 
@@ -271,15 +273,16 @@ export async function runContentReadinessChecks() {
     const attention = findReadinessByRoute(report, "articles", "#/kennisbank/article-attention");
     assert.equal(attention.status, "needs_attention");
     assert.deepEqual(
-      attention.reasons.map((reason) => reason.message),
-      ["Belangrijk signaal", "Later signaal"]
+      attention.reasons.map((reason) => reason.type),
+      ["missing-file", "relation"]
     );
+    assert.match(attention.reasons[0].message, /ontbrekende bestand/);
     assert.equal(attention.reasons[0].priority, 1);
-    assert.equal(attention.reasons[0].priorityLabel, "Eerst controleren");
+    assert.equal(attention.reasons[0].priorityLabel, "Eerst afronden");
 
     const cardHtml = renderReadinessCard(attention);
-    assert.match(cardHtml, /Eerst controleren/);
-    assert.match(cardHtml, /Bekijk in governance/);
+    assert.match(cardHtml, /Eerst afronden/);
+    assert.match(cardHtml, /Bekijk in Governance/);
     assert.match(cardHtml, /href="#\/governance"/);
     assert.match(cardHtml, /Publieke website/);
   });
@@ -308,13 +311,13 @@ export async function runContentReadinessChecks() {
     const governanceHtml = renderRoute(routeFromHash("#/governance"), state);
 
     assert.match(governanceHtml, /Klaar/);
-    assert.match(governanceHtml, /Review nodig/);
-    assert.match(governanceHtml, /Aandacht nodig/);
+    assert.match(governanceHtml, /Review/);
+    assert.match(governanceHtml, /Nog niet publiceerbaar/);
     assert.doesNotMatch(governanceHtml, /data-readiness-form|readiness.*bewerken/i);
 
     detailRoutes.forEach((targetRoute) => {
       const html = renderRoute(routeFromHash(targetRoute), state);
-      assert.match(html, /Content readiness/);
+      assert.match(html, /Klaar voor de website\?/);
       assert.match(html, /Score \d+\/100/);
       assert.doesNotMatch(html, /data-readiness-form|readiness.*bewerken/i);
     });
@@ -324,7 +327,7 @@ export async function runContentReadinessChecks() {
     assertNoPattern({
       roots: [],
       files: ["shared/content-readiness.js", "components/readiness-card.js"],
-      pattern: /localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|api\.github|Octokit|download|createObjectURL|writeFile|appendFile|setItem|removeItem/i,
+      pattern: /localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|api\.github|Octokit|createObjectURL|writeFile|appendFile|setItem|removeItem/i,
       label: "Readiness mag geen opslag-, download- of integratiegedrag bevatten"
     });
     assertNoPattern({

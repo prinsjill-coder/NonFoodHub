@@ -51,9 +51,9 @@ function setButtonBusy(button, busy) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
-  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
-  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  if (snapshot.exportedCurrent) return "Gegevens geexporteerd, overdracht nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geexporteerd";
+  if (snapshot.dirty) return "Bewerkversie wijkt af van het geladen bestand";
   return "Gelijk aan het geladen bestand";
 }
 
@@ -63,7 +63,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en gebruik daarna Website bijwerken.",
     tone: "success"
   });
 }
@@ -77,7 +77,7 @@ function renderExportSummary(report) {
         <article class="studio-card studio-metric-card">
           <h3>Items</h3>
           <p class="studio-metric-value">${Number(report.itemCount || 0)}</p>
-          <p class="studio-muted">Aantal items in de actieve bibliotheeksessie.</p>
+          <p class="studio-muted">Aantal items in de bewerkversie.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Waarschuwingen</h3>
@@ -99,7 +99,7 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
       title: "Bibliotheekgegevens exporteren",
-      description: "Download gecontroleerde bibliotheekgegevens uit deze Studio-sessie."
+      description: "Download gecontroleerde bibliotheekgegevens uit de bewerkversie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -110,11 +110,11 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Exporteren downloadt alleen deze Studio-sessie als gegevensbestand.",
+        "Exporteren downloadt alleen de bewerkversie als gegevensbestand.",
       exportMessage:
-        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en gebruik daarna Website bijwerken.",
       statusText: renderSessionStatus,
-      restoreLabel: "Bibliotheeksessie herstellen",
+      restoreLabel: "Bewerkversie herstellen",
       restoreAttributes: { "data-library-restore": true }
     })}
 
@@ -123,7 +123,7 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
     ${renderNotice({
       title: "Handmatige overdracht",
       message:
-        "Exporteren downloadt alleen een bestand. Studio publiceert niets automatisch en maakt geen commit of push.",
+        "Exporteren downloadt alleen een bestand. Studio publiceert niets automatisch.",
       tone: "warning"
     })}
 
@@ -171,7 +171,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
           librarySession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve bibliotheeksessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -193,7 +193,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
           librarySession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve bibliotheeksessie is niet gewijzigd."
+              "De download kon niet worden gestart. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -211,10 +211,10 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Bibliotheeksessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve bibliotheeksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

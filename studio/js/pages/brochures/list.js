@@ -112,9 +112,9 @@ function renderBrochureTable(brochures, suppliersById) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
-  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
-  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  if (snapshot.exportedCurrent) return "Gegevens geexporteerd, website nog niet bijgewerkt";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geexporteerd";
+  if (snapshot.dirty) return "Bewerkversie wijkt af van het geladen bestand";
   return "Gelijk aan het geladen bestand";
 }
 
@@ -124,7 +124,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Plaats PDF en thumbnail waar nodig, werk de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
+      "De gegevens zijn gedownload. Plaats PDF en afbeelding waar nodig en gebruik daarna Website bijwerken.",
     tone: "success"
   });
 }
@@ -133,8 +133,8 @@ function renderImportNotice(sessionSnapshot) {
   if (sessionSnapshot.sourceType !== "imported") return "";
 
   return renderNotice({
-    title: "Geïmporteerde brochurebron actief",
-    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+    title: "Geimporteerde brochuregegevens actief",
+    message: `${sessionSnapshot.sourceFileName} is geladen als bewerkversie. Importeren publiceert niets en past het beheerbestand niet direct aan.`,
     tone: "info"
   });
 }
@@ -194,15 +194,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderPageHeader({
       eyebrow: "Brochurebeheer",
       title: "Brochures",
-      description: "Beheer brochures, controleer PDF en thumbnail en zet complete gegevens klaar voor de publieke website."
+      description: "Beheer brochures, controleer PDF en afbeelding en zet complete gegevens klaar voor de publieke website."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "brochures.json",
       sourceDescription:
-        "Wijzigingen blijven alleen in deze Studio-sessie totdat je brochuregegevens exporteert.",
+        "Wijzigingen blijven alleen in de bewerkversie totdat je brochuregegevens exporteert.",
       exportMessage:
-        "De gegevens zijn gedownload. Plaats PDF en thumbnail waar nodig, werk de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
+        "De gegevens zijn gedownload. Plaats PDF en afbeelding waar nodig en gebruik daarna Website bijwerken.",
       statusText: renderSessionStatus,
       restoreAttributes: { "data-brochure-restore": true }
     })}
@@ -212,15 +212,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderImportSummary(sessionSnapshot.lastValidationReport)}
 
     ${renderNotice({
-      title: "Tijdelijke Studio-sessie",
+      title: "Bewerkversie",
       message:
         brochureData.storage?.message ||
-        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
       tone: "warning"
     })}
 
     ${renderWorkflowPanel({
-      nextStep: "Volgende stap na export: echte PDF en thumbnail plaatsen, publieke websitegegevens bijwerken en daarna handmatig publiceren."
+      nextStep: "Volgende stap na export: echte PDF en afbeelding plaatsen, Website bijwerken gebruiken en daarna handmatig publiceren."
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
@@ -232,15 +232,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">In deze Studio-sessie geladen.</p>
+          <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Met PDF-pad</h3>
+          <h3>Met PDF-bestand</h3>
           <p class="studio-metric-value">${counts.withPdf}</p>
-          <p class="studio-muted">PDF-pad ingevuld; aanwezigheid controleer je op de detailpagina en met checks.</p>
+          <p class="studio-muted">PDF-bestand ingevuld; aanwezigheid controleer je op de detailpagina en met checks.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Ter controle</h3>
+          <h3>Review</h3>
           <p class="studio-metric-value">${counts.statuses.review || 0}</p>
           <p class="studio-muted">Contentstatus; dit publiceert niets automatisch.</p>
         </article>
@@ -250,7 +250,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderFilterToolbar({
       scope: "brochure",
       ariaLabel: "Brochurefilters",
-      searchPlaceholder: "Zoek op titel, slug of categorie",
+      searchPlaceholder: "Zoek op titel, URL-naam of categorie",
       filters: [
         { name: "supplier", label: "Leverancier", options: supplierOptions },
         { name: "status", label: "Status", options: statusOptions },
@@ -310,10 +310,10 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender }
   restoreButton?.addEventListener("click", async () => {
     if (brochureSession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Brochuresessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve brochuresessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

@@ -4,7 +4,7 @@
   "storage": {
     "mode": "static-session",
     "writeEnabled": false,
-    "message": "Media-assets worden alleen in deze Studio-sessie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief."
+    "message": "Mediabestanden worden alleen in de bewerkversie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief."
   },
   "statuses": ["concept", "review", "published", "hidden", "archived"],
   "types": [

@@ -88,13 +88,13 @@ export function validateBrochure(brochure, existingBrochures, supplierData, broc
   }
 
   if (!hasValue(brochure.slug)) {
-    errors.slug = "Vul een slug in.";
+    errors.slug = "Vul een URL-naam in.";
   } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(brochure.slug)) {
-    errors.slug = "Gebruik alleen kleine letters, cijfers en koppeltekens.";
+    errors.slug = "Gebruik kleine letters, cijfers en koppeltekens, bijvoorbeeld amefa-2026.";
   } else {
     const duplicate = existingBrochures.some((item) => item.slug === brochure.slug && item.slug !== originalSlug);
     if (duplicate) {
-      errors.slug = "Deze slug is al in gebruik.";
+      errors.slug = "Deze URL-naam is al in gebruik.";
     }
   }
 
@@ -127,21 +127,21 @@ export function validateBrochure(brochure, existingBrochures, supplierData, broc
   }
 
   if (!isRelativeProjectPath(brochure.pdfFile)) {
-    errors.pdfFile = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.pdfFile = "Gebruik een PDF-bestand binnen het project, bijvoorbeeld assets/downloads/brochures/amefa-2026.pdf. Gebruik geen lokaal computerpad.";
   } else if (brochure.pdfFile && !String(brochure.pdfFile).toLowerCase().endsWith(".pdf")) {
-    errors.pdfFile = "Gebruik een relatief pad naar een PDF-bestand.";
+    errors.pdfFile = "Gebruik een PDF-bestand, bijvoorbeeld assets/downloads/brochures/amefa-2026.pdf.";
   }
 
   if (!isRelativeProjectPath(brochure.thumbnail)) {
-    errors.thumbnail = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.thumbnail = "Gebruik een afbeelding binnen het project, bijvoorbeeld assets/images/brochures/amefa-2026.jpg. Gebruik geen lokaal computerpad.";
   }
 
   if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {
-    errors.pdfFile = "Een brochure ter controle of gepubliceerd heeft een PDF-pad nodig.";
+    errors.pdfFile = "Vul het bestand van de PDF in voordat deze brochure Review of Gepubliceerd kan zijn.";
   }
 
   if (brochure.status === "published" && !hasValue(brochure.thumbnail)) {
-    errors.thumbnail = "Een gepubliceerde brochure heeft een thumbnailpad nodig.";
+    errors.thumbnail = "Een gepubliceerde brochure heeft een afbeelding nodig.";
   }
 
   return errors;

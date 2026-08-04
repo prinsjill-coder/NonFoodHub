@@ -6,14 +6,14 @@ function normalizeReason(reason, index) {
     return {
       message: reason,
       priority: index + 1,
-      priorityLabel: index === 0 ? "Eerst controleren" : "Controle gewenst"
+      priorityLabel: index === 0 ? "Eerst afronden" : "Controlepunt"
     };
   }
 
   return {
     message: reason?.message || "Governance-signaal vraagt aandacht.",
     priority: Number(reason?.priority || index + 1),
-    priorityLabel: reason?.priorityLabel || (index === 0 ? "Eerst controleren" : "Controle gewenst"),
+    priorityLabel: reason?.priorityLabel || (index === 0 ? "Eerst afronden" : "Controlepunt"),
     governanceRoute: reason?.governanceRoute || "",
     targetRoute: reason?.targetRoute || ""
   };
@@ -30,7 +30,7 @@ function renderReason(reason, index) {
       </div>
       ${
         normalized.governanceRoute
-          ? `<a class="studio-inline-link studio-readiness-link" href="${escapeHtml(normalized.governanceRoute)}">Bekijk in governance</a>`
+          ? `<a class="studio-inline-link studio-readiness-link" href="${escapeHtml(normalized.governanceRoute)}">Bekijk in Governance</a>`
           : ""
       }
     </li>
@@ -64,15 +64,15 @@ function publicationDatasetLabel(dataset) {
 
 function publicationIntro(publication) {
   if (publication.status === "ready") {
-    return "Dit staat live via de gecontroleerde websiteweergave.";
+    return "Dit staat op de publieke website via de gecontroleerde gegevens.";
   }
   if (publication.status === "review") {
-    return "Dit wordt gecontroleerd: het item is zichtbaar, maar onderstaande punten vragen nog aandacht.";
+    return "Dit is zichtbaar, maar onderstaande punten moeten nog worden gecontroleerd.";
   }
   if (publication.status === "not_public") {
-    return "Dit staat niet live. De redenen hieronder tonen wat nog ontbreekt.";
+    return "Dit staat nog niet op de publieke website. De punten hieronder tonen wat nog ontbreekt.";
   }
-  return "Deze module heeft nog geen websiteweergave; Studio toont alleen de interne readiness.";
+  return "Deze module heeft nog geen publieke websiteweergave; Studio toont alleen de beheercontrole.";
 }
 
 function renderPublication(publication) {
@@ -80,7 +80,7 @@ function renderPublication(publication) {
 
   const reasons = Array.isArray(publication.reasons) ? publication.reasons : [];
   const checks = Array.isArray(publication.checks) ? publication.checks : [];
-  const reasonHeading = publication.status === "not_applicable" ? "Context" : "Nog controleren";
+  const reasonHeading = publication.status === "not_applicable" ? "Context" : "Nog afronden";
 
   return `
     <section class="studio-publication-readiness">
@@ -89,7 +89,7 @@ function renderPublication(publication) {
           <h3>Publieke website</h3>
           ${
             publication.dataset
-              ? `<p class="studio-muted">Websiteweergave: ${escapeHtml(publicationDatasetLabel(publication.dataset))}</p>`
+              ? `<p class="studio-muted">Publieke website: ${escapeHtml(publicationDatasetLabel(publication.dataset))}</p>`
               : `<p class="studio-muted">Geen websiteweergave aangesloten voor deze module.</p>`
           }
         </div>
@@ -120,14 +120,14 @@ function renderPublication(publication) {
 
 export function renderReadinessCard(readiness) {
   const status = readiness?.status || "review";
-  const label = readiness?.label || "Review nodig";
+  const label = readiness?.label || "Nog enkele punten afronden";
   const score = Number(readiness?.score || 0);
   const reasons = Array.isArray(readiness?.reasons) ? readiness.reasons : [];
 
   return `
     <article class="studio-card studio-readiness-card">
       <div class="studio-card-head">
-        <h2>Content readiness</h2>
+        <h2>Klaar voor de website?</h2>
         ${renderStatusBadge(status, label)}
       </div>
       <p class="studio-readiness-score">Score ${score}/100</p>

@@ -142,23 +142,23 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
     ${renderPageHeader({
       eyebrow: "Mediaregister",
       title: "Media",
-      description: "Registreer bestaande bestanden en controleer paden, beschrijvingen en rechtenstatus in deze Studio-sessie."
+      description: "Registreer bestaande bestanden en controleer beschrijvingen en rechtenstatus in de bewerkversie."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "media.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in deze Studio-sessie. Upload, import en export voor media zijn nog niet actief.",
+        "Wijzigingen bestaan alleen in de bewerkversie. Upload, import en export voor media zijn nog niet actief.",
       statusText: renderSessionStatus,
       restoreLabel: "Media herstellen",
       restoreAttributes: { "data-media-restore": true }
     })}
 
     ${renderNotice({
-      title: "Registry zonder upload",
+      title: "Bestandsregistratie zonder upload",
       message:
         mediaData.storage?.message ||
-        "Media-assets worden alleen geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
+        "Mediabestanden worden alleen geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
       tone: "warning"
     })}
 
@@ -171,12 +171,12 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Geregistreerde assets in deze Studio-sessie.</p>
+          <p class="studio-muted">Geregistreerde bestanden in de bewerkversie.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Pad ontbreekt</h3>
+          <h3>Bestand ontbreekt</h3>
           <p class="studio-metric-value">${counts.missingFilePath}</p>
-          <p class="studio-muted">Metadata zonder relatief bestandspad.</p>
+          <p class="studio-muted">Items zonder ingevuld bestand.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Alt-tekst ontbreekt</h3>
@@ -253,10 +253,10 @@ export function setupMediaList({ mediaSession, rerender }) {
   restoreButton?.addEventListener("click", async () => {
     if (mediaSession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
-        title: "Mediasessie herstellen?",
+        title: "Bewerkversie herstellen?",
         message:
-          "De actieve mediasessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
-        confirmLabel: "Sessie herstellen",
+          "De bewerkversie wijkt af van het geladen bestand. Als je doorgaat, worden deze wijzigingen verworpen.",
+        confirmLabel: "Bewerkversie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"
       });

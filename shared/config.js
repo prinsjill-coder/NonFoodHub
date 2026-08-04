@@ -16,7 +16,7 @@ export const STUDIO_CONFIG = {
     title: "Authentication placeholder",
     label: "Geen echte authenticatie actief",
     message:
-      "Deze Studio-shell toont alleen waar toegang later komt. Er is nog geen login, sessiebeheer, autorisatie of beveiliging geimplementeerd."
+      "Deze Studio toont alleen waar toegang later komt. Er is nog geen echte toegang of beveiliging actief."
   }
 };
 

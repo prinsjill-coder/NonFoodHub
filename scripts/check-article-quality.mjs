@@ -121,7 +121,7 @@ export async function runArticleQualityChecks() {
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(data.items[0].slug).title, "Geimporteerde titel");
 
-    session.applyArticle({ ...data.items[0], title: "Werksessie titel" }, data.items[0].slug);
+    session.applyArticle({ ...data.items[0], title: "Bewerkversie titel" }, data.items[0].slug);
     assert.equal(session.snapshot().hasUnexportedChanges, true);
 
     const exportResult = session.prepareExport();

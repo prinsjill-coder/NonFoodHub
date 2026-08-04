@@ -23,7 +23,7 @@ export const BROCHURE_KEYS = [
 ];
 
 export const BROCHURE_STORAGE_NOTICE =
-  "Brochures worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren, plaats PDF en thumbnail op de afgesproken plek en werk daarna de publieke website bij.";
+  "Brochures worden in de bewerkversie aangepast. Gebruik Gegevens exporteren, plaats PDF en afbeelding op de afgesproken plek en gebruik daarna Website bijwerken.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

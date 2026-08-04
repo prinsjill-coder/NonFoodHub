@@ -87,13 +87,13 @@ export function validateArticle(article, existingArticles, supplierData, brochur
   }
 
   if (!hasValue(article.slug)) {
-    errors.slug = "Vul een slug in.";
+    errors.slug = "Vul een URL-naam in.";
   } else if (article.slug !== normalizeSlug(article.slug)) {
-    errors.slug = "Gebruik een lowercase slug met koppeltekens.";
+    errors.slug = "Gebruik kleine letters, cijfers en koppeltekens, bijvoorbeeld professioneel-tafelconcept.";
   } else {
     const duplicateSlug = existingArticles.some((item) => item.slug === article.slug && item.slug !== originalSlug);
     if (duplicateSlug) {
-      errors.slug = "Deze slug is al in gebruik.";
+      errors.slug = "Deze URL-naam is al in gebruik.";
     }
   }
 
@@ -126,9 +126,9 @@ export function validateArticle(article, existingArticles, supplierData, brochur
   } else if (!hasValue(article.heroImage)) {
     warnings.heroImage = "Er is nog geen hero afbeelding gekoppeld.";
   } else if (!isRelativeProjectPath(article.heroImage)) {
-    errors.heroImage = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.heroImage = "Gebruik een afbeelding binnen het project, bijvoorbeeld assets/images/blog-terrace.png. Gebruik geen lokaal computerpad.";
   } else if (!hasMediaPath(mediaData, article.heroImage)) {
-    warnings.heroImage = "Hero afbeelding staat niet geregistreerd in media.json";
+    warnings.heroImage = "Headerafbeelding staat nog niet in Media.";
   }
 
   const supplierIds = knownIds(getSuppliers(supplierData));

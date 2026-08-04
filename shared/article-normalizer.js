@@ -29,7 +29,7 @@ export const ARTICLE_KEYS = [
 ];
 
 export const ARTICLE_STORAGE_NOTICE =
-  "Kennisbankartikelen worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij.";
+  "Kennisbankartikelen worden in de bewerkversie aangepast. Gebruik Gegevens exporteren en daarna Website bijwerken voordat wijzigingen zichtbaar worden.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

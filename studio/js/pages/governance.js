@@ -222,7 +222,7 @@ function renderModuleCard(module, readinessModule) {
       <div class="studio-card-head">
         <div>
           <h3>${escapeHtml(module.label)}</h3>
-          <p class="studio-muted">Read-only samenvatting uit de actieve Studio-sessie.</p>
+          <p class="studio-muted">Read-only samenvatting uit de bewerkversie.</p>
         </div>
         ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
       </div>
@@ -241,13 +241,13 @@ function renderModuleCard(module, readinessModule) {
           state: readiness.ready ? "ready" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Review nodig",
+          label: "Review",
           value: readiness.review,
-          note: "Bruikbaar, maar controle gewenst.",
+          note: "Bruikbaar, maar nog enkele punten afronden.",
           state: readiness.review ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Aandacht nodig",
+          label: "Nog niet publiceerbaar",
           value: readiness.needs_attention,
           note: "Belangrijke informatie ontbreekt.",
           state: readiness.needs_attention ? "needs_attention" : "foundation"
@@ -283,7 +283,7 @@ function renderReadinessSummary(totals) {
   return `
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Content readiness</h2>
+        <h2>Klaar voor de website?</h2>
         ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
       </div>
       <div class="studio-grid studio-grid-3">
@@ -294,13 +294,13 @@ function renderReadinessSummary(totals) {
           state: totals.ready ? "ready" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Review nodig",
+          label: "Review",
           value: totals.review,
-          note: "Items die bruikbaar zijn, maar controle vragen.",
+          note: "Items die bruikbaar zijn, maar nog enkele punten vragen.",
           state: totals.review ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Aandacht nodig",
+          label: "Nog niet publiceerbaar",
           value: totals.needs_attention,
           note: "Items waar belangrijke informatie ontbreekt.",
           state: totals.needs_attention ? "needs_attention" : "foundation"
@@ -323,17 +323,17 @@ function renderPublicationSummary(publication = {}) {
     <section class="studio-section">
       <div class="studio-section-head">
         <h2>Websiteweergave</h2>
-        ${renderStatusBadge(state, state === "ready" ? "Publicatiegereed" : "Nog controleren")}
+        ${renderStatusBadge(state, state === "ready" ? "Publiceerbaar" : "Review")}
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderOverviewMetric({
-          label: "Publicatiegereed",
+          label: "Publiceerbaar",
           value: publication.ready,
           note: "Items die zichtbaar zijn op de website zonder extra publicatiefeedback.",
           state: publication.ready ? "ready" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Nog controleren",
+          label: "Review",
           value: publication.review,
           note: "Zichtbare items waar relaties, context of PDF-acties extra aandacht vragen.",
           state: publication.review ? "review" : "foundation"
@@ -363,11 +363,11 @@ function renderModulePublication(module) {
       <h4>Websiteweergave</h4>
       <dl class="studio-detail-list">
         <div>
-          <dt>Publicatiegereed</dt>
+          <dt>Publiceerbaar</dt>
           <dd>${Number(publication.ready || 0)} ${renderStatusBadge(publication.ready ? "ready" : "foundation")}</dd>
         </div>
         <div>
-          <dt>Nog controleren</dt>
+          <dt>Review</dt>
           <dd>${Number(publication.review || 0)} ${renderStatusBadge(publication.review ? "review" : "foundation")}</dd>
         </div>
         <div>
@@ -411,7 +411,7 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
       ${renderNotice({
         title: "Read-only overzicht",
         message:
-          "Governance verzamelt bestaande validatie-, quality- en relatiesignalen uit de actieve Studio-sessie. Er wordt niets opgeslagen, gepubliceerd of automatisch opgelost.",
+          "Governance verzamelt bestaande validatie-, quality- en relatiesignalen uit de bewerkversie. Er wordt niets opgeslagen, gepubliceerd of automatisch opgelost.",
         tone: "info"
       })}
 

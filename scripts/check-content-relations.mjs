@@ -57,7 +57,7 @@ function collectRelationIssues(supplierData, brochureData, mediaData, articleDat
     });
 
     if (article.heroImage && !mediaFiles.has(article.heroImage)) {
-      warnings.push(issue(`articles.items[${articleIndex}].heroImage`, "Hero afbeelding staat niet geregistreerd in media.json."));
+      warnings.push(issue(`articles.items[${articleIndex}].heroImage`, "Headerafbeelding staat nog niet in Media."));
     }
   });
 

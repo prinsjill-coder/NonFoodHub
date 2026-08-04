@@ -112,13 +112,13 @@ export function validateLibraryItem(
   }
 
   if (!hasValue(item.slug)) {
-    errors.slug = "Vul een slug in.";
+    errors.slug = "Vul een URL-naam in.";
   } else if (item.slug !== normalizeSlug(item.slug)) {
-    errors.slug = "Gebruik een lowercase slug met koppeltekens.";
+    errors.slug = "Gebruik kleine letters, cijfers en koppeltekens, bijvoorbeeld terras-outdoor-gids.";
   } else if (!options.skipDuplicateChecks) {
     const duplicateSlug = existingItems.some((existingItem) => existingItem.slug === item.slug && existingItem.slug !== originalSlug);
     if (duplicateSlug) {
-      errors.slug = "Deze slug is al in gebruik.";
+      errors.slug = "Deze URL-naam is al in gebruik.";
     }
   }
 
@@ -141,15 +141,15 @@ export function validateLibraryItem(
   }
 
   if (item.filePath && !isRelativeProjectPath(item.filePath)) {
-    errors.filePath = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.filePath = "Gebruik een bestand binnen het project, bijvoorbeeld assets/downloads/library/terras-outdoor-gids.pdf. Gebruik geen lokaal computerpad.";
   } else if (item.filePath && !hasMediaPath(mediaData, item.filePath)) {
-    warnings.filePath = "Bestandspad staat niet geregistreerd in media.json.";
+    warnings.filePath = "Dit bestand staat nog niet geregistreerd in Media.";
   }
 
   if (item.thumbnailPath && !isRelativeProjectPath(item.thumbnailPath)) {
-    errors.thumbnailPath = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
+    errors.thumbnailPath = "Gebruik een afbeelding binnen het project, bijvoorbeeld assets/images/library/terras-outdoor-gids.jpg. Gebruik geen lokaal computerpad.";
   } else if (item.thumbnailPath && !hasMediaPath(mediaData, item.thumbnailPath)) {
-    warnings.thumbnailPath = "Thumbnailpad staat niet geregistreerd in media.json.";
+    warnings.thumbnailPath = "Deze afbeelding staat nog niet geregistreerd in Media.";
   }
 
   const supplierIds = knownIds(getSuppliers(supplierData));

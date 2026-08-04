@@ -49,7 +49,7 @@ export function validateBrochureImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De actieve brochuresessie is niet gewijzigd.",
+        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De bewerkversie is niet gewijzigd.",
         "geen bestand"
       )
     };
@@ -60,7 +60,7 @@ export function validateBrochureImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Kies een gegevensbestand met de extensie .json. De actieve brochuresessie is niet gewijzigd.",
+        "Kies een gegevensbestand met de extensie .json. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -71,7 +71,7 @@ export function validateBrochureImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Het bestand is groter dan 1 MB. Kies een kleiner brochures.json-bestand. De actieve brochuresessie is niet gewijzigd.",
+        "Het bestand is groter dan 1 MB. Kies een kleiner brochures.json-bestand. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -114,7 +114,7 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
-      "Het lezen van het bestand is afgebroken. De actieve brochuresessie is niet gewijzigd.",
+      "Het lezen van het bestand is afgebroken. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
@@ -122,14 +122,14 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
-      "Het bestand kon niet worden gelezen. De actieve brochuresessie is niet gewijzigd.",
+      "Het bestand kon niet worden gelezen. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
 
   return createImportReport(
     "import.json",
-    "Het bestand heeft niet het verwachte gegevensformaat. De actieve brochuresessie is niet gewijzigd.",
+    "Het bestand heeft niet het verwachte gegevensformaat. De bewerkversie is niet gewijzigd.",
     fileName || "onbekend bestand"
   );
 }
@@ -145,12 +145,12 @@ function createValidatedImportReport(parsed, supplierData, fileName) {
 
 async function confirmBrochureImport(report, snapshot) {
   const dirtyMessage = snapshot.dirty
-    ? " De actieve brochuresessie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
+    ? " De bewerkversie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
     : "";
 
   return confirmStudioAction({
     title: "Brochurebestand importeren?",
-    message: `${report.sourceFileName} bevat ${report.itemCount} brochures. Importeren vervangt alleen deze Studio-sessie; de website verandert nog niet.${dirtyMessage}`,
+    message: `${report.sourceFileName} bevat ${report.itemCount} brochures. Importeren vervangt alleen de bewerkversie; de website verandert nog niet.${dirtyMessage}`,
     confirmLabel: "Gegevens importeren",
     cancelLabel: "Annuleren",
     tone: "warning"
@@ -222,7 +222,7 @@ export function setupBrochureImportExport({ brochureSession, supplierSession, re
           brochureSession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve brochuresessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -244,7 +244,7 @@ export function setupBrochureImportExport({ brochureSession, supplierSession, re
           brochureSession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve brochuresessie is niet gewijzigd."
+              "De download kon niet worden gestart. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);

@@ -43,7 +43,7 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
-      "Het lezen van het bestand is afgebroken. De actieve kennisbanksessie is niet gewijzigd.",
+      "Het lezen van het bestand is afgebroken. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
@@ -51,14 +51,14 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
-      "Het bestand kon niet worden gelezen. De actieve kennisbanksessie is niet gewijzigd.",
+      "Het bestand kon niet worden gelezen. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
 
   return createImportReport(
     "import.json",
-    "Het bestand heeft niet het verwachte gegevensformaat. De actieve kennisbanksessie is niet gewijzigd.",
+    "Het bestand heeft niet het verwachte gegevensformaat. De bewerkversie is niet gewijzigd.",
     fileName || "onbekend bestand"
   );
 }
@@ -74,7 +74,7 @@ export function validateArticleImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De actieve kennisbanksessie is niet gewijzigd.",
+        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De bewerkversie is niet gewijzigd.",
         "geen bestand"
       )
     };
@@ -85,7 +85,7 @@ export function validateArticleImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Kies een gegevensbestand met de extensie .json. De actieve kennisbanksessie is niet gewijzigd.",
+        "Kies een gegevensbestand met de extensie .json. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -96,7 +96,7 @@ export function validateArticleImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Het bestand is groter dan 1 MB. Kies een kleiner articles.json-bestand. De actieve kennisbanksessie is niet gewijzigd.",
+        "Het bestand is groter dan 1 MB. Kies een kleiner articles.json-bestand. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -107,12 +107,12 @@ export function validateArticleImportFile(file) {
 
 async function confirmArticleImport(report, snapshot) {
   const dirtyMessage = snapshot.dirty
-    ? " De actieve kennisbanksessie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
+    ? " De bewerkversie wijkt af van het geladen bestand en wordt vervangen als je doorgaat."
     : "";
 
   return confirmStudioAction({
     title: "Artikelbestand importeren?",
-    message: `${report.sourceFileName} bevat ${report.itemCount} artikelen. Importeren vervangt alleen deze Studio-sessie; de website verandert nog niet.${dirtyMessage}`,
+    message: `${report.sourceFileName} bevat ${report.itemCount} artikelen. Importeren vervangt alleen de bewerkversie; de website verandert nog niet.${dirtyMessage}`,
     confirmLabel: "Gegevens importeren",
     cancelLabel: "Annuleren",
     tone: "warning"

@@ -32,7 +32,7 @@ function fileNameFromPath(path) {
 
 function renderPresenceBadge(path, label) {
   if (!path) {
-    return `<span class="studio-badge is-review">${escapeHtml(label)} aanwezig: Nee, geen pad ingevuld</span>`;
+    return `<span class="studio-badge is-review">${escapeHtml(label)} aanwezig: Nee, nog geen bestand ingevuld</span>`;
   }
 
   return `<span class="studio-badge is-foundation" data-file-presence data-file-path="${escapeHtml(path)}" data-file-label="${escapeHtml(label)}">${escapeHtml(label)} aanwezig: Nog niet gecontroleerd</span>`;
@@ -46,7 +46,7 @@ function renderFileStatusCard({ title, path, fileLabel, emptyText }) {
       <h2>${escapeHtml(title)}</h2>
       <dl class="studio-file-status-list">
         <div>
-          <dt>Huidig pad</dt>
+          <dt>Ingevuld bestand</dt>
           <dd class="${path ? "studio-meta" : "studio-muted"}">${escapeHtml(path || emptyText)}</dd>
         </div>
         <div>
@@ -64,7 +64,7 @@ function renderFileStatusCard({ title, path, fileLabel, emptyText }) {
 
 function renderArticleRelations(articles) {
   if (!articles.length) {
-    return `<p class="studio-muted">Geen kennisbankartikelen gekoppeld.</p>`;
+    return `<p class="studio-muted">Nog geen kennisbankartikel gekoppeld. Koppel inspiratiecontent zodat bezoekers vanuit advies naar deze brochure kunnen doorklikken.</p>`;
   }
 
   return `
@@ -104,9 +104,9 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
     </div>
 
     ${renderNotice({
-      title: "Alleen deze Studio-sessie",
+      title: "Alleen bewerkversie",
       message:
-        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
+        "Deze detailweergave leest de bewerkversie. Het beheerbestand en de publieke website veranderen pas na Gegevens exporteren en Website bijwerken.",
       tone: "info"
     })}
 
@@ -123,7 +123,7 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
           </div>
           ${renderDetailList([
             { label: "Titel", value: brochure.title },
-            { label: "Slug", value: brochure.slug },
+            { label: "URL-naam", value: brochure.slug },
             { label: "Leverancier", value: renderSupplierReference(supplier), html: Boolean(supplier) },
             { label: "Jaar", value: brochure.year ? String(brochure.year) : "Geen jaar" },
             { label: "Categorieen", value: (brochure.categories || []).join(", ") || "Geen categorieen" },
@@ -142,16 +142,16 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
         ${renderFileStatusCard({
-          title: "PDF-pad",
+          title: "Bestand van de PDF",
           path: brochure.pdfFile,
           fileLabel: "PDF",
-          emptyText: "Geen PDF gekoppeld. Dit is toegestaan bij concepten."
+          emptyText: "Nog geen PDF gekoppeld. Gebruik bijvoorbeeld assets/downloads/brochures/amefa-2026.pdf."
         })}
         ${renderFileStatusCard({
-          title: "Thumbnailpad",
+          title: "Afbeelding van de brochure",
           path: brochure.thumbnail,
           fileLabel: "Thumbnail",
-          emptyText: "Geen thumbnail gekoppeld."
+          emptyText: "Nog geen brochureafbeelding gekoppeld. Gebruik bijvoorbeeld assets/images/brochures/amefa-2026.jpg."
         })}
       </div>
     </section>

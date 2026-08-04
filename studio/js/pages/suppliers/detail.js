@@ -17,10 +17,13 @@ function mediaPath(path) {
 
 function renderMediaPreview(label, path, alt) {
   if (!path) {
+    const message = label === "Logo" ? "Nog geen logo gekoppeld." : "Nog geen headerafbeelding gekoppeld.";
+    const example = label === "Logo" ? "Voorbeeld: assets/images/logos/amefa.svg" : "Voorbeeld: assets/images/supplier-amefa.jpg";
     return `
       <article class="studio-card">
         <h3>${escapeHtml(label)}</h3>
-        <p class="studio-muted">Geen referentie ingevuld.</p>
+        <p class="studio-muted">${escapeHtml(message)}</p>
+        <p class="studio-meta">${escapeHtml(example)}</p>
       </article>
     `;
   }
@@ -76,9 +79,9 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
     </div>
 
     ${renderNotice({
-      title: "Alleen deze Studio-sessie",
+      title: "Alleen bewerkversie",
       message:
-        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
+        "Deze detailweergave leest de bewerkversie. Het beheerbestand en de publieke website veranderen pas na Gegevens exporteren en Website bijwerken.",
       tone: "info"
     })}
 
@@ -95,7 +98,7 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
           </div>
           ${renderDetailList([
             { label: "Naam", value: supplier.name },
-            { label: "Slug", value: supplier.slug },
+            { label: "URL-naam", value: supplier.slug },
             { label: "Type", value: getSupplierTypeLabel(supplier.type) },
             { label: "Categorieen", value: (supplier.categories || []).join(", ") },
             { label: "Uitgelicht", value: supplier.featured ? "Ja" : "Nee" },
@@ -121,7 +124,7 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
         <article class="studio-card">
           <h2>Brochures</h2>
           ${renderRelationList(relatedBrochures, {
-            emptyText: "Geen brochures gekoppeld.",
+            emptyText: "Nog geen brochure gekoppeld. Voeg minimaal een brochure toe zodat bezoekers een collectie kunnen bekijken of downloaden.",
             hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
             labelForItem: (brochure) => brochure.title,
             statusForItem: (brochure) => brochure.status,
@@ -131,7 +134,7 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
         <article class="studio-card">
           <h2>Kennisbank</h2>
           ${renderRelationList(relatedArticles, {
-            emptyText: "Geen kennisbankartikelen gekoppeld.",
+            emptyText: "Nog geen kennisbankartikel gekoppeld. Koppel inspiratiecontent zodat bezoekers deze leverancier in context zien.",
             hrefForItem: (article) => `#/kennisbank/${article.slug}`,
             labelForItem: (article) => article.title,
             statusForItem: (article) => article.status,

@@ -123,7 +123,7 @@ export async function runMediaChecks() {
     errors = validateMediaAsset({ ...firstAsset(media), file: "file:///test.png" }, media.items, {
       originalId: firstAsset(media).id
     });
-    assert.equal(errors.file, "Gebruik een relatief projectpad, geen lokaal pad of file-url.");
+    assert.equal(errors.file, "Gebruik een bestand binnen het project, bijvoorbeeld assets/images/brochures.png. Gebruik geen lokaal computerpad.");
 
     errors = validateMediaAsset({ ...firstAsset(media), type: "video" }, media.items, {
       originalId: firstAsset(media).id

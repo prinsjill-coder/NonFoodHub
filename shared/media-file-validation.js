@@ -109,7 +109,7 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
   if (!hasValue(asset.file)) {
     errors.push(createIssue(`${path}.file`, "file is verplicht."));
   } else if (!isRelativeProjectPath(String(asset.file))) {
-    errors.push(createIssue(`${path}.file`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
+    errors.push(createIssue(`${path}.file`, "Gebruik een bestand binnen het project, geen lokaal computerpad."));
   }
 
   const typeIds = idsFromList(mediaData.types);

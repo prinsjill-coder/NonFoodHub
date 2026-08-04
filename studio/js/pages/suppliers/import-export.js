@@ -54,7 +54,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De actieve sessie is niet gewijzigd.",
+        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De bewerkversie is niet gewijzigd.",
         "geen bestand"
       )
     };
@@ -65,7 +65,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Kies een gegevensbestand met de extensie .json. De actieve sessie is niet gewijzigd.",
+        "Kies een gegevensbestand met de extensie .json. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -76,7 +76,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Het bestand is groter dan 1 MB. Kies een kleiner suppliers.json-bestand. De actieve sessie is niet gewijzigd.",
+        "Het bestand is groter dan 1 MB. Kies een kleiner suppliers.json-bestand. De bewerkversie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -123,7 +123,7 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
-      "Het lezen van het bestand is afgebroken. De actieve sessie is niet gewijzigd.",
+      "Het lezen van het bestand is afgebroken. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
@@ -131,14 +131,14 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
-      "Het bestand kon niet worden gelezen. De actieve sessie is niet gewijzigd.",
+      "Het bestand kon niet worden gelezen. De bewerkversie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
 
   return createImportReport(
     "import.json",
-    "Het bestand heeft niet het verwachte gegevensformaat. De actieve sessie is niet gewijzigd.",
+    "Het bestand heeft niet het verwachte gegevensformaat. De bewerkversie is niet gewijzigd.",
     fileName || "onbekend bestand"
   );
 }
@@ -149,7 +149,7 @@ async function confirmReplaceUnexportedChanges(snapshot, actionLabel) {
   return confirmStudioAction({
     title: `${actionLabel} vervangt wijzigingen die nog niet zijn geëxporteerd`,
     message:
-      "Er staan wijzigingen in deze Studio-sessie die nog niet zijn geëxporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?",
+      "Er staan wijzigingen in de bewerkversie die nog niet zijn geexporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?",
     confirmLabel: "Doorgaan",
     cancelLabel: "Annuleren"
   });
@@ -235,7 +235,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
           supplierSession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve sessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -257,7 +257,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
           supplierSession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve sessie is niet gewijzigd."
+              "De download kon niet worden gestart. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -273,7 +273,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
   });
 
   restoreButton?.addEventListener("click", async () => {
-    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Sessie herstellen"))) {
+    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Bewerkversie herstellen"))) {
       return;
     }
 

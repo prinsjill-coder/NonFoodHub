@@ -85,18 +85,18 @@ function validateArticleRelations(article, path, supplierData, brochureData, err
 
 function validateHeroImage(article, path, mediaData, errors, warnings) {
   if (!hasValue(article.heroImage)) {
-    warnings.push(createIssue(`${path}.heroImage`, "Er is nog geen hero afbeelding gekoppeld."));
+    warnings.push(createIssue(`${path}.heroImage`, "Er is nog geen headerafbeelding gekoppeld."));
     return;
   }
 
   if (!isRelativeProjectPath(String(article.heroImage))) {
-    errors.push(createIssue(`${path}.heroImage`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
+    errors.push(createIssue(`${path}.heroImage`, "Gebruik een afbeelding binnen het project, geen lokaal computerpad."));
     return;
   }
 
   const registered = getMediaAssets(mediaData).some((asset) => asset.file === article.heroImage);
   if (!registered) {
-    warnings.push(createIssue(`${path}.heroImage`, "Hero afbeelding staat niet geregistreerd in media.json"));
+    warnings.push(createIssue(`${path}.heroImage`, "Headerafbeelding staat nog niet in Media."));
   }
 }
 
@@ -123,9 +123,9 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
   }
 
   if (!hasValue(article.slug)) {
-    errors.push(createIssue(`${path}.slug`, "slug is verplicht."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam is verplicht."));
   } else if (article.slug !== normalizeSlug(article.slug)) {
-    errors.push(createIssue(`${path}.slug`, "slug moet lowercase kebab-case zijn."));
+    errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
   if (!isContentStatus(article.status)) {
@@ -193,7 +193,7 @@ export function validateArticleFile(articleData, supplierData = {}, brochureData
   }
 
   if ("metadata" in articleData && !isPlainObject(articleData.metadata)) {
-    warnings.push(createIssue("metadata", "metadata moet een object zijn en wordt bij export genormaliseerd."));
+    warnings.push(createIssue("metadata", "Beheergegevens hebben niet het verwachte formaat en worden bij export opgeschoond."));
   }
 
   if (validateArray(articleData.statuses, "statuses", errors)) {
@@ -232,7 +232,7 @@ export function validateArticleFile(articleData, supplierData = {}, brochureData
     const normalizedSlug = normalizeSlug(article?.slug);
     if (normalizedSlug) {
       if (slugs.has(normalizedSlug)) {
-        errors.push(createIssue(`items[${index}].slug`, `Dubbele genormaliseerde slug: ${normalizedSlug}.`));
+        errors.push(createIssue(`items[${index}].slug`, `Dubbele URL-naam: ${normalizedSlug}.`));
       }
       slugs.set(normalizedSlug, index);
     }

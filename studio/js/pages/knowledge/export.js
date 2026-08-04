@@ -64,7 +64,7 @@ export function setupArticleExport({ articleSession, rerender = () => {} }) {
           articleSession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve kennisbanksessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -86,7 +86,7 @@ export function setupArticleExport({ articleSession, rerender = () => {} }) {
           articleSession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve kennisbanksessie is niet gewijzigd."
+              "De download kon niet worden gestart. De bewerkversie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);

@@ -278,7 +278,7 @@ function collectMediaSignalIssues(mediaData, supplierData, brochureData, article
   return getMediaAssets(mediaData).flatMap((asset, index) => {
     const found = [];
     const fieldSignals = [
-      [!asset.file, "file", "Bestandspad ontbreekt.", "missing-file"],
+      [!asset.file, "file", "Bestand ontbreekt.", "missing-file"],
       [isImageLikeMedia(asset) && !asset.alt, "alt", "Alt-tekst ontbreekt.", "missing-alt"],
       [
         asset.rightsStatus === "unknown" || asset.rightsStatus === "needs-review",
@@ -314,7 +314,7 @@ function collectMediaSignalIssues(mediaData, supplierData, brochureData, article
           moduleId: "media",
           severity: "warning",
           type: "usage",
-          message: "Wordt nergens gebruikt in bestaande contentpadvelden.",
+          message: "Wordt nergens gebruikt in bestaande contentbestanden.",
           targetRoute: MODULE_CONFIG.media.itemRoute(asset),
           sourcePath: usageSourcePath,
           targetItem: asset
@@ -472,7 +472,7 @@ export function getContentGovernanceReport({
         },
         {
           id: "withPdf",
-          label: "Met PDF-pad",
+          label: "Met PDF-bestand",
           value: brochureCounts.withPdf,
           state: "foundation"
         }
@@ -516,13 +516,13 @@ export function getContentGovernanceReport({
       signals: [
         {
           id: "unregisteredContentPaths",
-          label: "Contentpaden zonder mediaregistratie",
+          label: "Contentbestanden zonder mediaregistratie",
           value: contentPathsWithoutMediaRegistration(articleQuality, libraryQuality),
           state: contentPathsWithoutMediaRegistration(articleQuality, libraryQuality) ? "review" : "foundation"
         },
         {
           id: "missingFilePath",
-          label: "Zonder bestandspad",
+          label: "Zonder bestand",
           value: mediaCounts.missingFilePath,
           state: mediaCounts.missingFilePath ? "review" : "foundation"
         },

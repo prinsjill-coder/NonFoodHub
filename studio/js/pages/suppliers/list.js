@@ -105,7 +105,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
+      "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
     tone: "success"
   });
 }
@@ -114,8 +114,8 @@ function renderImportNotice(sessionSnapshot) {
   if (sessionSnapshot.sourceType !== "imported") return "";
 
   return renderNotice({
-    title: "Geïmporteerde sessiebron actief",
-    message: `${sessionSnapshot.sourceFileName} is lokaal in de browser geladen. Importeren publiceert niets en schrijft niets naar de repository.`,
+      title: "Geimporteerde bewerkversie actief",
+      message: `${sessionSnapshot.sourceFileName} is geladen als bewerkversie. Importeren publiceert niets en past het beheerbestand niet direct aan.`,
     tone: "info"
   });
 }
@@ -166,10 +166,10 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     ${renderExportNotice(sessionSnapshot)}
 
     ${renderNotice({
-      title: "Tijdelijke Studio-sessie",
+      title: "Bewerkversie",
       message:
         supplierData.storage?.message ||
-        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
       tone: "warning"
     })}
 
@@ -186,7 +186,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">In deze Studio-sessie geladen.</p>
+          <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Gepubliceerd</h3>
@@ -194,7 +194,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
           <p class="studio-muted">Status in beheer; zichtbaar na het bijwerken van de publieke websitegegevens.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Ter controle</h3>
+          <h3>Review</h3>
           <p class="studio-metric-value">${counts.statuses.review || 0}</p>
           <p class="studio-muted">Controleer deze items voordat ze publiek zichtbaar kunnen worden.</p>
         </article>
@@ -202,7 +202,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     </section>
 
     ${renderFilterToolbar({
-      searchPlaceholder: "Zoek op naam, slug of categorie",
+      searchPlaceholder: "Zoek op naam, URL-naam of categorie",
       filters: [
         { name: "type", label: "Type", options: typeOptions },
         { name: "status", label: "Status", options: statusOptions }

@@ -17,22 +17,22 @@ import { getSuppliers } from "./supplier-model.js";
 export const CONTENT_READINESS_STATUSES = ["ready", "review", "needs_attention"];
 
 export const CONTENT_READINESS_LABELS = {
-  ready: "Klaar",
-  review: "Review nodig",
-  needs_attention: "Aandacht nodig"
+  ready: "Publiceerbaar",
+  review: "Nog enkele punten afronden",
+  needs_attention: "Nog niet publiceerbaar"
 };
 
 const NEEDS_ATTENTION_ISSUE_TYPES = ["missing-file", "missing-alt"];
 const REVIEW_FIRST_ISSUE_TYPES = ["missing-media-registration", "relation", "rights-review"];
 const PRIORITY_LABELS = {
-  1: "Eerst controleren",
-  2: "Daarna controleren",
-  3: "Controle gewenst"
+  1: "Eerst afronden",
+  2: "Daarna afronden",
+  3: "Controlepunt"
 };
 const PUBLICATION_STATUS_LABELS = {
-  ready: "Publicatiegereed",
-  review: "Nog controleren",
-  not_public: "Niet publiek",
+  ready: "Gepubliceerd",
+  review: "Zichtbaar, nog afronden",
+  not_public: "Nog niet gepubliceerd",
   not_applicable: "Geen websiteweergave"
 };
 const PUBLICATION_MODULE_CONFIG = {
@@ -72,11 +72,30 @@ function sortIssuesByPriority(issues) {
   });
 }
 
+function friendlyIssueMessage(issue) {
+  if (issue?.type === "missing-file") {
+    return "Voeg het ontbrekende bestand toe of vul het juiste bestand in, zodat bezoekers de content kunnen openen.";
+  }
+  if (issue?.type === "missing-alt") {
+    return "Voeg een duidelijke alt-tekst toe, zodat de afbeelding toegankelijk is voor bezoekers die hulpsoftware gebruiken.";
+  }
+  if (issue?.type === "missing-media-registration") {
+    return "Registreer het gebruikte beeld in Media, zodat rechten en gebruik later goed gecontroleerd kunnen worden.";
+  }
+  if (issue?.type === "rights-review") {
+    return "Controleer de beeldrechten voordat dit bestand breder op de website wordt gebruikt.";
+  }
+  if (issue?.type === "relation") {
+    return "Controleer de koppeling, zodat bezoekers logisch kunnen doorklikken tussen inspiratie, leverancier en brochure.";
+  }
+  return issue?.message || "Controleer dit punt voordat de content verder kan.";
+}
+
 function reasonFromIssue(issue) {
   const priority = issuePriority(issue);
 
   return {
-    message: issue.message,
+    message: friendlyIssueMessage(issue),
     priority,
     priorityLabel: PRIORITY_LABELS[priority],
     severity: issue.severity,
@@ -150,14 +169,14 @@ function articlePublicationFeedback(item, projectedItem, projectionContext) {
 
   if (hasValue(item?.title)) checks.push(publicationCheck("Titel is ingevuld."));
   if (hasValue(item?.summary)) checks.push(publicationCheck("Samenvatting is ingevuld."));
-  if (hasValue(item?.heroImage)) checks.push(publicationCheck("Hero-afbeelding is gekoppeld."));
+  if (hasValue(item?.heroImage)) checks.push(publicationCheck("Headerafbeelding is gekoppeld."));
 
   if (!supplierIds.length) {
-    reasons.push(publicationReason("Geen leverancierrelatie zichtbaar; koppel een leverancier als dit artikel naar een merk moet leiden.", 3, "relation"));
+    reasons.push(publicationReason("Koppel een leverancier zodat bezoekers vanuit het artikel kunnen doorklikken naar het assortiment.", 3, "relation"));
   } else if (!publicSuppliers.length) {
     reasons.push(
       publicationReason(
-        "Leveranciercontext ontbreekt op de publieke website, omdat geen gekoppelde leverancier gepubliceerd is.",
+        "De gekoppelde leverancier staat nog niet op de website. Werk die leverancier eerst bij, zodat de artikelcontext zichtbaar wordt.",
         2,
         "relation"
       )
@@ -171,7 +190,7 @@ function articlePublicationFeedback(item, projectedItem, projectionContext) {
     .forEach((supplierId) => {
       const supplier = projectionContext.sourceByModule.suppliers.get(supplierId);
       const label = supplier?.name || supplierId;
-      reasons.push(publicationReason(`Gekoppelde leverancier ${label} is niet publiek zichtbaar.`, 2, "relation"));
+      reasons.push(publicationReason(`Werk leverancier ${label} bij voor de website, zodat deze koppeling zichtbaar wordt.`, 2, "relation"));
     });
 
   return { reasons, checks };
@@ -191,13 +210,13 @@ function supplierPublicationFeedback(item, projectedItem) {
   if (relatedBrochures.length) {
     checks.push(publicationCheck("Heeft publieke brochurekoppeling."));
   } else {
-    reasons.push(publicationReason("Geen publieke brochure gekoppeld; bezoekers kunnen nog niet door naar een collectie.", 2, "relation"));
+    reasons.push(publicationReason("Voeg minimaal één brochure toe zodat bezoekers een collectie kunnen bekijken of downloaden.", 2, "relation"));
   }
 
   if (relatedArticles.length) {
     checks.push(publicationCheck("Heeft publieke kennisbankkoppeling."));
   } else {
-    reasons.push(publicationReason("Geen publiek kennisbankartikel gekoppeld aan deze leverancier.", 3, "relation"));
+    reasons.push(publicationReason("Koppel een kennisbankartikel zodat bezoekers via inspiratie bij deze leverancier kunnen uitkomen.", 3, "relation"));
   }
 
   return { reasons, checks };
@@ -209,26 +228,26 @@ function brochurePublicationFeedback(item, projectedItem, projectionContext) {
 
   if (hasValue(item?.title)) checks.push(publicationCheck("Titel is ingevuld."));
   if (hasValue(item?.description)) checks.push(publicationCheck("Samenvatting is ingevuld."));
-  if (hasValue(item?.thumbnail)) checks.push(publicationCheck("Afbeelding of thumbnail is gekoppeld."));
+  if (hasValue(item?.thumbnail)) checks.push(publicationCheck("Afbeelding is gekoppeld."));
 
   if (hasValue(item?.pdfFile)) {
-    checks.push(publicationCheck("PDF-pad is ingevuld; de publieke PDF-actie verschijnt alleen als het bestand beschikbaar is."));
+    checks.push(publicationCheck("PDF-bestand is ingevuld; de download verschijnt alleen als het bestand beschikbaar is."));
   } else {
-    reasons.push(publicationReason("PDF-pad ontbreekt; vul een PDF-pad in voordat bezoekers een brochurebestand kunnen openen.", 1, "missing-file"));
+    reasons.push(publicationReason("Vul het PDF-bestand in zodat bezoekers de brochure kunnen openen of downloaden.", 1, "missing-file"));
   }
 
   if (!hasValue(item?.supplierId)) {
-    reasons.push(publicationReason("Leverancier ontbreekt; een publieke brochure heeft een publieke leverancier nodig.", 1, "relation"));
+    reasons.push(publicationReason("Koppel een leverancier zodat bezoekers zien bij welk merk of assortiment deze brochure hoort.", 1, "relation"));
   } else if (!publicSupplierExists(item.supplierId, projectionContext)) {
     const supplier = projectionContext.sourceByModule.suppliers.get(item.supplierId);
     const label = supplier?.name || item.supplierId;
-    reasons.push(publicationReason(`Gekoppelde leverancier ${label} is niet publiek zichtbaar.`, 1, "relation"));
+    reasons.push(publicationReason(`Werk leverancier ${label} bij voor de website, zodat deze brochure zichtbaar gekoppeld is.`, 1, "relation"));
   } else {
     checks.push(publicationCheck("Publieke leverancierrelatie is beschikbaar."));
   }
 
   if (!projectedItem && isPublicContentItem(item) && !reasons.length) {
-    reasons.push(publicationReason("Niet zichtbaar op de brochurepagina; controleer bestaande governance-issues.", 2));
+    reasons.push(publicationReason("Nog niet zichtbaar op de brochurepagina; controleer de aandachtspunten in Governance.", 2));
   }
 
   return { reasons, checks };
@@ -252,7 +271,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
       included: false,
       dataset: "",
       reasons: [
-        publicationReason("Deze module heeft nog geen websiteweergave onder data/public/*.", 3, "not-applicable")
+        publicationReason("Deze module heeft nog geen publieke websiteweergave.", 3, "not-applicable")
       ],
       checks: []
     };
@@ -269,7 +288,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
   } else {
     reasons.unshift(
       publicationReason(
-        `Niet zichtbaar omdat de status ${getContentStatusLabel(item?.status || "onbekend")} is. De publieke website neemt alleen ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)} op.`,
+        `Niet zichtbaar omdat de status ${getContentStatusLabel(item?.status || "onbekend")} is. Zet de status op ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)} en werk daarna de website bij.`,
         1,
         "status"
       )

@@ -258,10 +258,10 @@ export async function runContentGovernanceChecks() {
     assert.match(html, /Media/);
     assert.match(html, /Bibliotheek/);
     assert.match(html, /Issue-overzicht/);
-    assert.match(html, /Content readiness/);
+    assert.match(html, /Klaar voor de website\?/);
     assert.match(html, /Websiteweergave/);
-    assert.match(html, /Publicatiegereed/);
-    assert.match(html, /Aandacht nodig/);
+    assert.match(html, /Publiceerbaar/);
+    assert.match(html, /Nog niet publiceerbaar/);
     assert.match(html, /Modules met aandacht/);
     assert.match(html, /data-governance-filters/);
     assert.match(html, /value="warning"/);

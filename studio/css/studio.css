@@ -242,17 +242,17 @@ textarea:focus-visible {
 .studio-page-header {
   width: min(840px, 100%);
   min-width: 0;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .studio-page-header h1 {
   margin: 0;
-  font-size: 2.7rem;
-  line-height: 1.05;
+  font-size: 2.4rem;
+  line-height: 1.12;
 }
 
 .studio-page-header p {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: var(--studio-ink-soft);
   font-size: 1.05rem;
 }

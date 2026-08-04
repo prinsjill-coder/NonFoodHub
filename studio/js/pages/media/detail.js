@@ -49,7 +49,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
     ${renderPageHeader({
       eyebrow: "Mediaregister",
       title: asset.title,
-      description: "Bekijk metadata van een geregistreerd media-asset binnen de actieve Studio-werksessie."
+      description: "Bekijk gegevens van een geregistreerd mediabestand binnen de bewerkversie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -58,9 +58,9 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
     </div>
 
     ${renderNotice({
-      title: "Registry zonder upload",
+      title: "Geen uploadfunctie",
       message:
-        "Deze detailweergave registreert alleen metadata en een relatief projectpad. Studio uploadt of verplaatst geen bestanden.",
+        "Deze detailweergave registreert alleen gegevens en een bestand. Studio uploadt of verplaatst geen bestanden.",
       tone: "info"
     })}
 
@@ -70,7 +70,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
 
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Metadata</h2>
+        <h2>Gegevens</h2>
         ${renderStatusBadge(asset.status)}
       </div>
       ${renderDetailList([
@@ -89,12 +89,12 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
 
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Padcontrole</h2>
+        <h2>Bestandscontrole</h2>
       </div>
       <article class="studio-card">
-        <p class="studio-muted">Geregistreerd relatief pad</p>
+        <p class="studio-muted">Ingevuld bestand</p>
         <p><code>${escapeHtml(asset.file)}</code></p>
-        <p class="studio-meta">Fysieke bestandscontrole gebeurt in lokale scripts en handmatige QA, niet via browser-upload.</p>
+        <p class="studio-meta">Bestandscontrole gebeurt via checks en handmatige QA, niet via upload in Studio.</p>
       </article>
     </section>
 
@@ -106,7 +106,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
         <article class="studio-card">
           <h3>Leveranciers</h3>
           ${renderUsageList(usage.suppliers, {
-            emptyText: "Geen leveranciers gebruiken dit pad.",
+            emptyText: "Nog geen leveranciers gebruiken dit bestand.",
             hrefForItem: (supplier) => `#/leveranciers/${supplier.slug}`,
             labelForItem: (supplier) => supplier.name,
             statusForItem: (supplier) => supplier.status,
@@ -116,7 +116,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
         <article class="studio-card">
           <h3>Brochures</h3>
           ${renderUsageList(usage.brochures, {
-            emptyText: "Geen brochures gebruiken dit pad.",
+            emptyText: "Nog geen brochures gebruiken dit bestand.",
             hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
             labelForItem: (brochure) => brochure.title,
             statusForItem: (brochure) => brochure.status,
@@ -126,7 +126,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
         <article class="studio-card">
           <h3>Artikelen</h3>
           ${renderUsageList(usage.articles, {
-            emptyText: "Geen artikelen gebruiken dit pad.",
+            emptyText: "Nog geen artikelen gebruiken dit bestand.",
             hrefForItem: (article) => `#/kennisbank/${article.slug}`,
             labelForItem: (article) => article.title,
             statusForItem: (article) => article.status,
