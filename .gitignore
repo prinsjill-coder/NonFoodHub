@@ -41,6 +41,9 @@ pnpm-debug.log*
 .serve/
 node_modules/
 
+# Playwright test output
+playwright-report/
+test-results/
 # Local OS metadata from archives or external drives
 __MACOSX/
 Thumbs.db
