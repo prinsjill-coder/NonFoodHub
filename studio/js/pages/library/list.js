@@ -7,6 +7,7 @@ import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
+import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import {
   getLibraryCounts,
   getLibraryItems,
@@ -137,10 +138,10 @@ function categoryOptions(libraryData) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
-  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde bibliotheekwijzigingen";
-  if (snapshot.dirty) return "Niet-opgeslagen bibliotheekwijzigingen";
-  return "Gelijk aan geladen bron";
+  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
+  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  return "Gelijk aan het geladen bestand";
 }
 
 function renderExportNotice(sessionSnapshot) {
@@ -149,7 +150,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -204,23 +205,23 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
   const suppliersById = supplierNameById(supplierData);
   const actions = `
     ${renderButton({ label: "Nieuw bibliotheekitem", href: "#/bibliotheek/nieuw", variant: "primary" })}
-    ${renderButton({ label: "Importeren", href: "#/bibliotheek/import", variant: "secondary" })}
-    ${renderButton({ label: "Exporteren", href: "#/bibliotheek/export", variant: "secondary" })}
+    ${renderButton({ label: "Gegevens importeren", href: "#/bibliotheek/import", variant: "secondary" })}
+    ${renderButton({ label: "Gegevens exporteren", href: "#/bibliotheek/export", variant: "secondary" })}
   `;
 
   return `
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
       title: "Bibliotheek",
-      description: "Registreer documenten en bronnen als Studio-register binnen de statische browserwerksessie."
+      description: "Beheer documenten en bronnen, controleer bestanden en houd de gegevens klaar voor latere websitekoppeling."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen totdat je library.json exporteert.",
+        "Wijzigingen blijven alleen in deze Studio-sessie totdat je bibliotheekgegevens exporteert.",
       exportMessage:
-        "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreLabel: "Bibliotheeksessie herstellen",
       restoreAttributes: { "data-library-restore": true }
@@ -230,11 +231,15 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
     ${renderExportNotice(sessionSnapshot)}
 
     ${renderNotice({
-      title: "Statische Studio-werksessie",
+      title: "Tijdelijke Studio-sessie",
       message:
         libraryData.storage?.message ||
-        "Bibliotheekitems worden als registry beheerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
+        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren om het beheerbestand over te dragen.",
       tone: "warning"
+    })}
+
+    ${renderWorkflowPanel({
+      nextStep: "Let op: bibliotheekitems hebben nog geen publieke websiteweergave. Exporteren draagt alleen het beheerbestand over."
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
@@ -245,7 +250,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
       valid: qualityReport.valid,
       errors: qualityReport.errors,
       warnings: qualityReport.warnings,
-      sourceFileName: "actieve bibliotheekwerksessie"
+      sourceFileName: "actieve bibliotheeksessie"
     }, {
       title: "Kwaliteitsrapport bibliotheek"
     })}
@@ -255,7 +260,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Geregistreerde bibliotheekitems in de actieve werksessie.</p>
+          <p class="studio-muted">In deze Studio-sessie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Ter controle</h3>
@@ -334,7 +339,7 @@ export function setupLibraryList({ librarySession, rerender }) {
       const confirmed = await confirmStudioAction({
         title: "Bibliotheeksessie herstellen?",
         message:
-          "De actieve bibliotheekwerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+          "De actieve bibliotheeksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
         confirmLabel: "Sessie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"

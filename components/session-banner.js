@@ -4,18 +4,18 @@ import { escapeHtml } from "../shared/utils.js";
 
 function statusText(snapshot) {
   if (snapshot.exportedCurrent) {
-    return "Geëxporteerd, nog niet bevestigd als geplaatst";
+    return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
   }
 
   if (snapshot.hasUnexportedChanges) {
-    return "Niet-geëxporteerde werksessiewijzigingen";
+    return "Wijzigingen nog niet geëxporteerd";
   }
 
   if (snapshot.dirty) {
-    return "Werksessie wijkt af van de bron";
+    return "Sessie wijkt af van het geladen bestand";
   }
 
-  return "Gelijk aan geladen bron";
+  return "Gelijk aan het geladen bestand";
 }
 
 export function renderSessionBanner(snapshot, options = {}) {
@@ -23,10 +23,10 @@ export function renderSessionBanner(snapshot, options = {}) {
   const badge = snapshot.hasUnexportedChanges ? "review" : snapshot.exportedCurrent ? "success" : "foundation";
   const sourceDescription =
     options.sourceDescription ||
-    `Wijzigingen bestaan alleen in browsergeheugen totdat je ${options.fileName || "suppliers.json"} exporteert.`;
+    `Wijzigingen blijven alleen in deze Studio-sessie totdat je ${options.fileName || "het bestand"} exporteert.`;
   const exportMessage =
     options.exportMessage ||
-    "Dit bestand is alleen gedownload. Vervang handmatig data/suppliers.json en commit en push daarna zelf via GitHub Desktop.";
+    "Dit bestand is alleen gedownload. Vervang het bronbestand handmatig en publiceer daarna zelf via GitHub Desktop.";
 
   return `
     <section class="studio-session-banner is-${tone}" aria-label="Werksessiestatus" role="status" aria-live="polite">
@@ -34,7 +34,7 @@ export function renderSessionBanner(snapshot, options = {}) {
         <p class="studio-kicker">Werksessie</p>
         <h2>${escapeHtml(options.statusText ? options.statusText(snapshot) : statusText(snapshot))}</h2>
         <p>
-          Bron: ${escapeHtml(snapshot.sourceFileName)}.
+          Geladen bestand: ${escapeHtml(snapshot.sourceFileName)}.
           ${escapeHtml(sourceDescription)}
         </p>
         ${

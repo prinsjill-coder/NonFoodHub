@@ -23,7 +23,7 @@ export const SUPPLIER_KEYS = [
 ];
 
 export const SUPPLIER_STORAGE_NOTICE =
-  "Leveranciers worden in Sprint 3 in browsergeheugen gewijzigd. Export downloadt alleen suppliers.json; vervang /data/suppliers.json handmatig en commit en push daarna zelf via GitHub Desktop.";
+  "Leveranciers worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij.";
 
 const DEFAULT_TYPE_LABELS = {
   leverancier: "Leverancier",

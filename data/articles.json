@@ -11,7 +11,7 @@
   "storage": {
     "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Kennisbankartikelen worden in browsergeheugen gewijzigd. Export downloadt alleen articles.json; vervang /data/articles.json handmatig en commit en push daarna zelf via GitHub Desktop."
+    "message": "Kennisbankartikelen worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij."
   },
   "statuses": ["concept", "review", "published", "hidden", "archived"],
   "categories": [

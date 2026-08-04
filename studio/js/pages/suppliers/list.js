@@ -7,6 +7,7 @@ import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
+import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import {
   getSupplierCounts,
   getSupplierStatusLabel,
@@ -104,7 +105,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig /data/suppliers.json en commit en push daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -134,15 +135,15 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
   const actions = `
     ${renderButton({ label: "Nieuwe leverancier", href: "#/leveranciers/nieuw", variant: "primary" })}
     ${renderButton({
-      label: "Import",
+      label: "Gegevens importeren",
       variant: "secondary",
-      ariaLabel: "Leveranciersdata importeren",
+      ariaLabel: "Leveranciersgegevens importeren",
       attributes: { "data-supplier-import-button": true }
     })}
     ${renderButton({
-      label: "Export",
+      label: "Gegevens exporteren",
       variant: "secondary",
-      ariaLabel: "Leveranciersdata exporteren",
+      ariaLabel: "Leveranciersgegevens exporteren",
       attributes: { "data-supplier-export-button": true }
     })}
     ${renderFileInput({
@@ -157,7 +158,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     ${renderPageHeader({
       eyebrow: "Leveranciersbeheer",
       title: "Leveranciers",
-      description: "Beheer leveranciers als centraal contentobject voor toekomstige koppelingen met brochures, kennisbank en media."
+      description: "Beheer leveranciers, controleer hun status en zet complete gegevens klaar voor de publieke website."
     })}
 
     ${renderSessionBanner(sessionSnapshot)}
@@ -165,11 +166,15 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     ${renderExportNotice(sessionSnapshot)}
 
     ${renderNotice({
-      title: "Statische Studio-werksessie",
+      title: "Tijdelijke Studio-sessie",
       message:
         supplierData.storage?.message ||
-        "Wijzigingen bestaan alleen in browsergeheugen. Export downloadt suppliers.json; vervangen, committen en pushen gebeuren handmatig.",
+        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
       tone: "warning"
+    })}
+
+    ${renderWorkflowPanel({
+      nextStep: "Volgende stap na export: leveranciersgegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren."
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
@@ -181,12 +186,12 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Gelezen uit de actieve Studio-werksessie.</p>
+          <p class="studio-muted">In deze Studio-sessie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Gepubliceerd</h3>
           <p class="studio-metric-value">${counts.statuses.published || 0}</p>
-          <p class="studio-muted">Contentstatus; publieke weergave loopt via gecontroleerde projecties.</p>
+          <p class="studio-muted">Status in beheer; zichtbaar na het bijwerken van de publieke websitegegevens.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Ter controle</h3>

@@ -108,7 +108,7 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
     ${renderPageHeader({
       eyebrow: "Kennisbankbeheer",
       title: article.title,
-      description: "Bekijk metadata, relaties en inhoud van een kennisbankartikel binnen de actieve Studio-werksessie."
+      description: "Bekijk gegevens, relaties en inhoud van een kennisbankartikel binnen deze Studio-sessie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -117,9 +117,9 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
     </div>
 
     ${renderNotice({
-      title: "Registry zonder publieke rendering",
+      title: "Alleen deze Studio-sessie",
       message:
-        "Dit artikel bestaat alleen in de Studio-contentregistry. De publieke website leest deze kennisbankdata nog niet.",
+        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
       tone: "info"
     })}
 
@@ -129,7 +129,7 @@ export function renderArticleDetail({ article, articleData = {}, supplierData, b
 
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Metadata</h2>
+        <h2>Gegevens</h2>
         ${renderStatusBadge(article.status, getArticleStatusLabel(article.status))}
       </div>
       ${renderDetailList([

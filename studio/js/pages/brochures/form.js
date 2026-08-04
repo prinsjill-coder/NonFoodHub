@@ -47,8 +47,8 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
   const isEdit = mode === "edit";
   const title = isEdit ? `${brochure.title} bewerken` : "Nieuwe brochure";
   const description = isEdit
-    ? "Pas brochuredata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website."
-    : "Maak een nieuwe brochure klaar binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website.";
+    ? "Pas de brochure aan in deze Studio-sessie. De website verandert pas na export en handmatige publicatie."
+    : "Maak een nieuwe brochure klaar in deze Studio-sessie. De website verandert pas na export en handmatige publicatie.";
 
   return `
     ${renderPageHeader({
@@ -63,10 +63,10 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
     </div>
 
     ${renderNotice({
-      title: "Opslaan in werksessie",
+      title: "Opslaan in deze sessie",
       message:
         brochureData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Exporteer daarna brochures.json en vervang het bestand handmatig in data/.",
+        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -92,10 +92,10 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
           })}
           ${renderTextField({
             name: "slug",
-            label: "Slug",
+            label: "URL-naam",
             value: brochure.slug,
             required: true,
-            help: "Uniek, lowercase en met koppeltekens. Bijvoorbeeld amefa-for-professionals-2026."
+            help: "Unieke korte naam voor routes en koppelingen, bijvoorbeeld amefa-for-professionals-2026."
           })}
           ${renderSelectField({
             name: "supplierId",
@@ -125,7 +125,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
             value: brochure.status,
             options: getStatusOptions(brochureData),
             required: true,
-            help: "Contentstatus; dit publiceert niets automatisch naar de publieke website."
+            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
           })}
           ${renderTextField({
             name: "sortOrder",
@@ -188,11 +188,11 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/brochures",
@@ -250,9 +250,9 @@ export function setupBrochureForm({ brochureSession, supplierSession, formDirtyG
     brochureSession.applyBrochure(brochure, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in werksessie",
+      title: "Opgeslagen in deze sessie",
       message:
-        "De brochure is toegepast op workingData in browsergeheugen. Exporteer brochures.json om de wijziging als overdrachtsbestand te downloaden; plaats PDF en thumbnail zelf op het ingevulde relatieve pad.",
+        "De brochure is tijdelijk opgeslagen. Gebruik Gegevens exporteren; plaats PDF en thumbnail zelf op het ingevulde relatieve pad.",
       tone: "success"
     });
     window.location.hash = `#/brochures/${brochure.slug}`;

@@ -33,7 +33,7 @@ const PUBLICATION_STATUS_LABELS = {
   ready: "Publicatiegereed",
   review: "Nog controleren",
   not_public: "Niet publiek",
-  not_applicable: "Geen publieke projectie"
+  not_applicable: "Geen websiteweergave"
 };
 const PUBLICATION_MODULE_CONFIG = {
   suppliers: {
@@ -157,7 +157,7 @@ function articlePublicationFeedback(item, projectedItem, projectionContext) {
   } else if (!publicSuppliers.length) {
     reasons.push(
       publicationReason(
-        "Leveranciercontext ontbreekt in de publieke projectie, omdat geen gekoppelde leverancier gepubliceerd is.",
+        "Leveranciercontext ontbreekt op de publieke website, omdat geen gekoppelde leverancier gepubliceerd is.",
         2,
         "relation"
       )
@@ -228,7 +228,7 @@ function brochurePublicationFeedback(item, projectedItem, projectionContext) {
   }
 
   if (!projectedItem && isPublicContentItem(item) && !reasons.length) {
-    reasons.push(publicationReason("Niet opgenomen in de publieke brochureprojectie; controleer bestaande governance-issues.", 2));
+    reasons.push(publicationReason("Niet zichtbaar op de brochurepagina; controleer bestaande governance-issues.", 2));
   }
 
   return { reasons, checks };
@@ -252,7 +252,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
       included: false,
       dataset: "",
       reasons: [
-        publicationReason("Deze module heeft nog geen publieke projectie onder data/public/*.", 3, "not-applicable")
+        publicationReason("Deze module heeft nog geen websiteweergave onder data/public/*.", 3, "not-applicable")
       ],
       checks: []
     };
@@ -269,7 +269,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
   } else {
     reasons.unshift(
       publicationReason(
-        `Niet zichtbaar omdat de status ${getContentStatusLabel(item?.status || "onbekend")} is. Publieke projecties nemen alleen ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)} op.`,
+        `Niet zichtbaar omdat de status ${getContentStatusLabel(item?.status || "onbekend")} is. De publieke website neemt alleen ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)} op.`,
         1,
         "status"
       )
@@ -277,7 +277,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
   }
 
   if (included) {
-    checks.unshift(publicationCheck(`Publieke projectie bevat dit item voor de ${config.routeLabel}.`));
+    checks.unshift(publicationCheck(`Publieke website bevat dit item voor de ${config.routeLabel}.`));
   }
 
   const status = publicationStatusFor({ included, reasons });

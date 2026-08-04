@@ -78,8 +78,8 @@ export function renderArticleForm({
   const isEdit = mode === "edit";
   const title = isEdit ? `${article.title} bewerken` : "Nieuw artikel";
   const description = isEdit
-    ? "Pas kennisbankdata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website."
-    : "Maak een nieuw kennisbankartikel klaar binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website.";
+    ? "Pas het artikel aan in deze Studio-sessie. De website verandert pas na export en handmatige publicatie."
+    : "Maak een nieuw artikel klaar in deze Studio-sessie. De website verandert pas na export en handmatige publicatie.";
 
   return `
     ${renderPageHeader({
@@ -94,10 +94,10 @@ export function renderArticleForm({
     </div>
 
     ${renderNotice({
-      title: "Opslaan in werksessie",
+      title: "Opslaan in deze sessie",
       message:
         articleData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Er wordt niets naar data/articles.json geschreven.",
+        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -123,10 +123,10 @@ export function renderArticleForm({
           })}
           ${renderTextField({
             name: "slug",
-            label: "Slug",
+            label: "URL-naam",
             value: article.slug,
             required: true,
-            help: "Uniek, lowercase en met koppeltekens."
+            help: "Unieke korte naam voor routes en koppelingen."
           })}
           ${renderSelectField({
             name: "status",
@@ -134,7 +134,7 @@ export function renderArticleForm({
             value: article.status,
             options: getStatusOptions(articleData),
             required: true,
-            help: "Contentstatus; dit publiceert niets automatisch."
+            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
           })}
           ${renderTextField({
             name: "updatedAt",
@@ -153,10 +153,10 @@ export function renderArticleForm({
           })}
           ${renderTextField({
             name: "heroImage",
-            label: "Hero afbeelding (relatief pad)",
+            label: "Hero afbeelding",
             value: article.heroImage,
             help:
-              "Relatief projectpad naar een bestaande afbeelding. Bijvoorbeeld assets/images/blog-terras.png. Automatische koppeling met MediaAsset volgt in een latere sprint."
+              "Relatief pad naar een bestaande afbeelding, bijvoorbeeld assets/images/blog-terrace.png. Uploaden gebeurt nog niet in Studio."
           })}
         </div>
       </section>
@@ -193,7 +193,7 @@ export function renderArticleForm({
           label: "Gekoppelde leveranciers",
           values: article.supplierIds,
           options: supplierOptions(supplierData),
-          help: "Relaties worden alleen binnen de Studio-werksessie vastgelegd."
+          help: "Deze koppeling kan leveranciercontext op de publieke website tonen."
         })}
         ${renderRelationCheckboxGroup({
           name: "brochureIds",
@@ -205,11 +205,11 @@ export function renderArticleForm({
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/kennisbank",
@@ -269,9 +269,9 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
     articleSession.applyArticle(article, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in werksessie",
+      title: "Opgeslagen in deze sessie",
       message:
-        "Het artikel is toegepast op workingData in browsergeheugen. Import, export, publicatie en automatische MediaAsset-koppelingen zijn niet actief.",
+        "Het artikel is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"
     });
     window.location.hash = `#/kennisbank/${article.slug}`;

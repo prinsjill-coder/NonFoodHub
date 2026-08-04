@@ -36,8 +36,8 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
   const isEdit = mode === "edit";
   const title = isEdit ? `${supplier.name} bewerken` : "Nieuwe leverancier";
   const description = isEdit
-    ? "Pas leveranciersdata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website."
-    : "Maak een nieuwe leverancier klaar binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de live website.";
+    ? "Pas de leverancier aan in deze Studio-sessie. De website verandert pas na export en handmatige publicatie."
+    : "Maak een nieuwe leverancier klaar in deze Studio-sessie. De website verandert pas na export en handmatige publicatie.";
 
   return `
     ${renderPageHeader({
@@ -52,10 +52,10 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
     </div>
 
     ${renderNotice({
-      title: "Opslaan in werksessie",
+      title: "Opslaan in deze sessie",
       message:
         supplierData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Exporteer daarna suppliers.json en vervang /data/suppliers.json handmatig.",
+        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -74,11 +74,11 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             help: "De officiele leveranciers- of partnernaam."
           })}
           ${renderTextField({
-            name: "slug",
-            label: "Slug",
+          name: "slug",
+            label: "URL-naam",
             value: supplier.slug,
             required: true,
-            help: "Uniek, lowercase en met koppeltekens. Bijvoorbeeld amefa."
+            help: "Unieke korte naam voor routes en koppelingen, bijvoorbeeld amefa."
           })}
           ${renderSelectField({
             name: "type",
@@ -93,7 +93,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             value: supplier.status,
             options: getStatusOptions(supplierData),
             required: true,
-            help: "Contentstatus; dit publiceert niets automatisch naar de publieke website."
+            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
           })}
           ${renderTextField({
             name: "sortOrder",
@@ -132,7 +132,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
           label: "Categorieen",
           values: supplier.categories,
           options: supplierData.categories || [],
-          help: "Relaties met echte categoriedata kunnen later worden toegevoegd."
+          help: "Kies de productgroepen waarin deze leverancier zichtbaar moet zijn."
         })}
       </section>
 
@@ -143,13 +143,13 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             name: "logo",
             label: "Logopad",
             value: supplier.logo,
-            help: "Voorlopig alleen een relatief pad, bijvoorbeeld assets/images/supplier-amefa.jpg."
+            help: "Relatief pad naar een bestaand logo of beeld, bijvoorbeeld assets/images/supplier-amefa.jpg."
           })}
           ${renderTextField({
             name: "image",
             label: "Afbeeldingspad",
             value: supplier.image,
-            help: "Media-upload en rechtencontrole worden later toegevoegd."
+            help: "Relatief pad naar een bestaand beeld. Uploaden gebeurt nog niet in Studio."
           })}
         </div>
       </section>
@@ -159,21 +159,21 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
         <div class="studio-grid studio-grid-2">
           <article class="studio-card">
             <h3>Brochures</h3>
-            <p class="studio-muted">Voorbereid via <code>brochureIds</code>. Koppelen valt buiten Sprint 3.</p>
+            <p class="studio-muted">Gekoppelde brochures worden automatisch zichtbaar wanneer beide kanten publiek beschikbaar zijn.</p>
           </article>
           <article class="studio-card">
             <h3>Kennisbankartikelen</h3>
-            <p class="studio-muted">Voorbereid via <code>relatedArticleIds</code>. Koppelen valt buiten Sprint 3.</p>
+            <p class="studio-muted">Gekoppelde artikelen helpen bezoekers vanuit inspiratie naar deze leverancier te gaan.</p>
           </article>
         </div>
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/leveranciers",
@@ -229,9 +229,9 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
     supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in werksessie",
+      title: "Opgeslagen in deze sessie",
       message:
-        "De leverancier is toegepast op workingData in browsergeheugen. Exporteer suppliers.json om de wijziging handmatig over te dragen.",
+        "De leverancier is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"
     });
     window.location.hash = `#/leveranciers/${supplier.slug}`;

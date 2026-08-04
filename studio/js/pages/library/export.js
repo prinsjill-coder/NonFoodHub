@@ -47,14 +47,14 @@ function setButtonBusy(button, busy) {
   button.disabled = busy;
   button.classList.toggle("is-busy", busy);
   button.setAttribute("aria-busy", busy ? "true" : "false");
-  button.textContent = busy ? "Exporteren..." : "Exporteren";
+  button.textContent = busy ? "Gegevens exporteren..." : "Gegevens exporteren";
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
-  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde bibliotheekwijzigingen";
-  if (snapshot.dirty) return "Niet-opgeslagen bibliotheekwijzigingen";
-  return "Gelijk aan geladen bron";
+  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
+  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  return "Gelijk aan het geladen bestand";
 }
 
 function renderExportNotice(sessionSnapshot) {
@@ -63,7 +63,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -77,7 +77,7 @@ function renderExportSummary(report) {
         <article class="studio-card studio-metric-card">
           <h3>Items</h3>
           <p class="studio-metric-value">${Number(report.itemCount || 0)}</p>
-          <p class="studio-muted">Aantal items in de actieve bibliotheekwerksessie.</p>
+          <p class="studio-muted">Aantal items in de actieve bibliotheeksessie.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Waarschuwingen</h3>
@@ -98,21 +98,21 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
   return `
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
-      title: "Bibliotheek exporteren",
-      description: "Download de actieve bibliotheekwerksessie als volledig gevalideerd en genormaliseerd library.json-bestand."
+      title: "Bibliotheekgegevens exporteren",
+      description: "Download gecontroleerde bibliotheekgegevens uit deze Studio-sessie."
     })}
 
     <div class="studio-actions studio-page-actions">
       ${renderButton({ label: "Terug naar bibliotheek", href: "#/bibliotheek", variant: "secondary" })}
-      ${renderButton({ label: "Naar import", href: "#/bibliotheek/import", variant: "secondary" })}
+      ${renderButton({ label: "Naar gegevens importeren", href: "#/bibliotheek/import", variant: "secondary" })}
     </div>
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "library.json",
       sourceDescription:
-        "Exporteren downloadt alleen de actieve browserwerksessie als JSON-bestand.",
+        "Exporteren downloadt alleen deze Studio-sessie als gegevensbestand.",
       exportMessage:
-        "Dit bestand is alleen gedownload. Vervang handmatig /data/library.json en commit en push daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Draag het beheerbestand handmatig over en publiceer daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreLabel: "Bibliotheeksessie herstellen",
       restoreAttributes: { "data-library-restore": true }
@@ -123,7 +123,7 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
     ${renderNotice({
       title: "Handmatige overdracht",
       message:
-        "Export schrijft niet naar data/library.json, maakt geen commit, pusht niets en publiceert niets. De bestandsnaam blijft exact library.json.",
+        "Exporteren downloadt alleen een bestand. Studio publiceert niets automatisch en maakt geen commit of push.",
       tone: "warning"
     })}
 
@@ -131,13 +131,13 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
       <div class="studio-card">
         <div class="studio-card-head">
           <div>
-            <h2>Genormaliseerde export</h2>
-            <p class="studio-muted">Onbekende velden worden niet meegenomen in het exportbestand.</p>
+            <h2>Gecontroleerde gegevens</h2>
+            <p class="studio-muted">Alleen velden die bij het bibliotheekmodel horen worden meegenomen.</p>
           </div>
         </div>
         <div class="studio-actions">
           ${renderButton({
-            label: "Exporteren",
+            label: "Gegevens exporteren",
             variant: "primary",
             attributes: { "data-library-export-button": true }
           })}
@@ -171,7 +171,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
           librarySession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve bibliotheekwerksessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De actieve bibliotheeksessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -193,7 +193,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
           librarySession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve bibliotheekwerksessie is niet gewijzigd."
+              "De download kon niet worden gestart. De actieve bibliotheeksessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -213,7 +213,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
       const confirmed = await confirmStudioAction({
         title: "Bibliotheeksessie herstellen?",
         message:
-          "De actieve bibliotheekwerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+          "De actieve bibliotheeksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
         confirmLabel: "Sessie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"

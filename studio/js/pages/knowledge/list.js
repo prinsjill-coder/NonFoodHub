@@ -8,6 +8,7 @@ import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
+import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import {
   getArticleCounts,
   getArticles,
@@ -130,10 +131,10 @@ function categoryOptions(articleData) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
-  if (snapshot.hasUnexportedChanges) return "Niet-geëxporteerde kennisbankwijzigingen";
-  if (snapshot.dirty) return "Niet-opgeslagen kennisbankwijzigingen";
-  return "Gelijk aan geladen bron";
+  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
+  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  return "Gelijk aan het geladen bestand";
 }
 
 function renderExportNotice(sessionSnapshot) {
@@ -142,7 +143,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig /data/articles.json en commit en push daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -208,15 +209,15 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
   const actions = `
     ${renderButton({ label: "Nieuw artikel", href: "#/kennisbank/nieuw", variant: "primary" })}
     ${renderButton({
-      label: "Importeren",
+      label: "Gegevens importeren",
       variant: "secondary",
-      ariaLabel: "Artikeldata importeren",
+      ariaLabel: "Artikelgegevens importeren",
       attributes: { "data-article-import-button": true }
     })}
     ${renderButton({
-      label: "Exporteren",
+      label: "Gegevens exporteren",
       variant: "secondary",
-      ariaLabel: "Artikeldata exporteren",
+      ariaLabel: "Artikelgegevens exporteren",
       attributes: { "data-article-export-button": true }
     })}
     ${renderFileInput({
@@ -231,15 +232,15 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     ${renderPageHeader({
       eyebrow: "Kennisbankbeheer",
       title: "Kennisbank",
-      description: "Registreer inspiratie- en kennisbankartikelen binnen de statische Studio-werksessie."
+      description: "Beheer inspiratieartikelen, controleer relaties en zet complete artikelen klaar voor de publieke website."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "articles.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen totdat je articles.json exporteert.",
+        "Wijzigingen blijven alleen in deze Studio-sessie totdat je artikelgegevens exporteert.",
       exportMessage:
-        "Dit bestand is alleen gedownload. Vervang handmatig /data/articles.json en commit en push daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Werk daarna de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreLabel: "Kennisbanksessie herstellen",
       restoreAttributes: { "data-article-restore": true }
@@ -250,11 +251,15 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     ${renderImportSummary(sessionSnapshot.lastValidationReport)}
 
     ${renderNotice({
-      title: "Statische Studio-werksessie",
+      title: "Tijdelijke Studio-sessie",
       message:
         articleData.storage?.message ||
-        "Artikelen worden alleen als contentregistry beheerd. Studio publiceert niets en schrijft niets naar data/articles.json.",
+        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
       tone: "warning"
+    })}
+
+    ${renderWorkflowPanel({
+      nextStep: "Volgende stap na export: artikelgegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren."
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
@@ -265,7 +270,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       valid: qualityReport.valid,
       errors: qualityReport.errors,
       warnings: qualityReport.warnings,
-      sourceFileName: "actieve kennisbankwerksessie"
+      sourceFileName: "actieve kennisbanksessie"
     }, {
       title: "Kwaliteitsrapport kennisbank"
     })}
@@ -275,7 +280,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Gelezen uit de actieve werksessie.</p>
+          <p class="studio-muted">In deze Studio-sessie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Ter controle</h3>
@@ -355,7 +360,7 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
       const confirmed = await confirmStudioAction({
         title: "Kennisbanksessie herstellen?",
         message:
-          "De actieve kennisbankwerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+          "De actieve kennisbanksessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
         confirmLabel: "Sessie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"

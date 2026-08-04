@@ -13,7 +13,13 @@ function hasValue(value) {
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function toOptionalNumber(value) {
@@ -83,7 +89,7 @@ export function validateMediaAsset(asset, existingAssets, options = {}) {
   if (!hasValue(asset.file)) {
     errors.file = "Vul een relatief bestandspad in.";
   } else if (!isRelativeProjectPath(asset.file)) {
-    errors.file = "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.";
+    errors.file = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
   }
 
   if (!MEDIA_TYPES.includes(asset.type)) {

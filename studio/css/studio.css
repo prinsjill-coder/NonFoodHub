@@ -863,6 +863,66 @@ textarea:focus-visible {
   margin: 0;
 }
 
+.studio-workflow-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.studio-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-workflow-step {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--studio-border);
+  border-radius: 8px;
+  background: var(--studio-surface-soft);
+}
+
+.studio-workflow-step strong {
+  color: var(--studio-ink);
+}
+
+.studio-workflow-step span {
+  color: var(--studio-ink-soft);
+  font-size: 0.92rem;
+}
+
+.studio-file-status-card {
+  align-content: start;
+}
+
+.studio-file-status-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.studio-file-status-list div {
+  display: grid;
+  gap: 4px;
+}
+
+.studio-file-status-list dt {
+  color: var(--studio-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.studio-file-status-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .studio-publication-checks {
   display: grid;
   gap: 8px;
@@ -1296,6 +1356,10 @@ textarea:focus-visible {
 
   .studio-readiness-link {
     white-space: normal;
+  }
+
+  .studio-workflow-steps {
+    grid-template-columns: 1fr;
   }
 
   .studio-session-actions {

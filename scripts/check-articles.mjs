@@ -167,7 +167,7 @@ export async function runArticleChecks() {
 
   await runCheck("padvalidatie blokkeert lokale paden, file-url en Windows-paden", () => {
     let data = clone(articles);
-    firstArticle(data).heroImage = "/Users/jillprins/voorbeeld.png";
+    firstArticle(data).heroImage = "/absolute/voorbeeld.png";
     expectInvalid(data, suppliers, brochures, media, "items[0].heroImage");
 
     data = clone(articles);
@@ -175,7 +175,7 @@ export async function runArticleChecks() {
     expectInvalid(data, suppliers, brochures, media, "items[0].heroImage");
 
     data = clone(articles);
-    firstArticle(data).heroImage = "C:\\Users\\jill\\voorbeeld.png";
+    firstArticle(data).heroImage = "Z:\\absolute\\voorbeeld.png";
     expectInvalid(data, suppliers, brochures, media, "items[0].heroImage");
   });
 

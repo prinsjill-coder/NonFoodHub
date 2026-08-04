@@ -17,7 +17,13 @@ function hasValue(value) {
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function validateArray(value, path, errors) {
@@ -121,14 +127,14 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
 
   if (brochure.pdfFile) {
     if (!isRelativeProjectPath(String(brochure.pdfFile))) {
-      errors.push(createIssue(`${path}.pdfFile`, "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url."));
+      errors.push(createIssue(`${path}.pdfFile`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
     } else if (!String(brochure.pdfFile).toLowerCase().endsWith(".pdf")) {
       errors.push(createIssue(`${path}.pdfFile`, "pdfFile moet eindigen op .pdf."));
     }
   }
 
   if (brochure.thumbnail && !isRelativeProjectPath(String(brochure.thumbnail))) {
-    errors.push(createIssue(`${path}.thumbnail`, "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url."));
+    errors.push(createIssue(`${path}.thumbnail`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
   }
 
   if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {

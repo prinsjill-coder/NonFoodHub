@@ -29,7 +29,7 @@ export const ARTICLE_KEYS = [
 ];
 
 export const ARTICLE_STORAGE_NOTICE =
-  "Kennisbankartikelen worden in browsergeheugen gewijzigd. Export downloadt alleen articles.json; vervang /data/articles.json handmatig en commit en push daarna zelf via GitHub Desktop.";
+  "Kennisbankartikelen worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

@@ -8,6 +8,7 @@ import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
+import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import {
   getBrochureCounts,
   getBrochureLanguageLabel,
@@ -111,10 +112,10 @@ function renderBrochureTable(brochures, suppliersById) {
 }
 
 function renderSessionStatus(snapshot) {
-  if (snapshot.exportedCurrent) return "Geëxporteerd, nog niet bevestigd als geplaatst";
-  if (snapshot.hasUnexportedChanges) return "Niet-opgeslagen werksessiewijzigingen";
-  if (snapshot.dirty) return "Werksessie wijkt af van de bron";
-  return "Gelijk aan geladen bron";
+  if (snapshot.exportedCurrent) return "Gegevens geëxporteerd, plaatsing nog niet bevestigd";
+  if (snapshot.hasUnexportedChanges) return "Wijzigingen nog niet geëxporteerd";
+  if (snapshot.dirty) return "Sessie wijkt af van het geladen bestand";
+  return "Gelijk aan het geladen bestand";
 }
 
 function renderExportNotice(sessionSnapshot) {
@@ -123,7 +124,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig data/brochures.json, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop.",
+      "De gegevens zijn gedownload. Plaats PDF en thumbnail waar nodig, werk de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -170,15 +171,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
   const actions = `
     ${renderButton({ label: "Nieuwe brochure", href: "#/brochures/nieuw", variant: "primary" })}
     ${renderButton({
-      label: "Importeren",
+      label: "Gegevens importeren",
       variant: "secondary",
-      ariaLabel: "Brochuredata importeren",
+      ariaLabel: "Brochuregegevens importeren",
       attributes: { "data-brochure-import-button": true }
     })}
     ${renderButton({
-      label: "Exporteren",
+      label: "Gegevens exporteren",
       variant: "secondary",
-      ariaLabel: "Brochuredata exporteren",
+      ariaLabel: "Brochuregegevens exporteren",
       attributes: { "data-brochure-export-button": true }
     })}
     ${renderFileInput({
@@ -193,15 +194,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderPageHeader({
       eyebrow: "Brochurebeheer",
       title: "Brochures",
-      description: "Beheer brochuredata als centraal contentobject voor leveranciers, PDF-paden en publieke brochurekaarten."
+      description: "Beheer brochures, controleer PDF en thumbnail en zet complete gegevens klaar voor de publieke website."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "brochures.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen totdat je brochures.json exporteert.",
+        "Wijzigingen blijven alleen in deze Studio-sessie totdat je brochuregegevens exporteert.",
       exportMessage:
-        "Dit bestand is alleen gedownload. Vervang handmatig data/brochures.json, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop.",
+        "De gegevens zijn gedownload. Plaats PDF en thumbnail waar nodig, werk de publieke websitegegevens bij en publiceer handmatig via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreAttributes: { "data-brochure-restore": true }
     })}
@@ -211,11 +212,15 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderImportSummary(sessionSnapshot.lastValidationReport)}
 
     ${renderNotice({
-      title: "Statische Studio-werksessie",
+      title: "Tijdelijke Studio-sessie",
       message:
         brochureData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Er wordt nog niets naar data/brochures.json geschreven.",
+        "Wijzigingen blijven tijdelijk in deze sessie. Gebruik Gegevens exporteren voordat je de website bijwerkt.",
       tone: "warning"
+    })}
+
+    ${renderWorkflowPanel({
+      nextStep: "Volgende stap na export: echte PDF en thumbnail plaatsen, publieke websitegegevens bijwerken en daarna handmatig publiceren."
     })}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
@@ -227,12 +232,12 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Gelezen uit de actieve Studio-werksessie.</p>
+          <p class="studio-muted">In deze Studio-sessie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Met PDF-pad</h3>
           <p class="studio-metric-value">${counts.withPdf}</p>
-          <p class="studio-muted">Alleen padreferenties; uploads zijn nog niet actief.</p>
+          <p class="studio-muted">PDF-pad ingevuld; aanwezigheid controleer je op de detailpagina en met checks.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Ter controle</h3>
@@ -307,7 +312,7 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender }
       const confirmed = await confirmStudioAction({
         title: "Brochuresessie herstellen?",
         message:
-          "De actieve brochurewerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+          "De actieve brochuresessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
         confirmLabel: "Sessie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"

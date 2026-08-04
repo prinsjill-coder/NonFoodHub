@@ -68,7 +68,6 @@ export async function runMediaChecks() {
     getMediaAssets(media).forEach((asset) => {
       assert.equal(asset.file.startsWith("/"), false, `${asset.id} heeft een absoluut pad.`);
       assert.equal(asset.file.startsWith("file://"), false, `${asset.id} heeft een file-url.`);
-      assert.equal(asset.file.includes("/Users/"), false, `${asset.id} heeft een lokaal Mac-pad.`);
       assert.equal(existsSync(resolve(rootDir, asset.file)), true, `${asset.file} ontbreekt.`);
     });
   });
@@ -81,7 +80,7 @@ export async function runMediaChecks() {
 
   await runCheck("padvalidatie blokkeert lokale paden en file-url", () => {
     let data = clone(media);
-    firstAsset(data).file = "/Users/jillprins/voorbeeld.png";
+    firstAsset(data).file = "/absolute/voorbeeld.png";
     expectInvalid(data, "items[0].file");
 
     data = clone(media);
@@ -124,7 +123,7 @@ export async function runMediaChecks() {
     errors = validateMediaAsset({ ...firstAsset(media), file: "file:///test.png" }, media.items, {
       originalId: firstAsset(media).id
     });
-    assert.equal(errors.file, "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.");
+    assert.equal(errors.file, "Gebruik een relatief projectpad, geen lokaal pad of file-url.");
 
     errors = validateMediaAsset({ ...firstAsset(media), type: "video" }, media.items, {
       originalId: firstAsset(media).id

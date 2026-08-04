@@ -1,5 +1,5 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
-import { renderBrochureDetail } from "./detail.js";
+import { renderBrochureDetail, setupBrochureFileStatus } from "./detail.js";
 import { renderBrochureForm, setupBrochureForm } from "./form.js";
 import { renderBrochuresList, setupBrochureList } from "./list.js";
 
@@ -26,7 +26,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
     return renderNotFoundState({
       title: "Brochure niet gevonden",
       message:
-        "Deze brochure staat niet in de actieve Studio-werksessie. Mogelijk is de slug gewijzigd of is de brochure niet aanwezig in de laatst geladen bron.",
+        "Deze brochure staat niet in de actieve Studio-sessie. Mogelijk is de URL-naam gewijzigd of is de brochure niet aanwezig in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/brochures",
       backLabel: "Terug naar brochures"
@@ -52,5 +52,9 @@ export function setupBrochuresRoute(route, brochureSession, supplierSession, opt
       supplierSession,
       formDirtyGuard: options.formDirtyGuard
     });
+  }
+
+  if (route.id === "brochureDetail") {
+    setupBrochureFileStatus();
   }
 }

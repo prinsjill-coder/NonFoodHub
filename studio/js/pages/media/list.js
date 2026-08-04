@@ -59,8 +59,8 @@ function renderMediaCards(mediaAssets, mediaData) {
           </div>
           <p>${escapeHtml(asset.caption || asset.alt || "Geen beschrijving ingevuld.")}</p>
           <p class="studio-meta">
-            ${escapeHtml(getMediaTypeLabel(asset.type, mediaData))} ·
-            ${escapeHtml(getMediaUsageTypeLabel(asset.usageType, mediaData))} ·
+            ${escapeHtml(getMediaTypeLabel(asset.type, mediaData))} &middot;
+            ${escapeHtml(getMediaUsageTypeLabel(asset.usageType, mediaData))} &middot;
             ${escapeHtml(getMediaRightsStatusLabel(asset.rightsStatus, mediaData))}
           </p>
           ${renderMediaActions(asset)}
@@ -130,7 +130,7 @@ function statusOptions(mediaData) {
 
 function renderSessionStatus(snapshot) {
   if (snapshot.dirty) return "Niet-opgeslagen mediawijzigingen";
-  return "Gelijk aan geladen bron";
+  return "Gelijk aan het geladen bestand";
 }
 
 export function renderMediaList({ mediaData, sessionSnapshot }) {
@@ -142,13 +142,13 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
     ${renderPageHeader({
       eyebrow: "Mediaregister",
       title: "Media",
-      description: "Registreer bestaande assets en controleer metadata, paden en rechtenstatus binnen de statische Studio-werksessie."
+      description: "Registreer bestaande bestanden en controleer paden, beschrijvingen en rechtenstatus in deze Studio-sessie."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
       fileName: "media.json",
       sourceDescription:
-        "Wijzigingen bestaan alleen in browsergeheugen. Upload, import en export voor media zijn in deze sprint niet actief.",
+        "Wijzigingen bestaan alleen in deze Studio-sessie. Upload, import en export voor media zijn nog niet actief.",
       statusText: renderSessionStatus,
       restoreLabel: "Media herstellen",
       restoreAttributes: { "data-media-restore": true }
@@ -158,7 +158,7 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
       title: "Registry zonder upload",
       message:
         mediaData.storage?.message ||
-        "Media-assets worden alleen als metadata geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
+        "Media-assets worden alleen geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
       tone: "warning"
     })}
 
@@ -171,7 +171,7 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
-          <p class="studio-muted">Geregistreerde assets in de actieve werksessie.</p>
+          <p class="studio-muted">Geregistreerde assets in deze Studio-sessie.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Pad ontbreekt</h3>
@@ -255,7 +255,7 @@ export function setupMediaList({ mediaSession, rerender }) {
       const confirmed = await confirmStudioAction({
         title: "Mediasessie herstellen?",
         message:
-          "De actieve mediawerksessie wijkt af van de geladen bron. Als je doorgaat, worden deze werksessiewijzigingen verworpen.",
+          "De actieve mediasessie wijkt af van het geladen bestand. Als je doorgaat, worden deze sessiewijzigingen verworpen.",
         confirmLabel: "Sessie herstellen",
         cancelLabel: "Annuleren",
         tone: "warning"

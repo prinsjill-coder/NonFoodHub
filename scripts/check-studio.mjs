@@ -511,7 +511,8 @@ async function runStudioChecks() {
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw artikel/);
     assert.match(newHtml, /data-article-form/);
-    assert.match(newHtml, /Hero afbeelding \(relatief pad\)/);
+    assert.match(newHtml, /Hero afbeelding/);
+    assert.match(newHtml, /Relatief pad naar een bestaande afbeelding/);
     assert.match(newHtml, /Inspiratie/);
     assert.doesNotMatch(newHtml, /Hoofdafbeelding/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
@@ -563,11 +564,11 @@ async function runStudioChecks() {
     assert.match(newHtml, /Nieuw bibliotheekitem/);
     assert.match(newHtml, /data-library-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
-    assert.match(importHtml, /Bibliotheek importeren/);
+    assert.match(importHtml, /Bibliotheekgegevens importeren/);
     assert.match(importHtml, /data-library-import-button/);
     assert.match(importHtml, /library\.json importeren/);
     assert.doesNotMatch(importHtml, /Pagina niet gevonden|is nog niet actief/);
-    assert.match(exportHtml, /Bibliotheek exporteren/);
+    assert.match(exportHtml, /Bibliotheekgegevens exporteren/);
     assert.match(exportHtml, /data-library-export-button/);
     assert.match(exportHtml, /library\.json/);
     assert.doesNotMatch(exportHtml, /Pagina niet gevonden|is nog niet actief/);

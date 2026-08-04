@@ -43,7 +43,7 @@ function setButtonBusy(button, busy) {
   button.disabled = busy;
   button.classList.toggle("is-busy", busy);
   button.setAttribute("aria-busy", busy ? "true" : "false");
-  button.textContent = busy ? "Exporteren..." : "Exporteren";
+  button.textContent = busy ? "Gegevens exporteren..." : "Gegevens exporteren";
 }
 
 export function setupArticleExport({ articleSession, rerender = () => {} }) {
@@ -64,7 +64,7 @@ export function setupArticleExport({ articleSession, rerender = () => {} }) {
           articleSession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve kennisbankwerksessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De actieve kennisbanksessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -86,7 +86,7 @@ export function setupArticleExport({ articleSession, rerender = () => {} }) {
           articleSession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve kennisbankwerksessie is niet gewijzigd."
+              "De download kon niet worden gestart. De actieve kennisbanksessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);

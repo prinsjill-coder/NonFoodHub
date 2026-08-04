@@ -89,7 +89,7 @@ export async function runSupplierChecks() {
 
   await runCheck("lokale absolute paden worden geblokkeerd", () => {
     const data = clone(suppliers);
-    firstSupplier(data).logo = "/Users/jillprins/voorbeeld.png";
+    firstSupplier(data).logo = "/absolute/voorbeeld.png";
     expectInvalid(data, "items[0].logo");
   });
 

@@ -94,7 +94,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de actieve bibliotheekwerksessie; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de actieve bibliotheeksessie; contentstatus publiceert niets automatisch."
       };
     }
 
@@ -112,7 +112,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de actieve kennisbankwerksessie; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de actieve kennisbanksessie; contentstatus publiceert niets automatisch."
       };
     }
 

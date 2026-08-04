@@ -91,8 +91,8 @@ export function renderLibraryForm({
   const isEdit = mode === "edit";
   const title = isEdit ? `${item.title} bewerken` : "Nieuw bibliotheekitem";
   const description = isEdit
-    ? "Pas bibliotheekmetadata aan binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website."
-    : "Registreer een nieuw document of bron binnen de actieve Studio-werksessie. Dit schrijft niet naar bestanden of de publieke website.";
+    ? "Pas het bibliotheekitem aan in deze Studio-sessie. Bestanden en websitepublicatie blijven handmatige stappen."
+    : "Registreer een nieuw document of bron in deze Studio-sessie. Bestanden en websitepublicatie blijven handmatige stappen.";
 
   return `
     ${renderPageHeader({
@@ -107,10 +107,10 @@ export function renderLibraryForm({
     </div>
 
     ${renderNotice({
-      title: "Opslaan in werksessie",
+      title: "Opslaan in deze sessie",
       message:
         libraryData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Er wordt niets naar data/library.json geschreven.",
+        "Opslaan bewaart de wijziging tijdelijk in Studio. Gebruik daarna Gegevens exporteren.",
       tone: "warning"
     })}
 
@@ -136,10 +136,10 @@ export function renderLibraryForm({
           })}
           ${renderTextField({
             name: "slug",
-            label: "Slug",
+            label: "URL-naam",
             value: item.slug,
             required: true,
-            help: "Uniek, lowercase en met koppeltekens."
+            help: "Unieke korte naam voor routes en koppelingen."
           })}
           ${renderSelectField({
             name: "status",
@@ -147,7 +147,7 @@ export function renderLibraryForm({
             value: item.status,
             options: getStatusOptions(libraryData),
             required: true,
-            help: "Contentstatus; dit publiceert niets automatisch."
+            help: "Deze status helpt bij controle. De website wordt niet automatisch bijgewerkt."
           })}
           ${renderSelectField({
             name: "type",
@@ -195,7 +195,7 @@ export function renderLibraryForm({
             name: "filePath",
             label: "Bestandspad",
             value: item.filePath,
-            help: "Optioneel relatief projectpad. Geen upload, lokaal Mac-pad of file-url."
+            help: "Optioneel relatief pad naar een bestaand bestand. Uploaden gebeurt nog niet in Studio."
           })}
           ${renderTextField({
             name: "thumbnailPath",
@@ -238,11 +238,11 @@ export function renderLibraryForm({
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/bibliotheek",
@@ -319,9 +319,9 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     librarySession.applyLibraryItem(item, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in werksessie",
+      title: "Opgeslagen in deze sessie",
       message:
-        "Het bibliotheekitem is toegepast op workingData in browsergeheugen. Uploads, downloads, repositorywrites en publicatie zijn niet actief.",
+        "Het bibliotheekitem is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
       tone: "success"
     });
     window.location.hash = `#/bibliotheek/${item.slug}`;

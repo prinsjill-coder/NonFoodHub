@@ -3,7 +3,13 @@ import { SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function hasValue(value) {
@@ -64,11 +70,11 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
   }
 
   if (!isRelativeProjectPath(supplier.logo)) {
-    errors.logo = "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.";
+    errors.logo = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
   }
 
   if (!isRelativeProjectPath(supplier.image)) {
-    errors.image = "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.";
+    errors.image = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
   }
 
   if (supplier.status === "published") {

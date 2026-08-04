@@ -45,7 +45,7 @@ export function renderLibraryRoute(route, librarySession, supplierSession, broch
     return renderNotFoundState({
       title: "Bibliotheekitem niet gevonden",
       message:
-        "Dit bibliotheekitem staat niet in de actieve Studio-werksessie. Mogelijk is de slug gewijzigd of is het item niet aanwezig in de laatst geladen bron.",
+        "Dit bibliotheekitem staat niet in de actieve Studio-sessie. Mogelijk is de URL-naam gewijzigd of is het item niet aanwezig in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/bibliotheek",
       backLabel: "Terug naar bibliotheek"

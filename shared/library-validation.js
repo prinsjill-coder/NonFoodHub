@@ -15,12 +15,8 @@ function isRelativeProjectPath(value) {
     !value.startsWith("/") &&
     !value.startsWith("\\") &&
     !value.startsWith("~") &&
-    !value.startsWith("file://") &&
-    !/^[a-zA-Z]:[\\/]/.test(value) &&
-    !value.includes("/Users/") &&
-    !value.includes("\\Users\\") &&
-    !value.includes("/home/") &&
-    !value.includes("\\home\\")
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
   );
 }
 

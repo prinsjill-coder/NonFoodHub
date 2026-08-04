@@ -82,7 +82,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
     ${renderPageHeader({
       eyebrow: "Bibliotheekbeheer",
       title: item.title,
-      description: "Bekijk metadata, bestandspaden en relaties van een bibliotheekitem binnen de actieve Studio-werksessie."
+      description: "Bekijk gegevens, bestandspaden en relaties van een bibliotheekitem binnen deze Studio-sessie."
     })}
 
     <div class="studio-actions studio-page-actions">
@@ -93,7 +93,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
     ${renderNotice({
       title: "Register zonder downloadservice",
       message:
-        "Deze detailweergave registreert alleen metadata en relatieve projectpaden. Studio uploadt geen bestanden en biedt nog geen publieke downloadroute.",
+        "Deze detailweergave registreert alleen gegevens en relatieve bestandspaden. Studio uploadt geen bestanden en biedt nog geen publieke downloadroute.",
       tone: "info"
     })}
 
@@ -103,7 +103,7 @@ export function renderLibraryDetail({ libraryData, supplierData, brochureData, a
 
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Metadata</h2>
+        <h2>Gegevens</h2>
         ${renderStatusBadge(item.status, getLibraryStatusLabel(item.status))}
       </div>
       ${renderDetailList([

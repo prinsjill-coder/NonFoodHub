@@ -11,7 +11,7 @@
   "storage": {
     "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Bibliotheekitems worden in browsergeheugen gewijzigd. Import en export zijn handmatige overdrachtsstappen; vervang /data/library.json zelf en commit en push daarna via GitHub Desktop."
+    "message": "Bibliotheekitems worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen."
   },
   "statuses": [
     "concept",

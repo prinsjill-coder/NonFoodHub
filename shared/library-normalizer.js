@@ -33,7 +33,7 @@ export const LIBRARY_ITEM_KEYS = [
 ];
 
 export const LIBRARY_STORAGE_NOTICE =
-  "Bibliotheekitems worden in browsergeheugen gewijzigd. Import en export zijn handmatige overdrachtsstappen; vervang /data/library.json zelf en commit en push daarna via GitHub Desktop.";
+  "Bibliotheekitems worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren om het beheerbestand handmatig over te dragen.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

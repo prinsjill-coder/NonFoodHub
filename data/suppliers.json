@@ -4,7 +4,7 @@
   "storage": {
     "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Leveranciers worden in Sprint 3 in browsergeheugen gewijzigd. Export downloadt alleen suppliers.json; vervang /data/suppliers.json handmatig en commit en push daarna zelf via GitHub Desktop."
+    "message": "Leveranciers worden tijdelijk in deze Studio-sessie bewerkt. Gebruik Gegevens exporteren en werk daarna de publieke website bij."
   },
   "statuses": [
     "concept",

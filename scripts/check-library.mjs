@@ -155,7 +155,7 @@ export async function runLibraryChecks() {
     expectInvalid(data, suppliers, brochures, articles, media, "items[0].category");
 
     data = clone(library);
-    firstItem(data).filePath = "/Users/jillprins/voorbeeld.pdf";
+    firstItem(data).filePath = "/absolute/voorbeeld.pdf";
     expectInvalid(data, suppliers, brochures, articles, media, "items[0].filePath");
 
     data = clone(library);

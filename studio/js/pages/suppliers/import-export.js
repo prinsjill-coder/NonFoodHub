@@ -54,7 +54,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Geen bestand geselecteerd. Kies een .json-bestand. De actieve werksessie is niet gewijzigd.",
+        "Geen bestand geselecteerd. Kies een gegevensbestand (.json). De actieve sessie is niet gewijzigd.",
         "geen bestand"
       )
     };
@@ -65,7 +65,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Kies een bestand met de extensie .json. De actieve werksessie is niet gewijzigd.",
+        "Kies een gegevensbestand met de extensie .json. De actieve sessie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -76,7 +76,7 @@ export function validateSupplierImportFile(file) {
       ok: false,
       report: createImportReport(
         "import.file",
-        "Het bestand is groter dan 1 MB. Kies een kleiner suppliers.json-bestand. De actieve werksessie is niet gewijzigd.",
+        "Het bestand is groter dan 1 MB. Kies een kleiner suppliers.json-bestand. De actieve sessie is niet gewijzigd.",
         file.name || "onbekend bestand"
       )
     };
@@ -123,7 +123,7 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_aborted") {
     return createImportReport(
       "import.read",
-      "Het lezen van het bestand is afgebroken. De actieve werksessie is niet gewijzigd.",
+      "Het lezen van het bestand is afgebroken. De actieve sessie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
@@ -131,14 +131,14 @@ function readErrorReport(error, fileName) {
   if (error?.code === "read_failed") {
     return createImportReport(
       "import.read",
-      "Het bestand kon niet worden gelezen. De actieve werksessie is niet gewijzigd.",
+      "Het bestand kon niet worden gelezen. De actieve sessie is niet gewijzigd.",
       fileName || "onbekend bestand"
     );
   }
 
   return createImportReport(
     "import.json",
-    "Ongeldige JSON. Controleer of het bestand volledige JSON bevat. De actieve werksessie is niet gewijzigd.",
+    "Het bestand heeft niet het verwachte gegevensformaat. De actieve sessie is niet gewijzigd.",
     fileName || "onbekend bestand"
   );
 }
@@ -147,9 +147,9 @@ async function confirmReplaceUnexportedChanges(snapshot, actionLabel) {
   if (!snapshot.hasUnexportedChanges) return true;
 
   return confirmStudioAction({
-    title: `${actionLabel} vervangt niet-geëxporteerde wijzigingen`,
+    title: `${actionLabel} vervangt wijzigingen die nog niet zijn geëxporteerd`,
     message:
-      "Er staan wijzigingen in de actieve werksessie die nog niet zijn geëxporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?",
+      "Er staan wijzigingen in deze Studio-sessie die nog niet zijn geëxporteerd. Deze actie kan die wijzigingen vervangen. Wil je doorgaan?",
     confirmLabel: "Doorgaan",
     cancelLabel: "Annuleren"
   });
@@ -197,7 +197,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
   const exportGuard = createSupplierExportGuard();
 
   importButton?.addEventListener("click", async () => {
-    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren"))) {
+    if (!(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Gegevens importeren"))) {
       return;
     }
 
@@ -211,7 +211,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
   importInput?.addEventListener("change", async () => {
     const file = importInput.files?.[0];
 
-    if (!importConfirmed && !(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Importeren"))) {
+    if (!importConfirmed && !(await confirmReplaceUnexportedChanges(supplierSession.snapshot(), "Gegevens importeren"))) {
       importInput.value = "";
       return;
     }
@@ -225,7 +225,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
     if (exportGuard.isBusy()) return;
 
     await exportGuard.run(async () => {
-      setButtonBusy(exportButton, true, "Export");
+      setButtonBusy(exportButton, true, "Gegevens exporteren");
 
       try {
         let exportResult;
@@ -235,7 +235,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
           supplierSession.setValidationReport(
             createExportReport(
               "export.serialize",
-              "Export kon niet worden voorbereid. De actieve werksessie is niet gewijzigd."
+              "Export kon niet worden voorbereid. De actieve sessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -257,7 +257,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
           supplierSession.setValidationReport(
             createExportReport(
               "export.download",
-              "De download kon niet worden gestart. De actieve werksessie is niet gewijzigd."
+              "De download kon niet worden gestart. De actieve sessie is niet gewijzigd."
             )
           );
           rerenderAndFocusReport(rerender);
@@ -267,7 +267,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
         supplierSession.markExported(exportResult.report);
         rerenderAndFocusReport(rerender);
       } finally {
-        setButtonBusy(exportButton, false, "Export");
+        setButtonBusy(exportButton, false, "Gegevens exporteren");
       }
     });
   });

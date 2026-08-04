@@ -26,7 +26,7 @@ export function renderMediaRoute(route, mediaSession, supplierSession, brochureS
     return renderNotFoundState({
       title: "Media-asset niet gevonden",
       message:
-        "Dit asset staat niet in de actieve Studio-werksessie. Mogelijk is het id gewijzigd of is het asset niet aanwezig in de laatst geladen bron.",
+        "Dit asset staat niet in de actieve Studio-sessie. Mogelijk is het id gewijzigd of is het asset niet aanwezig in het laatst geladen bestand.",
       label: "Niet gevonden",
       backHref: "#/media",
       backLabel: "Terug naar media"

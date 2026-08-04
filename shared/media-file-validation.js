@@ -16,7 +16,13 @@ function hasValue(value) {
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function validateArray(value, path, errors) {
@@ -103,7 +109,7 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
   if (!hasValue(asset.file)) {
     errors.push(createIssue(`${path}.file`, "file is verplicht."));
   } else if (!isRelativeProjectPath(String(asset.file))) {
-    errors.push(createIssue(`${path}.file`, "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url."));
+    errors.push(createIssue(`${path}.file`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
   }
 
   const typeIds = idsFromList(mediaData.types);

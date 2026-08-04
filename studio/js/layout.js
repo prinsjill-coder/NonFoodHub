@@ -32,7 +32,7 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
           </a>
         <nav class="studio-nav" aria-label="Studio navigatie">${navItems}</nav>
         <p class="studio-sidebar-note">
-          Studio werkt met lokale browserwerksessies. Uploads, repositorywrites en automatische publicatie zijn niet actief.
+          Studio bewaart wijzigingen tijdelijk in deze sessie. Bestanden plaatsen en publiceren blijven handmatige stappen.
         </p>
       </aside>
       <main class="studio-main">

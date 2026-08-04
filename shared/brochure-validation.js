@@ -8,7 +8,13 @@ function hasValue(value) {
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function supplierExists(supplierId, supplierData) {
@@ -121,13 +127,13 @@ export function validateBrochure(brochure, existingBrochures, supplierData, broc
   }
 
   if (!isRelativeProjectPath(brochure.pdfFile)) {
-    errors.pdfFile = "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.";
+    errors.pdfFile = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
   } else if (brochure.pdfFile && !String(brochure.pdfFile).toLowerCase().endsWith(".pdf")) {
     errors.pdfFile = "Gebruik een relatief pad naar een PDF-bestand.";
   }
 
   if (!isRelativeProjectPath(brochure.thumbnail)) {
-    errors.thumbnail = "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url.";
+    errors.thumbnail = "Gebruik een relatief projectpad, geen lokaal pad of file-url.";
   }
 
   if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {

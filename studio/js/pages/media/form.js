@@ -36,8 +36,8 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
   const isEdit = mode === "edit";
   const title = isEdit ? `${asset.title} bewerken` : "Nieuw media-asset";
   const description = isEdit
-    ? "Pas metadata aan binnen de actieve Studio-werksessie. Dit uploadt, verplaatst of publiceert geen bestanden."
-    : "Registreer een bestaand asset binnen de actieve Studio-werksessie. Dit uploadt, verplaatst of publiceert geen bestanden.";
+    ? "Pas de mediagegevens aan in deze Studio-sessie. Dit uploadt, verplaatst of publiceert geen bestanden."
+    : "Registreer een bestaand bestand in deze Studio-sessie. Dit uploadt, verplaatst of publiceert geen bestanden.";
 
   return `
     ${renderPageHeader({
@@ -52,10 +52,10 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
     </div>
 
     ${renderNotice({
-      title: "Opslaan in werksessie",
+      title: "Opslaan in deze sessie",
       message:
         mediaData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Er wordt niets naar data/media.json geschreven.",
+        "Opslaan past alleen deze Studio-sessie aan. Het beheerbestand en de website veranderen pas na handmatige overdracht.",
       tone: "warning"
     })}
 
@@ -89,7 +89,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             label: "Bestandspad",
             value: asset.file,
             required: true,
-            help: "Relatief projectpad, bijvoorbeeld assets/images/brochures.png. Geen lokaal Mac-pad of file-url."
+            help: "Relatief projectpad, bijvoorbeeld assets/images/brochures.png. Geen lokaal pad of file-url."
           })}
           ${renderSelectField({
             name: "type",
@@ -173,11 +173,11 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
       </section>
 
       <p class="studio-form-state" data-form-dirty-notice role="status" aria-live="polite" hidden>
-        Niet-toegepaste formulierwijzigingen. Kies Opslaan in werksessie om ze toe te passen, of Annuleren om ze te verwerpen.
+        Niet-opgeslagen formulierwijzigingen. Kies Opslaan in deze sessie om ze toe te passen, of Annuleren om ze te verwerpen.
       </p>
 
       <div class="studio-form-actions">
-        <button class="studio-button studio-button-primary" type="submit">Opslaan in werksessie</button>
+        <button class="studio-button studio-button-primary" type="submit">Opslaan in deze sessie</button>
         ${renderButton({
           label: "Annuleren",
           href: "#/media",
@@ -233,9 +233,9 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     mediaSession.applyMediaAsset(asset, form.dataset.originalId || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
-      title: "Opgeslagen in werksessie",
+      title: "Opgeslagen in deze sessie",
       message:
-        "Het media-asset is toegepast op workingData in browsergeheugen. Uploads, bestandsplaatsing en publicatie zijn niet actief.",
+        "Het media-asset is toegepast in deze Studio-sessie. Uploads, bestandsplaatsing en publicatie zijn niet actief.",
       tone: "success"
     });
     window.location.hash = `#/media/${asset.id}`;

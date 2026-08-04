@@ -77,8 +77,10 @@ export async function runBrochureChecks() {
       runtimeText,
       /Sprint 6A|deel 2 toegevoegd|publicatie voor brochures worden later toegevoegd|Import, export, uploads en publicatie zijn nog niet beschikbaar/
     );
-    assert.match(runtimeText, /assets\/downloads\/brochures/);
-    assert.match(runtimeText, /data\/public\/brochures\.json/);
+    assert.match(runtimeText, /Gegevens exporteren/);
+    assert.match(runtimeText, /publieke website/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /fileLabel: "PDF"/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /fileLabel: "Thumbnail"/);
     assert.match(docsText, /Brochurebeheerprocedure voor v1\.0/);
     assert.match(docsText, /data\/public\/brochures\.json/);
   });
@@ -129,7 +131,7 @@ export async function runBrochureChecks() {
 
   await runCheck("padvalidatie blokkeert lokale paden, file-url en niet-pdf bij pdfFile", () => {
     let data = clone(brochures);
-    firstBrochure(data).pdfFile = "/Users/jillprins/voorbeeld.pdf";
+    firstBrochure(data).pdfFile = "/absolute/voorbeeld.pdf";
     expectInvalid(data, suppliers, "items[0].pdfFile");
 
     data = clone(brochures);

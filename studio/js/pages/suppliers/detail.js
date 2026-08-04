@@ -76,9 +76,9 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
     </div>
 
     ${renderNotice({
-      title: "Alleen Studio-werksessie",
+      title: "Alleen deze Studio-sessie",
       message:
-        "Deze detailweergave leest de actieve browserdata. Dit schrijft niet naar /data/suppliers.json en wijzigt de publieke website niet.",
+        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
       tone: "info"
     })}
 

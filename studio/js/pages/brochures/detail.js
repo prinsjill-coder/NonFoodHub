@@ -26,11 +26,38 @@ function renderSupplierReference(supplier) {
   return `<a class="studio-inline-link" href="#/leveranciers/${escapeHtml(supplier.slug)}">${escapeHtml(supplier.name)}</a>`;
 }
 
-function renderReferenceCard({ title, value, emptyText }) {
+function fileNameFromPath(path) {
+  return String(path || "").split(/[\\/]/).filter(Boolean).at(-1) || "";
+}
+
+function renderPresenceBadge(path, label) {
+  if (!path) {
+    return `<span class="studio-badge is-review">${escapeHtml(label)} aanwezig: Nee, geen pad ingevuld</span>`;
+  }
+
+  return `<span class="studio-badge is-foundation" data-file-presence data-file-path="${escapeHtml(path)}" data-file-label="${escapeHtml(label)}">${escapeHtml(label)} aanwezig: Nog niet gecontroleerd</span>`;
+}
+
+function renderFileStatusCard({ title, path, fileLabel, emptyText }) {
+  const fileName = fileNameFromPath(path);
+
   return `
-    <article class="studio-card">
+    <article class="studio-card studio-file-status-card">
       <h2>${escapeHtml(title)}</h2>
-      <p class="${value ? "studio-meta" : "studio-muted"}">${escapeHtml(value || emptyText)}</p>
+      <dl class="studio-file-status-list">
+        <div>
+          <dt>Huidig pad</dt>
+          <dd class="${path ? "studio-meta" : "studio-muted"}">${escapeHtml(path || emptyText)}</dd>
+        </div>
+        <div>
+          <dt>Verwachte bestandsnaam</dt>
+          <dd class="${fileName ? "studio-meta" : "studio-muted"}">${escapeHtml(fileName || "Nog niet bekend")}</dd>
+        </div>
+        <div>
+          <dt>Bestandscontrole</dt>
+          <dd>${renderPresenceBadge(path, fileLabel)}</dd>
+        </div>
+      </dl>
     </article>
   `;
 }
@@ -77,9 +104,9 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
     </div>
 
     ${renderNotice({
-      title: "Alleen Studio-werksessie",
+      title: "Alleen deze Studio-sessie",
       message:
-        "Deze detailweergave leest de actieve browserdata. Dit schrijft niet naar /data/brochures.json en wijzigt de publieke website niet.",
+        "Deze detailweergave leest de actieve Studio-sessie. Het beheerbestand en de publieke website veranderen pas na handmatige overdracht.",
       tone: "info"
     })}
 
@@ -114,14 +141,16 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
-        ${renderReferenceCard({
+        ${renderFileStatusCard({
           title: "PDF-pad",
-          value: brochure.pdfFile,
+          path: brochure.pdfFile,
+          fileLabel: "PDF",
           emptyText: "Geen PDF gekoppeld. Dit is toegestaan bij concepten."
         })}
-        ${renderReferenceCard({
+        ${renderFileStatusCard({
           title: "Thumbnailpad",
-          value: brochure.thumbnail,
+          path: brochure.thumbnail,
+          fileLabel: "Thumbnail",
           emptyText: "Geen thumbnail gekoppeld."
         })}
       </div>
@@ -136,4 +165,44 @@ export function renderBrochureDetail({ brochureData, supplierData, articleData =
       </article>
     </section>
   `;
+}
+
+function pathIsSafeForLocalCheck(path) {
+  const value = String(path || "");
+  return (
+    value &&
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
+}
+
+function studioRelativeAssetUrl(path) {
+  const pageUrl = window.location.href.split("#")[0];
+  return new URL(`../${path}`, pageUrl).href;
+}
+
+async function localFileExists(path) {
+  if (!pathIsSafeForLocalCheck(path)) return false;
+
+  try {
+    const response = await fetch(studioRelativeAssetUrl(path), { method: "HEAD", cache: "no-store" });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+export function setupBrochureFileStatus() {
+  document.querySelectorAll("[data-file-presence]").forEach(async (element) => {
+    const path = element.dataset.filePath || "";
+    const label = element.dataset.fileLabel || "Bestand";
+    const exists = await localFileExists(path);
+
+    element.classList.remove("is-foundation", "is-review", "is-success");
+    element.classList.add(exists ? "is-success" : "is-review");
+    element.textContent = `${label} aanwezig: ${exists ? "Ja" : "Nee"}`;
+  });
 }

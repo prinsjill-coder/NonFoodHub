@@ -42,7 +42,7 @@
       "label": "Artikelen gepubliceerd",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit de actieve kennisbankwerksessie."
+      "note": "Wordt in Studio berekend uit de actieve kennisbanksessie."
     },
     {
       "id": "articleWarnings",
@@ -91,7 +91,7 @@
       "label": "Bibliotheek gepubliceerd",
       "value": null,
       "state": "not_connected",
-      "note": "Wordt in Studio berekend uit de actieve bibliotheekwerksessie."
+      "note": "Wordt in Studio berekend uit de actieve bibliotheeksessie."
     },
     {
       "id": "libraryWarnings",
@@ -169,7 +169,7 @@
       "label": "Nieuw bibliotheekitem",
       "enabled": true,
       "route": "#/bibliotheek/nieuw",
-      "message": "Registreer een document of bron in de statische bibliotheekwerksessie."
+      "message": "Registreer een document of bron in de statische bibliotheeksessie."
     },
     {
       "id": "newSpecialist",

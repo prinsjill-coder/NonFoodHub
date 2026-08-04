@@ -16,7 +16,13 @@ function hasValue(value) {
 
 function isRelativeProjectPath(value) {
   if (!value) return true;
-  return !value.startsWith("/") && !value.startsWith("file://") && !value.includes("/Users/");
+  return (
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.startsWith("~") &&
+    !value.toLowerCase().startsWith("file:") &&
+    !/^[a-zA-Z]:[\\/]/.test(value)
+  );
 }
 
 function validateArray(value, path, errors) {
@@ -102,7 +108,7 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
 
   ["logo", "image"].forEach((field) => {
     if (supplier[field] && !isRelativeProjectPath(String(supplier[field]))) {
-      errors.push(createIssue(`${path}.${field}`, "Gebruik een relatief projectpad, geen lokaal Mac-pad of file-url."));
+      errors.push(createIssue(`${path}.${field}`, "Gebruik een relatief projectpad, geen lokaal pad of file-url."));
     }
   });
 
