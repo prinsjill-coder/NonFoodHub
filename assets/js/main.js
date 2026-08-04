@@ -76,7 +76,7 @@
   const links = [
     { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
     { id: "leveranciers", title: "Leveranciers", path: "pages/leveranciers.html", description: "Partners, merken en productgroepen" },
-    { id: "brochures", title: "Brochures & Catalogi", path: "pages/brochures-catalogi.html", description: "Collecties en catalogusoverzicht" },
+    { id: "brochures", title: "Brochures en catalogi", path: "pages/brochures-catalogi.html", description: "Collecties en catalogusoverzicht" },
     { id: "showroom", title: "Virtuele Showroom", path: "pages/virtuele-showroom.html", description: "Digitale rondleiding en showroomafspraken" },
     { id: "inspiratie", title: "Inspiratie", path: "pages/inspiratie.html", description: "Trends, kennisbank en praktische inspiratie" },
     { id: "nieuw", title: "Nieuw", path: "pages/nieuw.html", description: "Nieuw binnen Non-Food" },
@@ -201,7 +201,7 @@
           <div>
             <h4>Inspiratie</h4>
             <ul class="footer-links">
-              <li><a href="${href("pages/inspiratie.html")}">Kennisbank</a></li>
+              <li><a href="${href("pages/inspiratie.html")}">Inspiratie</a></li>
               <li><a href="${href("pages/terras-outdoor.html")}">Terras & Outdoor</a></li>
               <li><a href="${href("pages/bibliotheek.html")}">Bibliotheek</a></li>
             </ul>
@@ -518,10 +518,15 @@
     return Array.isArray(supplier.categories) ? supplier.categories.filter(Boolean) : [];
   }
 
+  function formatTagLabel(value) {
+    const label = String(value || "").trim();
+    return label ? `${label.charAt(0).toUpperCase()}${label.slice(1)}` : "";
+  }
+
   function renderPublicSupplierTags(supplier) {
     const categories = supplierCategories(supplier);
     const tags = [supplier.type, ...categories].filter(Boolean).slice(0, 4);
-    return tags.map((tag, index) => `<span class="tag${index === 0 ? " blue" : ""}">${escapeHtml(tag)}</span>`).join("");
+    return tags.map((tag, index) => `<span class="tag${index === 0 ? " blue" : ""}">${escapeHtml(formatTagLabel(tag))}</span>`).join("");
   }
 
   function renderPublicSupplierCard(supplier, options = {}) {
@@ -876,7 +881,7 @@
         }
 
         body.classList.remove("is-detail-route");
-        updateDocumentTitle("Brochures & Catalogi");
+        updateDocumentTitle("Brochures en catalogi");
         toggleElement(introSection, false);
         toggleElement(overviewSection, false);
         toggleElement(detailSection, true);
@@ -927,7 +932,7 @@
       renderGrid(
         articleGrid,
         articles,
-        (article) => renderPublicArticleCard(article, { linkToArticlePage: true, actionLabel: "Lees inspiratie" }),
+        (article) => renderPublicArticleCard(article, { linkToArticlePage: true, actionLabel: "Lees artikel" }),
         "Geen inspiratie beschikbaar",
         "Er zijn nog geen kennisbankartikelen beschikbaar."
       );

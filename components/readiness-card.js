@@ -54,9 +54,17 @@ function renderPublicationCheck(check) {
   return `<li>${escapeHtml(check?.message || check || "Onderdeel is ingevuld.")}</li>`;
 }
 
+function publicationDatasetLabel(dataset) {
+  const value = String(dataset || "");
+  if (value.includes("articles")) return "Kennisbank";
+  if (value.includes("suppliers")) return "Leveranciers";
+  if (value.includes("brochures")) return "Brochures";
+  return "Website";
+}
+
 function publicationIntro(publication) {
   if (publication.status === "ready") {
-    return "Dit staat live via de gecontroleerde publieke projectie.";
+    return "Dit staat live via de gecontroleerde websiteweergave.";
   }
   if (publication.status === "review") {
     return "Dit wordt gecontroleerd: het item is zichtbaar, maar onderstaande punten vragen nog aandacht.";
@@ -64,7 +72,7 @@ function publicationIntro(publication) {
   if (publication.status === "not_public") {
     return "Dit staat niet live. De redenen hieronder tonen wat nog ontbreekt.";
   }
-  return "Deze module heeft nog geen publieke projectie; Studio toont alleen de interne readiness.";
+  return "Deze module heeft nog geen websiteweergave; Studio toont alleen de interne readiness.";
 }
 
 function renderPublication(publication) {
@@ -81,8 +89,8 @@ function renderPublication(publication) {
           <h3>Publieke website</h3>
           ${
             publication.dataset
-              ? `<p class="studio-muted">Projectie: ${escapeHtml(publication.dataset)}</p>`
-              : `<p class="studio-muted">Geen publieke dataset aangesloten voor deze module.</p>`
+              ? `<p class="studio-muted">Websiteweergave: ${escapeHtml(publicationDatasetLabel(publication.dataset))}</p>`
+              : `<p class="studio-muted">Geen websiteweergave aangesloten voor deze module.</p>`
           }
         </div>
         ${renderStatusBadge(publication.state || publication.status, publication.label)}
@@ -104,7 +112,7 @@ function renderPublication(publication) {
                 ${reasons.map(renderPublicationItem).join("")}
               </ol>
             </div>`
-          : `<p class="studio-muted">Geen ontbrekende publieke velden of projectieredenen gevonden.</p>`
+          : `<p class="studio-muted">Geen ontbrekende website-informatie gevonden.</p>`
       }
     </section>
   `;

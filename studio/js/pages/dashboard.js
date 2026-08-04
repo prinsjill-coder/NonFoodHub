@@ -40,7 +40,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: supplierCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve Studio-werksessie; publieke weergave loopt via data/public."
+        note: "Gelezen uit de actieve Studio-sessie; websiteweergave loopt via gecontroleerde content."
       };
     }
 
@@ -49,7 +49,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: brochureCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve brochurewerksessie; publieke weergave loopt via data/public."
+        note: "Gelezen uit de actieve brochuresessie; websiteweergave loopt via gecontroleerde content."
       };
     }
 
@@ -67,7 +67,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve kennisbankwerksessie; publieke weergave loopt via data/public."
+        note: "Gelezen uit de actieve kennisbanksessie; websiteweergave loopt via gecontroleerde content."
       };
     }
 
@@ -76,7 +76,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryCounts.total,
         state: "foundation",
-        note: "Gelezen uit de actieve bibliotheekwerksessie; nog geen publieke bibliotheekprojectie actief."
+        note: "Gelezen uit de actieve bibliotheeksessie; nog geen websiteweergave actief."
       };
     }
 
@@ -231,8 +231,8 @@ function renderPublicModuleOverview(readinessReport) {
     <article class="studio-card">
       <div class="studio-card-head">
         <div>
-          <h3>Publieke modules actief</h3>
-          <p class="studio-muted">Aantallen uit gecontroleerde publieke projecties.</p>
+          <h3>Websiteonderdelen actief</h3>
+          <p class="studio-muted">Aantallen uit de gecontroleerde websiteweergave.</p>
         </div>
         ${renderStatusBadge("ready", `${modules.filter((module) => module.publication.visible).length} actief`)}
       </div>
@@ -263,7 +263,7 @@ function renderPublicationExplanation() {
         ${renderStatusBadge("foundation")}
       </div>
       <ul class="studio-relation-list">
-        <li><span>Dit staat live</span><strong>Item zit in data/public en heeft geen extra publicatiefeedback.</strong></li>
+        <li><span>Dit staat live</span><strong>Item is zichtbaar op de website en vraagt geen extra controle.</strong></li>
         <li><span>Dit wordt gecontroleerd</span><strong>Item is zichtbaar, maar vraagt nog review op relatie, context of PDF-actie.</strong></li>
         <li><span>Dit ontbreekt nog</span><strong>Readiness of governance geeft aan welke informatie eerst nodig is.</strong></li>
       </ul>
@@ -278,14 +278,14 @@ function renderDemoReadinessSummary(readinessReport) {
   return `
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Demo-overzicht</h2>
-        ${renderStatusBadge(state, state === "ready" ? "Demo gereed" : "Aandachtspunten")}
+        <h2>Website-overzicht</h2>
+        ${renderStatusBadge(state, state === "ready" ? "Publicatiegereed" : "Aandachtspunten")}
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderDashboardMetric({
           label: "Zichtbaar op website",
           value: totals.publication.visible,
-          note: "Items die via gecontroleerde publieke projecties op de website verschijnen.",
+          note: "Items die via gecontroleerde content op de website verschijnen.",
           state: totals.publication.visible ? "ready" : "foundation",
           badgeLabel: totals.publication.visible ? "Live" : "Leeg"
         })}
@@ -367,7 +367,7 @@ export function renderDashboard(dashboardData, supplierData, brochureData, media
 export function renderRoutePlaceholder(route) {
   return renderEmptyState({
     title: `${route.title} is nog niet actief`,
-    message: "Deze route is bewust nog niet actief. Gebruik het dashboard of de actieve contentmodules voor demo en review.",
+    message: "Deze route is nog niet actief. Gebruik het dashboard of de actieve contentmodules voor review.",
     label: "Nog niet actief",
     actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "secondary" })
   });

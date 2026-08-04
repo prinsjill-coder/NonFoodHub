@@ -209,7 +209,7 @@ export async function runContentReadinessChecks() {
 
     const cardHtml = renderReadinessCard(article);
     assert.match(cardHtml, /Publieke website/);
-    assert.match(cardHtml, /Projectie: data\/public\/articles\.json/);
+    assert.match(cardHtml, /Websiteweergave: Kennisbank/);
     assert.match(cardHtml, /Nog controleren/);
     assert.match(cardHtml, /Dit wordt gecontroleerd/);
   });

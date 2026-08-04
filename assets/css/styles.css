@@ -606,6 +606,14 @@ h4 {
   box-shadow: var(--shadow-soft);
 }
 
+.resource-card,
+.supplier-card,
+.article-card {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
 .article-card:focus-visible,
 .supplier-card:focus-visible,
 .resource-card a:focus-visible {
@@ -633,6 +641,13 @@ h4 {
 .supplier-card-body,
 .contact-card {
   padding: 22px;
+}
+
+.resource-card-body,
+.article-card-body,
+.supplier-card-body {
+  display: flex;
+  flex-direction: column;
 }
 
 .card-meta {
@@ -676,6 +691,12 @@ h4 {
   margin-top: 16px;
   color: var(--blue-dark);
   font-weight: 850;
+}
+
+.resource-card-body .card-link,
+.article-card-body .card-link,
+.supplier-card-body .card-link {
+  margin-top: auto;
 }
 
 .card-link::after {
@@ -944,6 +965,10 @@ h4 {
 .resource-card {
   display: grid;
   overflow: hidden;
+}
+
+.resource-card > a {
+  display: block;
 }
 
 .resource-card.is-hidden {

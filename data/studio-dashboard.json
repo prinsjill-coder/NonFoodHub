@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bundelt contentbeheer, kwaliteitscontrole, readiness en publieke projectie-inzichten voor de Non-Food Hub. Content blijft lokaal beheerd en wordt niet automatisch gepubliceerd.",
+  "summary": "Studio bundelt contentbeheer, kwaliteitscontrole, readiness en website-inzichten voor de Non-Food Hub. Content blijft lokaal beheerd en wordt niet automatisch gepubliceerd.",
   "metrics": [
     {
       "id": "governanceAttention",

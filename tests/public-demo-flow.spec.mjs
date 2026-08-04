@@ -32,14 +32,49 @@ async function expectCleanPage(page, errors) {
     )
   );
   await expect(page.locator("text=/niet geladen|konden niet worden geladen|Content niet geladen/i")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/\b(?:demo|todo|test|pilot|prototype|voorbeeld)\b|Notion|Fase 1/i);
   const brokenImages = await page.locator("img").evaluateAll((images) =>
     images
-      .filter((image) => !image.complete || image.naturalWidth === 0)
+      .filter((image) => image.naturalWidth === 0)
       .map((image) => image.getAttribute("src"))
   );
+  const brokenHeroImages = await page.locator(".hero, .page-hero.has-image").evaluateAll(async (heroes) => {
+    const checks = await Promise.all(
+      heroes.map(async (hero) => {
+        const raw = getComputedStyle(hero).getPropertyValue("--hero-image") || getComputedStyle(hero).getPropertyValue("--page-image");
+        const match = raw.match(/url\(["']?([^"')]+)["']?\)/);
+        if (!match) return { ok: false, url: raw };
+
+        const stylesheetBase = new URL("/assets/css/styles.css", document.baseURI);
+        const url = new URL(match[1], stylesheetBase).href;
+        const response = await fetch(url, { cache: "no-store" });
+        return { ok: response.ok && url.includes("/assets/images/"), url };
+      })
+    );
+
+    return checks.filter((check) => !check.ok).map((check) => check.url);
+  });
+  const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(brokenImages).toEqual([]);
+  expect(brokenHeroImages).toEqual([]);
+  expect(horizontalOverflow).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 }
+
+const publicPages = [
+  "/index.html",
+  "/pages/inspiratie.html",
+  "/pages/leveranciers.html",
+  "/pages/brochures-catalogi.html",
+  "/pages/virtuele-showroom.html",
+  "/pages/terras-outdoor.html",
+  "/pages/nieuw.html",
+  "/pages/logos-personalisatie.html",
+  "/pages/bibliotheek.html",
+  "/pages/aanbiedingen.html",
+  "/pages/droogijs.html",
+  "/pages/contact.html"
+];
 
 test("publieke demo-flow loopt van homepage naar artikel, leverancier en brochure", async ({ page }) => {
   const errors = collectConsoleErrors(page);
@@ -140,4 +175,14 @@ test("overzicht en detail blijven gescheiden bij directe publieke URLs", async (
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText("Amefa for Professionals 2026");
   await expectCleanPage(page, errors);
+});
+
+test("publieke pagina's blijven schoon en visueel stabiel", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  for (const publicPage of publicPages) {
+    await page.goto(publicPage);
+    await expect(page.locator("main")).toBeVisible();
+    await expectCleanPage(page, errors);
+  }
 });

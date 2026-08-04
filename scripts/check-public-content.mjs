@@ -294,6 +294,7 @@ export async function runPublicContentChecks() {
     assert.match(pageHtml, /data-home-count="articles"/);
     assert.match(pageHtml, /data-home-count="suppliers"/);
     assert.match(pageHtml, /data-home-count="brochures"/);
+    assert.match(pageHtml, /\.\.\/images\/hero\.png/);
     assert.match(publicJs, /setupHomepageDiscovery/);
     assert.match(publicJs, /updateHomepageCount/);
     assert.match(publicJs, /data\/public\/articles\.json/);
@@ -458,7 +459,14 @@ export async function runPublicContentChecks() {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
     [
       /prototype/i,
+      /\bdemo\b/i,
       /demo-record/i,
+      /\btodo\b/i,
+      /\btest\b/i,
+      /placeholdertekst/i,
+      /Notion/i,
+      /pilot/i,
+      /voorbeeld/i,
       /Fase 1 statische website/i,
       /centrale publieke projecties/i,
       /publieke contentlaag/i,
@@ -466,6 +474,28 @@ export async function runPublicContentChecks() {
       /\bpublieke\b/i
     ].forEach((pattern) => {
       assert.equal(pattern.test(publicShell), false, `Ongewenste publieke presentatietaal gevonden: ${pattern}`);
+    });
+  });
+
+  await runCheck("publieke hero-afbeeldingen verwijzen naar bestaande assets", () => {
+    const publicShell = publicHtmlFiles().map(readText).join("\n");
+
+    assert.doesNotMatch(publicShell, /url\('\.\.\/\.\.\/images\//);
+    assert.match(readText("index.html"), /--hero-image: url\('\.\.\/images\/hero\.png'\)/);
+    [
+      ["pages/inspiratie.html", "../images/inspiration.png", "assets/images/inspiration.png"],
+      ["pages/leveranciers.html", "../images/assortment.png", "assets/images/assortment.png"],
+      ["pages/brochures-catalogi.html", "../images/brochures.png", "assets/images/brochures.png"],
+      ["pages/virtuele-showroom.html", "../images/showroom.png", "assets/images/showroom.png"],
+      ["pages/terras-outdoor.html", "../images/blog-terrace.png", "assets/images/blog-terrace.png"],
+      ["pages/nieuw.html", "../images/new.png", "assets/images/new.png"],
+      ["pages/logos-personalisatie.html", "../images/personalisation.png", "assets/images/personalisation.png"],
+      ["pages/bibliotheek.html", "../images/library.png", "assets/images/library.png"],
+      ["pages/aanbiedingen.html", "../images/offers.png", "assets/images/offers.png"],
+      ["pages/droogijs.html", "../images/dryice.png", "assets/images/dryice.png"]
+    ].forEach(([pagePath, publicReference, imagePath]) => {
+      assert.match(readText(pagePath), new RegExp(publicReference.replaceAll("/", "\\/")));
+      assert.equal(publicFileExists(imagePath), true, `Hero-afbeelding ontbreekt: ${imagePath}`);
     });
   });
 

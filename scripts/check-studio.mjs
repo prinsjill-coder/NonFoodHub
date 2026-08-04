@@ -643,9 +643,9 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Bibliotheek gepubliceerd/);
     assert.match(dashboardHtml, /Bibliotheekwaarschuwingen/);
     assert.match(dashboardHtml, /Bibliotheek zonder bestand/);
-    assert.match(dashboardHtml, /Demo-overzicht/);
+    assert.match(dashboardHtml, /Website-overzicht/);
     assert.match(dashboardHtml, /Zichtbaar op website/);
-    assert.match(dashboardHtml, /Publieke modules actief/);
+    assert.match(dashboardHtml, /Websiteonderdelen actief/);
     assert.match(dashboardHtml, /Publicatie-uitleg/);
     assert.match(dashboardHtml, /Dit staat live/);
     assert.match(dashboardHtml, /Dit wordt gecontroleerd/);

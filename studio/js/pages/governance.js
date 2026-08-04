@@ -222,7 +222,7 @@ function renderModuleCard(module, readinessModule) {
       <div class="studio-card-head">
         <div>
           <h3>${escapeHtml(module.label)}</h3>
-          <p class="studio-muted">Read-only samenvatting uit de actieve Studio-werksessie.</p>
+          <p class="studio-muted">Read-only samenvatting uit de actieve Studio-sessie.</p>
         </div>
         ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
       </div>
@@ -322,14 +322,14 @@ function renderPublicationSummary(publication = {}) {
   return `
     <section class="studio-section">
       <div class="studio-section-head">
-        <h2>Publieke projectie</h2>
+        <h2>Websiteweergave</h2>
         ${renderStatusBadge(state, state === "ready" ? "Publicatiegereed" : "Nog controleren")}
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderOverviewMetric({
           label: "Publicatiegereed",
           value: publication.ready,
-          note: "Items die zichtbaar zijn in een publieke projectie zonder extra publicatiefeedback.",
+          note: "Items die zichtbaar zijn op de website zonder extra publicatiefeedback.",
           state: publication.ready ? "ready" : "foundation"
         })}
         ${renderOverviewMetric({
@@ -341,13 +341,13 @@ function renderPublicationSummary(publication = {}) {
         ${renderOverviewMetric({
           label: "Niet publiek",
           value: publication.not_public,
-          note: "Items die niet in data/public worden opgenomen, meestal door status of ontbrekende publieke relatie.",
+          note: "Items die niet zichtbaar zijn op de website, meestal door status of ontbrekende relatie.",
           state: publication.not_public ? "review" : "foundation"
         })}
         ${renderOverviewMetric({
-          label: "Geen projectie",
+          label: "Geen websiteweergave",
           value: publication.not_applicable,
-          note: "Modules die nog geen publieke data/public-projectie hebben.",
+          note: "Modules die nog geen gecontroleerde websiteweergave hebben.",
           state: publication.not_applicable ? "foundation" : "ready"
         })}
       </div>
@@ -360,7 +360,7 @@ function renderModulePublication(module) {
 
   return `
     <section>
-      <h4>Publieke projectie</h4>
+      <h4>Websiteweergave</h4>
       <dl class="studio-detail-list">
         <div>
           <dt>Publicatiegereed</dt>
@@ -411,7 +411,7 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
       ${renderNotice({
         title: "Read-only overzicht",
         message:
-          "Governance verzamelt bestaande validatie-, quality- en relatiesignalen uit actieve browserwerksessies. Er wordt niets opgeslagen, gepubliceerd of automatisch opgelost.",
+          "Governance verzamelt bestaande validatie-, quality- en relatiesignalen uit de actieve Studio-sessie. Er wordt niets opgeslagen, gepubliceerd of automatisch opgelost.",
         tone: "info"
       })}
 
