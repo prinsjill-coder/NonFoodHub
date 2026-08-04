@@ -1,12 +1,36 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
-import { renderBrochureDetail, setupBrochureFileStatus } from "./detail.js";
+import { renderBrochureDetail, setupBrochureFileStatus, setupBrochureWorkflowActions } from "./detail.js";
 import { renderBrochureForm, setupBrochureForm } from "./form.js";
 import { renderBrochuresList, setupBrochureList } from "./list.js";
 
-export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession) {
+function fileAvailabilityForPath(path, mediaSession) {
+  if (!path || !mediaSession) return { canOpen: false, source: "", url: "" };
+
+  const localFile = mediaSession.findLocalProjectFile?.(path);
+  if (localFile?.url) {
+    return { canOpen: true, source: "local", url: localFile.url };
+  }
+
+  if (mediaSession.sourceHasProjectFile?.(path)) {
+    return { canOpen: true, source: "project", url: "" };
+  }
+
+  return { canOpen: false, source: "", url: "" };
+}
+
+function fileAvailabilityForBrochure(brochure, mediaSession) {
+  return Object.fromEntries(
+    [brochure.pdfFile, brochure.thumbnail]
+      .filter(Boolean)
+      .map((path) => [path, fileAvailabilityForPath(path, mediaSession)])
+  );
+}
+
+export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession) {
   const brochureData = brochureSession.getWorkingData();
   const supplierData = supplierSession.getWorkingData();
   const articleData = articleSession?.getWorkingData();
+  const mediaData = mediaSession?.getWorkingData();
 
   if (route.id === "brochures") {
     return renderBrochuresList({
@@ -37,10 +61,17 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
     return renderBrochureForm({ brochureData, supplierData, brochure, mode: "edit" });
   }
 
-  return renderBrochureDetail({ brochureData, supplierData, articleData, brochure });
+  return renderBrochureDetail({
+    brochureData,
+    supplierData,
+    mediaData,
+    articleData,
+    brochure,
+    fileAvailability: fileAvailabilityForBrochure(brochure, mediaSession)
+  });
 }
 
-export function setupBrochuresRoute(route, brochureSession, supplierSession, options = {}) {
+export function setupBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession, options = {}) {
   if (route.id === "brochures") {
     setupBrochureList({ brochureSession, supplierSession, rerender: options.rerender });
   }
@@ -50,11 +81,22 @@ export function setupBrochuresRoute(route, brochureSession, supplierSession, opt
       route,
       brochureSession,
       supplierSession,
+      mediaSession,
       formDirtyGuard: options.formDirtyGuard
     });
   }
 
   if (route.id === "brochureDetail") {
+    const brochure = brochureSession.findBySlug(route.params?.slug);
     setupBrochureFileStatus();
+    if (brochure) {
+      setupBrochureWorkflowActions({
+        brochureSession,
+        supplierSession,
+        articleSession,
+        brochure,
+        rerender: options.rerender
+      });
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { renderButton } from "../../../../components/button.js";
 import {
+  renderCheckboxField,
   renderSelectField,
   renderTextAreaField,
   renderTextField
@@ -8,7 +9,6 @@ import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import {
   createEmptyMediaAsset,
-  getMediaRightsStatusLabel,
   getMediaStatusLabel,
   getMediaTypeLabel,
   getMediaUsageTypeLabel,
@@ -30,6 +30,29 @@ function getStatusOptions(mediaData) {
     value: status,
     label: getMediaStatusLabel(status)
   }));
+}
+
+function rightsStatusFromCheck(checked) {
+  return checked ? "approved" : "needs-review";
+}
+
+function isRightsChecked(asset) {
+  return asset.rightsStatus === "approved";
+}
+
+function renderRightsCheck(asset) {
+  const checked = isRightsChecked(asset);
+
+  return `
+    ${renderCheckboxField({
+      name: "rightsChecked",
+      label: "Beeldrechten gecontroleerd",
+      checked,
+      help:
+        "Vink dit aan wanneer de leverancier het beeld of bestand heeft aangeleverd voor gebruik op de website."
+    })}
+    <input type="hidden" name="rightsStatus" value="${rightsStatusFromCheck(checked)}" data-rights-status-value>
+  `;
 }
 
 export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mode }) {
@@ -113,15 +136,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             required: true,
             help: "Contentstatus; dit publiceert niets automatisch naar de publieke website."
           })}
-          ${renderSelectField({
-            name: "rightsStatus",
-            label: "Rechtenstatus",
-            value: asset.rightsStatus,
-            options: optionsFromList(mediaData.rightsStatuses, (rightsStatus) =>
-              getMediaRightsStatusLabel(rightsStatus, mediaData)
-            ),
-            required: true
-          })}
+          ${renderRightsCheck(asset)}
           ${renderTextField({
             name: "sortOrder",
             label: "Sortering",
@@ -202,6 +217,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
   const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
   setupErrorLinkFocus(feedback, form);
+  setupRightsStatusCheck(form);
 
   idInput.addEventListener("input", () => {
     idTouched = true;
@@ -240,4 +256,17 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     });
     window.location.hash = `#/media/${asset.id}`;
   });
+}
+
+function setupRightsStatusCheck(form) {
+  const checkbox = form.elements.rightsChecked;
+  const hiddenInput = form.querySelector("[data-rights-status-value]");
+  if (!checkbox || !hiddenInput) return;
+
+  const syncRightsStatus = () => {
+    hiddenInput.value = rightsStatusFromCheck(checkbox.checked);
+  };
+
+  syncRightsStatus();
+  checkbox.addEventListener("change", syncRightsStatus);
 }

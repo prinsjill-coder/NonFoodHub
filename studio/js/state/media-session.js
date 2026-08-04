@@ -21,6 +21,7 @@ export function createMediaSession(initialData) {
   let sourceFileName = "data/media.json";
   let sourceType = "bundled";
   let lastValidationReport = createInitialReport(workingData);
+  const localProjectFiles = new Map();
 
   function workingHash() {
     return createHash(workingData);
@@ -90,6 +91,37 @@ export function createMediaSession(initialData) {
     return asset ? deepClone(asset) : null;
   }
 
+  function registerLocalProjectFile(path, file) {
+    const projectPath = String(path || "").trim();
+    if (!projectPath || !file) return null;
+
+    const previous = localProjectFiles.get(projectPath);
+    if (previous?.url && typeof globalThis.URL?.revokeObjectURL === "function") {
+      globalThis.URL.revokeObjectURL(previous.url);
+    }
+
+    const url = typeof globalThis.URL?.createObjectURL === "function" ? globalThis.URL.createObjectURL(file) : "";
+    const entry = {
+      path: projectPath,
+      name: file.name || "",
+      type: file.type || "",
+      size: Number.isFinite(file.size) ? file.size : 0,
+      url
+    };
+    localProjectFiles.set(projectPath, entry);
+    return { ...entry };
+  }
+
+  function findLocalProjectFile(path) {
+    const entry = localProjectFiles.get(String(path || "").trim());
+    return entry ? { ...entry } : null;
+  }
+
+  function sourceHasProjectFile(path) {
+    const projectPath = String(path || "").trim();
+    return Boolean(projectPath && getMediaAssets(sourceData).some((asset) => asset.file === projectPath));
+  }
+
   return {
     snapshot,
     getWorkingData,
@@ -97,6 +129,9 @@ export function createMediaSession(initialData) {
     setValidationReport,
     restoreSource,
     applyMediaAsset,
-    findById
+    findById,
+    registerLocalProjectFile,
+    findLocalProjectFile,
+    sourceHasProjectFile
   };
 }

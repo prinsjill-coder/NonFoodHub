@@ -120,7 +120,7 @@ export function renderRoute(route, state) {
   }
 
   if (route.sectionId === "brochures") {
-    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession);
+    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession, state.mediaSession);
   }
 
   if (route.sectionId === "media") {
@@ -155,7 +155,7 @@ export function setupRoute(route, state, options = {}) {
   }
 
   if (route.sectionId === "brochures") {
-    setupBrochuresRoute(route, state.brochureSession, state.supplierSession, options);
+    setupBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession, state.mediaSession, options);
   }
 
   if (route.sectionId === "media") {

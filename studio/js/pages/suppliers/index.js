@@ -1,5 +1,5 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
-import { renderSupplierDetail } from "./detail.js";
+import { renderSupplierDetail, setupSupplierWorkflowActions } from "./detail.js";
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
 import { renderSuppliersList, setupSupplierList } from "./list.js";
 
@@ -43,5 +43,16 @@ export function setupSuppliersRoute(route, supplierSession, options = {}) {
 
   if (route.id === "supplierNew" || route.id === "supplierEdit") {
     setupSupplierForm({ route, supplierSession, formDirtyGuard: options.formDirtyGuard });
+  }
+
+  if (route.id === "supplierDetail") {
+    const supplier = supplierSession.findBySlug(route.params?.slug);
+    if (supplier) {
+      setupSupplierWorkflowActions({
+        supplierSession,
+        supplier,
+        rerender: options.rerender
+      });
+    }
   }
 }

@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { CONTENT_STATUSES, CONTENT_STATUS_LABELS } from "../shared/content-status.js";
 import { validateBrochureFile } from "../shared/brochure-file-validation.js";
+import { createBrochureEditionDraft } from "../shared/brochure-model.js";
 import {
   BROCHURE_STORAGE_NOTICE,
   BROCHURES_EXPORT_FILENAME,
@@ -79,8 +80,21 @@ export async function runBrochureChecks() {
     );
     assert.match(runtimeText, /Gegevens exporteren/);
     assert.match(runtimeText, /publieke website/);
+    assert.match(runtimeText, /Nieuwe leverancier toevoegen/);
+    assert.match(runtimeText, /PDF kiezen/);
+    assert.match(runtimeText, /Afbeelding kiezen/);
+    assert.match(runtimeText, /Gekozen lokaal bestand/);
+    assert.match(runtimeText, /Verwachte projectbestandsnaam/);
+    assert.match(runtimeText, /Studio neemt de gekozen bestandsnaam over/);
     assert.match(readText("studio/js/pages/brochures/detail.js"), /fileLabel: "PDF"/);
     assert.match(readText("studio/js/pages/brochures/detail.js"), /fileLabel: "Thumbnail"/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /Nieuwe jaargang toevoegen/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /data-brochure-archive/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /PDF openen/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /Projectbestand nog plaatsen of controleren in Media/);
+    assert.match(readText("studio/js/pages/brochures/detail.js"), /Mediaregistratie ontbreekt/);
+    assert.match(readText("studio/js/pages/brochures/form.js"), /basisregistratie in Media/);
+    assert.doesNotMatch(readText("studio/js/pages/brochures/detail.js"), /Leverancier openen/);
     assert.match(docsText, /Brochurebeheerprocedure voor v1\.0/);
     assert.match(docsText, /data\/public\/brochures\.json/);
   });
@@ -139,8 +153,36 @@ export async function runBrochureChecks() {
     expectInvalid(data, suppliers, "items[0].thumbnail");
 
     data = clone(brochures);
+    firstBrochure(data).pdfFile = "C:\\temp\\voorbeeld.pdf";
+    expectInvalid(data, suppliers, "items[0].pdfFile");
+
+    data = clone(brochures);
     firstBrochure(data).pdfFile = "assets/downloads/brochures/voorbeeld.docx";
     expectInvalid(data, suppliers, "items[0].pdfFile");
+  });
+
+  await runCheck("nieuwe jaargang helper maakt uniek concept zonder bestaande brochure te overschrijven", () => {
+    const source = firstBrochure(brochures);
+    const draft = createBrochureEditionDraft(source, brochures.items, { date: new Date("2026-08-04T00:00:00Z") });
+
+    assert.equal(draft.status, "concept");
+    assert.equal(draft.year, 2027);
+    assert.equal(draft.title, "Amefa for Professionals 2027");
+    assert.equal(draft.slug, "amefa-for-professionals-2027");
+    assert.equal(draft.id, "brochure-amefa-2027");
+    assert.equal(draft.pdfFile, "assets/downloads/brochures/amefa-for-professionals-2027.pdf");
+    assert.equal(draft.pdfSize, "");
+    assert.equal(draft.thumbnail, "assets/images/supplier-amefa.jpg");
+    assert.equal(source.status, "published");
+    assert.equal(source.pdfFile, "assets/downloads/brochures/amefa-for-professionals-2026.pdf");
+
+    const duplicateDraft = createBrochureEditionDraft(
+      source,
+      [...brochures.items, draft],
+      { date: new Date("2026-08-04T00:00:00Z") }
+    );
+    assert.equal(duplicateDraft.slug, "amefa-for-professionals-2027-2");
+    assert.equal(duplicateDraft.id, "brochure-amefa-2027-2");
   });
 
   await runCheck("pdfFile is optioneel bij concept en verplicht bij review of published", () => {

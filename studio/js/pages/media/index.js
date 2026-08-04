@@ -1,5 +1,5 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
-import { renderMediaDetail } from "./detail.js";
+import { renderMediaDetail, setupMediaWorkflowActions } from "./detail.js";
 import { renderMediaForm, setupMediaForm } from "./form.js";
 import { renderMediaList, setupMediaList } from "./list.js";
 
@@ -51,5 +51,16 @@ export function setupMediaRoute(route, mediaSession, options = {}) {
       mediaSession,
       formDirtyGuard: options.formDirtyGuard
     });
+  }
+
+  if (route.id === "mediaDetail") {
+    const asset = mediaSession.findById(route.params?.id);
+    if (asset) {
+      setupMediaWorkflowActions({
+        mediaSession,
+        asset,
+        rerender: options.rerender
+      });
+    }
   }
 }

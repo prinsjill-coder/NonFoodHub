@@ -1,3 +1,4 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
@@ -8,8 +9,11 @@ import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
 import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
-import { getSupplierStatusLabel, getSupplierTypeLabel } from "../../../../shared/supplier-model.js";
+import { getSupplierStatusLabel, getSupplierTypeLabel, getSuppliers } from "../../../../shared/supplier-model.js";
+import { validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+
+let supplierActionFeedback = null;
 
 function mediaPath(path) {
   return path ? `../${path}` : "";
@@ -37,7 +41,7 @@ function renderMediaPreview(label, path, alt) {
   `;
 }
 
-function renderRelationList(items, { emptyText, hrefForItem, labelForItem, statusForItem, statusLabelForItem }) {
+function renderRelationList(items, { emptyText, hrefForItem, labelForItem, statusForItem, statusLabelForItem, actionLabel }) {
   if (!items.length) {
     return `<p class="studio-muted">${escapeHtml(emptyText)}</p>`;
   }
@@ -47,13 +51,157 @@ function renderRelationList(items, { emptyText, hrefForItem, labelForItem, statu
       ${items
         .map((item) => `
           <li>
-            <a href="${escapeHtml(hrefForItem(item))}">${escapeHtml(labelForItem(item))}</a>
-            ${renderStatusBadge(statusForItem(item), statusLabelForItem(item))}
+            <span>
+              <strong>${escapeHtml(labelForItem(item))}</strong>
+              ${renderStatusBadge(statusForItem(item), statusLabelForItem(item))}
+            </span>
+            <a href="${escapeHtml(hrefForItem(item))}">${escapeHtml(actionLabel)}</a>
           </li>
         `)
         .join("")}
     </ul>
   `;
+}
+
+function renderBrochureRelationCards(brochures, supplier) {
+  const addButton = renderButton({
+    label: "Nieuwe brochure toevoegen",
+    href: "#/brochures/nieuw",
+    variant: "secondary"
+  });
+
+  if (!brochures.length) {
+    return `
+      <p class="studio-muted">
+        Nog geen brochure gekoppeld. Voeg minimaal een brochure toe zodat bezoekers een collectie kunnen bekijken of downloaden.
+      </p>
+      <div class="studio-actions">${addButton}</div>
+    `;
+  }
+
+  return `
+    <div class="studio-relation-cards">
+      ${brochures
+        .map((brochure) => `
+          <article class="studio-relation-card">
+            <div>
+              <h3>${escapeHtml(brochure.title)}</h3>
+              <p class="studio-meta">${escapeHtml(brochure.year ? String(brochure.year) : "Geen jaar ingevuld")}</p>
+            </div>
+            ${renderStatusBadge(brochure.status, getBrochureStatusLabel(brochure.status))}
+            ${renderButton({
+              label: "Brochure bekijken",
+              href: `#/brochures/${brochure.slug}`,
+              variant: "outline"
+            })}
+          </article>
+        `)
+        .join("")}
+    </div>
+    <div class="studio-actions">${addButton}</div>
+    <p class="studio-meta">
+      Nieuwe brochures kies je op het brochureformulier bij leverancier ${escapeHtml(supplier.name)}.
+    </p>
+  `;
+}
+
+function validationMessages(errors) {
+  return Object.values(errors || {}).filter(Boolean);
+}
+
+function validationForStatus({ supplier, status, supplierData }) {
+  return validateSupplier(
+    { ...supplier, status },
+    getSuppliers(supplierData),
+    { originalSlug: supplier.slug }
+  );
+}
+
+function renderStatusAction({ label, targetStatus, disabled = false, reason = "", variant = "secondary" }) {
+  return `
+    ${renderButton({
+      label,
+      variant,
+      disabled,
+      attributes: {
+        "data-supplier-status-action": targetStatus,
+        "data-disabled-reason": reason
+      }
+    })}
+    ${disabled && reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
+  `;
+}
+
+function renderSupplierWorkflowActions({ supplier, supplierData }) {
+  const reviewErrors = validationMessages(validationForStatus({ supplier, status: "review", supplierData }));
+  const publishErrors = validationMessages(validationForStatus({ supplier, status: "published", supplierData }));
+  const actions = [];
+
+  if (supplier.status === "concept") {
+    actions.push(
+      renderStatusAction({
+        label: "Naar review",
+        targetStatus: "review",
+        disabled: Boolean(reviewErrors.length),
+        reason: reviewErrors[0] || ""
+      })
+    );
+  }
+
+  if (supplier.status === "review") {
+    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
+  }
+
+  if (supplier.status === "concept" || supplier.status === "review" || supplier.status === "hidden") {
+    actions.push(
+      renderStatusAction({
+        label: "Publiceren",
+        targetStatus: "published",
+        variant: "primary",
+        disabled: Boolean(publishErrors.length),
+        reason: publishErrors[0] || ""
+      })
+    );
+  }
+
+  if (supplier.status === "published") {
+    actions.push(
+      renderButton({
+        label: "Archiveren",
+        variant: "secondary",
+        attributes: { "data-supplier-archive": true }
+      })
+    );
+  }
+
+  if (supplier.status === "archived") {
+    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
+  }
+
+  return `
+    <section class="studio-section">
+      <article class="studio-card studio-workflow-action-card">
+        <div class="studio-card-head">
+          <div>
+            <h2>Klaarzetten voor website</h2>
+            <p class="studio-muted">
+              Deze acties wijzigen alleen de bewerkversie. De website verandert pas na export, Website bijwerken, controle, commit en push.
+            </p>
+          </div>
+          ${renderStatusBadge(supplier.status, getSupplierStatusLabel(supplier.status))}
+        </div>
+        <div class="studio-actions">${actions.join("")}</div>
+        <p class="studio-meta">
+          Publiceren betekent hier: status klaarzetten op Gepubliceerd. Het is geen automatische livegang.
+        </p>
+      </article>
+    </section>
+  `;
+}
+
+function renderFeedbackForSupplier(supplier) {
+  if (!supplierActionFeedback || supplierActionFeedback.slug !== supplier.slug) return "";
+  return supplierActionFeedback.html;
 }
 
 export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, supplier }) {
@@ -85,9 +233,13 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
       tone: "info"
     })}
 
+    <div data-supplier-action-feedback>${renderFeedbackForSupplier(supplier)}</div>
+
     <section class="studio-section">
       ${renderReadinessCard(readiness)}
     </section>
+
+    ${renderSupplierWorkflowActions({ supplier, supplierData })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
@@ -123,13 +275,7 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
       <div class="studio-grid studio-grid-2">
         <article class="studio-card">
           <h2>Brochures</h2>
-          ${renderRelationList(relatedBrochures, {
-            emptyText: "Nog geen brochure gekoppeld. Voeg minimaal een brochure toe zodat bezoekers een collectie kunnen bekijken of downloaden.",
-            hrefForItem: (brochure) => `#/brochures/${brochure.slug}`,
-            labelForItem: (brochure) => brochure.title,
-            statusForItem: (brochure) => brochure.status,
-            statusLabelForItem: (brochure) => getBrochureStatusLabel(brochure.status)
-          })}
+          ${renderBrochureRelationCards(relatedBrochures, supplier)}
         </article>
         <article class="studio-card">
           <h2>Kennisbank</h2>
@@ -138,10 +284,87 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
             hrefForItem: (article) => `#/kennisbank/${article.slug}`,
             labelForItem: (article) => article.title,
             statusForItem: (article) => article.status,
-            statusLabelForItem: (article) => getArticleStatusLabel(article.status)
+            statusLabelForItem: (article) => getArticleStatusLabel(article.status),
+            actionLabel: "Artikel bekijken"
           })}
         </article>
       </div>
     </section>
   `;
+}
+
+function nextStepsMessage(actionLabel) {
+  return `${actionLabel} staat klaar in de bewerkversie. Volgende stappen: Gegevens exporteren, Publieke website bijwerken, controleren in GitHub Desktop, committen en pushen.`;
+}
+
+function setActionFeedback(slug, title, message, tone = "success") {
+  supplierActionFeedback = {
+    slug,
+    html: renderNotice({ title, message, tone })
+  };
+}
+
+async function confirmStatusChange(targetStatus) {
+  if (targetStatus === "published") {
+    return confirmStudioAction({
+      title: "Leverancier publiceren?",
+      message:
+        "Alles is gereed om klaar te zetten voor de website. Deze actie wijzigt alleen de status in de bewerkversie; de website verandert pas na export, Website bijwerken, commit en push.",
+      confirmLabel: "Publiceren",
+      cancelLabel: "Annuleren",
+      tone: "info"
+    });
+  }
+
+  if (targetStatus === "review") {
+    return confirmStudioAction({
+      title: "Naar review zetten?",
+      message:
+        "De leverancier blijft in de bewerkversie en wordt gemarkeerd als klaar om inhoudelijk te controleren.",
+      confirmLabel: "Naar review",
+      cancelLabel: "Annuleren",
+      tone: "info"
+    });
+  }
+
+  return confirmStudioAction({
+    title: "Terug naar concept?",
+    message:
+      "De leverancier blijft bewaard in Studio en wordt opnieuw een concept in de bewerkversie.",
+    confirmLabel: "Terug naar concept",
+    cancelLabel: "Annuleren",
+    tone: "warning"
+  });
+}
+
+export function setupSupplierWorkflowActions({ supplierSession, supplier, rerender }) {
+  document.querySelector("[data-supplier-archive]")?.addEventListener("click", async () => {
+    const confirmed = await confirmStudioAction({
+      title: "Leverancier archiveren?",
+      message:
+        "Deze leverancier blijft bewaard in Studio, maar verschijnt niet meer op de website zodra de publieke website is bijgewerkt.",
+      confirmLabel: "Archiveren",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    supplierSession.applySupplier({ ...supplier, status: "archived" }, supplier.slug);
+    setActionFeedback(supplier.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
+    rerender?.();
+  });
+
+  document.querySelectorAll("[data-supplier-status-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (button.disabled) return;
+      const targetStatus = button.dataset.supplierStatusAction || "";
+      const confirmed = await confirmStatusChange(targetStatus);
+      if (!confirmed) return;
+
+      supplierSession.applySupplier({ ...supplier, status: targetStatus }, supplier.slug);
+      const label = targetStatus === "published" ? "Publiceren" : getSupplierStatusLabel(targetStatus);
+      setActionFeedback(supplier.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
+      rerender?.();
+    });
+  });
 }

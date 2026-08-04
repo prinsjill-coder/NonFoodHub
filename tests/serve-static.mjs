@@ -14,8 +14,10 @@ const contentTypes = new Map([
   [".jpg", "image/jpeg"],
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".pdf", "application/pdf"],
   [".png", "image/png"],
-  [".svg", "image/svg+xml"]
+  [".svg", "image/svg+xml"],
+  [".webp", "image/webp"]
 ]);
 
 function isInsideRoot(filePath) {

@@ -735,6 +735,30 @@ textarea:focus-visible {
   color: var(--studio-blue-dark);
 }
 
+.studio-relation-cards {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.studio-relation-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--studio-line);
+}
+
+.studio-relation-card:last-child {
+  border-bottom: 0;
+}
+
+.studio-relation-card h3 {
+  margin: 0;
+}
+
 .studio-issue-list {
   display: grid;
   gap: 10px;
@@ -921,6 +945,62 @@ textarea:focus-visible {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.studio-file-picker {
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius);
+  background: var(--studio-white);
+}
+
+.studio-file-picker input[type="file"] {
+  padding: 9px;
+  background: var(--studio-surface);
+}
+
+.studio-file-choice-summary {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 0;
+}
+
+.studio-file-choice-summary div {
+  display: grid;
+  gap: 3px;
+}
+
+.studio-file-choice-summary dt {
+  color: var(--studio-ink-soft);
+  font-size: 0.8rem;
+  font-weight: 760;
+}
+
+.studio-file-choice-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--studio-ink);
+  overflow-wrap: anywhere;
+}
+
+.studio-field-helper-card,
+.studio-workflow-action-card {
+  display: grid;
+  gap: 12px;
+}
+
+.studio-field-helper-card {
+  align-content: start;
+  padding: 14px;
+  border: 1px dashed var(--studio-line);
+  border-radius: var(--studio-radius);
+  background: var(--studio-surface);
+}
+
+.studio-action-hint {
+  flex-basis: 100%;
+  margin: -4px 0 4px;
 }
 
 .studio-publication-checks {
@@ -1356,6 +1436,11 @@ textarea:focus-visible {
 
   .studio-readiness-link {
     white-space: normal;
+  }
+
+  .studio-relation-card {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .studio-workflow-steps {

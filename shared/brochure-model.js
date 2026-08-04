@@ -41,6 +41,75 @@ export function createEmptyBrochure() {
   };
 }
 
+function nextYearValue(year, fallbackDate = new Date()) {
+  const numericYear = Number(year);
+  if (Number.isInteger(numericYear) && numericYear >= 1900 && numericYear < 2100) {
+    return numericYear + 1;
+  }
+
+  return fallbackDate.getFullYear();
+}
+
+function replaceYear(value, currentYear, nextYear) {
+  const source = String(value || "");
+  if (!source) return "";
+  if (currentYear && source.includes(String(currentYear))) {
+    return source.replaceAll(String(currentYear), String(nextYear));
+  }
+
+  return `${source} ${nextYear}`.trim();
+}
+
+function replaceYearInProjectPath(value, currentYear, nextYear) {
+  const source = String(value || "");
+  if (!source) return "";
+  if (currentYear && source.includes(String(currentYear))) {
+    return source.replaceAll(String(currentYear), String(nextYear));
+  }
+
+  return source;
+}
+
+function uniqueValue(base, existingValues) {
+  const normalizedBase = normalizeSlug(base) || "nieuwe-brochure";
+  let candidate = normalizedBase;
+  let suffix = 2;
+
+  while (existingValues.has(candidate)) {
+    candidate = `${normalizedBase}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}
+
+function todayValue(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+export function createBrochureEditionDraft(brochure, existingBrochures = [], options = {}) {
+  const source = brochure || createEmptyBrochure();
+  const nextYear = options.year || nextYearValue(source.year, options.date || new Date());
+  const title = replaceYear(source.title || "Nieuwe brochure", source.year, nextYear);
+  const slugBase = replaceYear(source.slug || title, source.year, nextYear);
+  const slug = uniqueValue(slugBase, new Set(existingBrochures.map((item) => item.slug).filter(Boolean)));
+  const idBase = replaceYear(source.id || `brochure-${slug}`, source.year, nextYear);
+  const id = uniqueValue(idBase, new Set(existingBrochures.map((item) => item.id).filter(Boolean)));
+
+  return {
+    ...source,
+    id,
+    title,
+    slug,
+    year: nextYear,
+    pdfFile: replaceYearInProjectPath(source.pdfFile, source.year, nextYear),
+    pdfSize: "",
+    thumbnail: replaceYearInProjectPath(source.thumbnail, source.year, nextYear),
+    status: "concept",
+    updatedAt: options.updatedAt || todayValue(options.date || new Date())
+  };
+}
+
 export function getBrochures(brochureData) {
   return Array.isArray(brochureData?.items) ? brochureData.items : [];
 }

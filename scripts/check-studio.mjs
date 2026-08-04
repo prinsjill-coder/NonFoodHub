@@ -407,6 +407,11 @@ async function runStudioChecks() {
     assert.match(detailHtml, /Amefa/);
     assert.match(detailHtml, /Amefa for Professionals 2026/);
     assert.match(detailHtml, /Professioneel tafelconcept voor hospitality/);
+    assert.match(detailHtml, /Klaarzetten voor website/);
+    assert.match(detailHtml, /Archiveren/);
+    assert.match(detailHtml, /Brochure bekijken/);
+    assert.match(detailHtml, /Nieuwe brochure toevoegen/);
+    assert.match(detailHtml, /Artikel bekijken/);
     assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
     assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Amefa bewerken/);
@@ -439,10 +444,22 @@ async function runStudioChecks() {
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuwe brochure/);
     assert.match(newHtml, /data-brochure-form/);
+    assert.match(newHtml, /Nieuwe leverancier toevoegen/);
+    assert.match(newHtml, /PDF kiezen/);
+    assert.match(newHtml, /Afbeelding kiezen/);
+    assert.match(newHtml, /Verwachte bestandsnaam van de PDF/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Amefa for Professionals 2026/);
+    assert.match(detailHtml, /Klaarzetten voor website/);
+    assert.match(detailHtml, /Nieuwe jaargang toevoegen/);
+    assert.match(detailHtml, /Archiveren/);
+    assert.match(detailHtml, /Terug naar concept/);
+    assert.match(detailHtml, /Bestandsstatus wordt gecontroleerd/);
+    assert.match(detailHtml, /Mediaregistratie/);
     assert.match(detailHtml, /Kennisbankartikelen/);
     assert.match(detailHtml, /Professioneel tafelconcept voor hospitality/);
+    assert.doesNotMatch(detailHtml, /Leverancier openen/);
+    assert.match(detailHtml, /Artikel bekijken/);
     assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
     assert.match(editHtml, /Amefa for Professionals 2026 bewerken/);
@@ -474,6 +491,11 @@ async function runStudioChecks() {
     assert.match(newHtml, /data-media-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Brochures overzichtsbeeld/);
+    assert.match(detailHtml, /Klaarzetten voor gebruik/);
+    assert.match(detailHtml, /studio-workflow-action-card/);
+    assert.match(detailHtml, /data-media-status-action="published"/);
+    assert.match(detailHtml, /Studio uploadt of verplaatst het bestand niet/);
+    assert.match(detailHtml, /Beeldrechten/);
     assert.match(detailHtml, /Gebruikt door/);
     assert.match(detailHtml, /Nog geen leveranciers gebruiken dit bestand/);
     assert.match(usedDetailHtml, /Amefa/);
@@ -481,6 +503,9 @@ async function runStudioChecks() {
     assert.match(usedDetailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(usedDetailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
     assert.match(editHtml, /Brochures overzichtsbeeld bewerken/);
+    assert.match(editHtml, /Beeldrechten gecontroleerd/);
+    assert.match(editHtml, /data-rights-status-value/);
+    assert.doesNotMatch(editHtml, /<label for="studio-field-rightsstatus">Rechtenstatus/);
   });
 
   await runCheck("kennisbankroutes renderen lijst, detail, nieuw en bewerken", () => {
@@ -771,6 +796,7 @@ async function runStudioChecks() {
     assertNoPattern({ roots, pattern: /window\.confirm/, label: "window.confirm gevonden" });
     assertNoPattern({ roots, pattern: /localStorage/, label: "localStorage gevonden" });
     assertNoPattern({ roots, pattern: /sessionStorage/, label: "sessionStorage gevonden" });
+    assertNoPattern({ roots, pattern: /file:\/\//, label: "file:// gevonden" });
   });
 
   await runCheck("geen generieke content-session toegevoegd", () => {
