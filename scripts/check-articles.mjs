@@ -337,7 +337,8 @@ export async function runArticleChecks() {
     const counts = getArticleCounts(articles);
     assert.equal(counts.total, articles.items.length);
     assert.equal(counts.missingHeroImage, 0);
-    assert.equal(counts.statuses.published, 1);
+    assert.equal(counts.statuses.published, articles.items.filter((article) => article.status === "published").length);
+    assert.ok(counts.statuses.published >= 2);
   });
 }
 

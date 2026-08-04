@@ -39,8 +39,9 @@ export async function runArticleQualityChecks() {
     const report = getArticleQualityReport(articles, suppliers, brochures, media);
     assert.equal(report.valid, true);
     assert.equal(report.stats.total, articles.items.length);
-    assert.equal(report.stats.published, 1);
-    assert.equal(report.stats.review, 1);
+    assert.equal(report.stats.published, articles.items.filter((article) => article.status === "published").length);
+    assert.equal(report.stats.review, articles.items.filter((article) => article.status === "review").length);
+    assert.ok(report.stats.published >= 2);
     assert.ok(report.stats.warnings >= 1);
     assert.ok(report.stats.missingMediaRegistrations >= 1);
   });

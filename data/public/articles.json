@@ -16,6 +16,23 @@
           "name": "Amefa"
         }
       ]
+    },
+    {
+      "id": "article-professioneel-tafelconcept",
+      "slug": "professioneel-tafelconcept-hospitality",
+      "title": "Professioneel tafelconcept voor hospitality",
+      "summary": "Maak tafelpresentatie consistenter door bestek, servies, glaswerk en routing als een samenhangend concept te ontwerpen.",
+      "body": "Een professioneel tafelconcept begint bij de gastreis. Wat ziet de gast bij binnenkomst, welke materialen worden aangeraakt en hoe blijft de presentatie overeind tijdens drukke services?\n\nBreng besteklijnen, serviesfamilies, buffetpresentatie en operationele eenvoud samen in een herkenbare stijl. Zo ontstaat een tafelconcept dat past bij de uitstraling van de zaak en prettig werkt voor het team.",
+      "category": "Tafelpresentatie",
+      "heroImage": "assets/images/blog-tableware.png",
+      "updatedAt": "2026-07-31",
+      "suppliers": [
+        {
+          "id": "supplier-amefa",
+          "slug": "amefa",
+          "name": "Amefa"
+        }
+      ]
     }
   ]
 }

@@ -157,7 +157,8 @@ export async function runPublicContentChecks() {
 
   await runCheck("publieke artikelprojectie is afgeleid van gepubliceerde Studio-artikelen", () => {
     assert.deepEqual(publicArticles, projectPublicArticles(articles, suppliers));
-    assert.ok(publicArticles.items.length > 0);
+    assert.ok(publicArticles.items.length >= 2);
+    assert.ok(publicArticles.items.every((article) => article.suppliers.length > 0));
   });
 
   await runCheck("publieke leveranciersprojectie is afgeleid van gepubliceerde Studio-leveranciers", () => {
@@ -372,6 +373,21 @@ export async function runPublicContentChecks() {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
     FORBIDDEN_PLATFORM_BRANDING.forEach((pattern) => {
       assert.equal(pattern.test(publicShell), false, `Verboden platformbranding gevonden: ${pattern}`);
+    });
+  });
+
+  await runCheck("publieke website toont geen prototype- of implementatietaal", () => {
+    const publicShell = publicHtmlFiles().map(readText).join("\n");
+    [
+      /prototype/i,
+      /demo-record/i,
+      /Fase 1 statische website/i,
+      /centrale publieke projecties/i,
+      /publieke contentlaag/i,
+      /\bgepubliceerde\b/i,
+      /\bpublieke\b/i
+    ].forEach((pattern) => {
+      assert.equal(pattern.test(publicShell), false, `Ongewenste publieke presentatietaal gevonden: ${pattern}`);
     });
   });
 
