@@ -9,10 +9,15 @@ Het formaat is gebaseerd op [Keep a Changelog](https://keepachangelog.com/en/1.1
 ### Added
 
 - Repository-ready documentatieset toegevoegd onder `docs/`, inclusief Masterplan, detaildocumenten, ADR's, Mermaid-diagrammen en wireframes.
+- Studio-modules voor leveranciers, brochures, media, kennisbank en bibliotheek.
+- Read-only governance en content-readiness voor bestaande contentmodules.
+- Gecontroleerde publieke contentprojecties voor artikelen, leveranciers en brochures onder `data/public/*`.
+- Lokale Playwright-browseracceptatie voor publieke demo-flow en Studio-smoke.
 
-### Planned
+### Changed
 
-- Voorbereiding van Fase 2A.
+- Publieke website rendert kennisbankartikelen, leveranciers en brochures vanuit publieke projecties in plaats van ruwe Studio-data.
+- Documentatie bijgewerkt voor de huidige statische website, Studio en Git-gebaseerde publicatiewerkwijze.
 
 ## [1.0.0] - 2026-07-23
 

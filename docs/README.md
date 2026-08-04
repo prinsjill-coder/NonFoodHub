@@ -29,19 +29,10 @@ Gebruik [MASTERPLAN.md](MASTERPLAN.md) als ingang. Dat bestand is de gezaghebben
 
 ## Gebruik voor Codex
 
-Geef Codex bij toekomstige opdrachten altijd eerst deze instructie:
+Geef Codex bij toekomstige opdrachten de actieve repository en sprintscope mee. Gebruik alleen relatieve projectpaden in documentatie en code, tenzij een lokaal commando expliciet een absolute workspace nodig heeft.
 
-```text
-Werk uitsluitend binnen /Users/jillprins/Documents/Codex en voor dit project binnen /Users/jillprins/Documents/Codex/Active Projects/NonFoodHub.
-
-Lees eerst docs/MASTERPLAN.md en de documenten waarnaar dit bestand verwijst. Behandel deze documentatie als de leidende bron van waarheid. Maak geen commit en push niets naar GitHub; wijzigingen worden via GitHub Desktop beoordeeld, gecommit en gepusht.
-```
+Lees eerst `docs/MASTERPLAN.md` en de documenten waarnaar dit bestand verwijst. Behandel deze documentatie als leidende bron van waarheid. Maak geen commit en push niets naar GitHub tenzij de opdracht dat expliciet vraagt.
 
 ## Status
 
-Deze documentatieset is opgesteld als voorbereiding op:
-
-1. het strak trekken van de huidige Fase 1-website;
-2. het centraliseren van content in data;
-3. het bouwen van NonFood Hub Studio;
-4. het vullen van de website met echte PDF's, leveranciersinformatie en kennisbankcontent.
+Deze documentatieset beschrijft de huidige statische publieke website, de Studio-modules, governance/readiness en de gecontroleerde publieke contentprojecties onder `data/public/*`.

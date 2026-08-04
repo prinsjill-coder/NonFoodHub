@@ -413,7 +413,7 @@
 
     return `
       <a class="article-card fade-in" href="${cardLink}">
-        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
+        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}" loading="lazy" decoding="async">
         <div class="article-card-body">
           <div class="card-meta">
             <span class="tag">${escapeHtml(article.category || "Inspiratie")}</span>
@@ -578,7 +578,7 @@
 
     return `
       <a class="supplier-card fade-in" href="${cardLink}">
-        <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+        <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}" loading="lazy" decoding="async">
         <div class="supplier-card-body">
           <div class="card-meta">${renderPublicSupplierTags(supplier)}</div>
           <h3>${escapeHtml(supplier.name)}</h3>
@@ -624,7 +624,7 @@
     return `
       <article class="resource-card fade-in" id="${escapeHtml(brochure.slug)}" data-categories="${escapeHtml(brochureFilterValue(brochure))}">
         <a href="${cardLink}">
-          <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}">
+          <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}" loading="lazy" decoding="async">
         </a>
         <div class="resource-card-body">
           <div class="card-meta">
@@ -668,7 +668,7 @@
             </div>
           </div>
           <div class="split-media">
-            <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}">
+            <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}" loading="lazy" decoding="async">
           </div>
         </div>
       </article>
@@ -678,7 +678,7 @@
   function renderSupplierRelatedArticleCard(article) {
     return `
       <a class="article-card fade-in" href="${href("pages/inspiratie.html")}#${hashSlug(article.slug)}">
-        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
+        <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}" loading="lazy" decoding="async">
         <div class="article-card-body">
           <div class="card-meta"><span class="tag">${escapeHtml(article.category || "Inspiratie")}</span></div>
           <h3>${escapeHtml(article.title)}</h3>
@@ -733,7 +733,7 @@
     const logo = supplier.logo
       ? `
         <div class="supplier-detail-logo">
-          <img src="${escapeHtml(href(supplier.logo))}" alt="Logo ${escapeHtml(supplier.name)}">
+          <img src="${escapeHtml(href(supplier.logo))}" alt="Logo ${escapeHtml(supplier.name)}" loading="lazy" decoding="async">
         </div>
       `
       : "";
@@ -763,7 +763,7 @@
             </div>
           </div>
           <div class="split-media">
-            <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}">
+            <img src="${escapeHtml(publicSupplierImage(supplier))}" alt="${escapeHtml(supplier.name)}" loading="lazy" decoding="async">
           </div>
         </div>
         <div class="section-heading supplier-detail-section" id="${escapeHtml(supplier.slug)}-brochures">

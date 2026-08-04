@@ -1,18 +1,26 @@
-# Bidfood Non-Food Hub
+# NonFoodHub
 
-Een zelfstandige statische website voor de Bidfood Non-Food inspiratieomgeving. De site bundelt leveranciers, brochures, virtuele showroominformatie, horeca-inspiratie, acties en aanvullende non-food onderdelen op één professionele plek.
+NonFoodHub is een build-less, statische website met een aparte browsergebaseerde Studio voor contentbeheer. De publieke website gebruikt gecontroleerde projecties onder `data/public/*`; ruwe Studio-data onder `data/*.json` wordt niet rechtstreeks op de publieke website gerenderd.
 
 ## Status
 
-Fase 1 is gepubliceerd via GitHub Pages.
+De huidige releasekandidaat bevat:
 
-De website is gebaseerd op de openbare Notion-omgeving en is omgezet naar een onderhoudsvriendelijke statische HTML/CSS/JavaScript-site. De huisstijl is aangescherpt naar een Bidfood-geïnspireerd blauw kleurenpalet voor knoppen, links, navigatie, iconen en hover-effecten.
+- publieke website met homepage, inspiratie, leveranciers, brochures, bibliotheek, contact, droogijs en personalisatie;
+- publieke contentprojecties voor artikelen, leveranciers en brochures;
+- Studio-modules voor leveranciers, brochures, media, kennisbank en bibliotheek;
+- read-only governance en content-readiness;
+- lokale checks en Playwright-browseracceptatie.
+
+Er is geen backend, API, database, CMS-framework, login, rollenlaag of automatische publicatieflow.
 
 ## Techniek
 
 - HTML5
 - CSS
 - JavaScript
+- Native ES modules voor Studio
+- JSON-datafiles
 - Geen framework
 - Geen buildstap
 - Geschikt voor GitHub Pages
@@ -21,46 +29,54 @@ De website is gebaseerd op de openbare Notion-omgeving en is omgezet naar een on
 
 ```text
 NonFoodHub/
-├── index.html
-├── AI_INSTRUCTIONS.md
-├── README.md
-├── CHANGELOG.md
-├── WORKFLOW.md
-├── .gitignore
-├── .gitattributes
-├── docs/
-│   ├── MASTERPLAN.md
-│   ├── decisions/
-│   ├── diagrams/
-│   └── wireframes/
-├── assets/
-│   ├── css/
-│   │   └── styles.css
-│   ├── js/
-│   │   └── main.js
-│   └── images/
-│       ├── favicon.svg
-│       └── lokale Notion-afbeeldingen en brochurethumbnails
-└── pages/
-    ├── aanbiedingen.html
-    ├── bibliotheek.html
-    ├── brochures-catalogi.html
-    ├── contact.html
-    ├── droogijs.html
-    ├── inspiratie.html
-    ├── leveranciers.html
-    ├── logos-personalisatie.html
-    ├── nieuw.html
-    ├── terras-outdoor.html
-    └── virtuele-showroom.html
+|-- index.html
+|-- pages/
+|-- assets/
+|   |-- css/
+|   |-- js/
+|   `-- images/
+|-- data/
+|   |-- public/
+|   |-- articles.json
+|   |-- brochures.json
+|   |-- library.json
+|   |-- media.json
+|   `-- suppliers.json
+|-- studio/
+|-- shared/
+|-- components/
+|-- scripts/
+|-- tests/
+`-- docs/
 ```
+
+## Publieke contentlaag
+
+De publieke website leest alleen gecontroleerde projecties:
+
+- `data/public/articles.json`
+- `data/public/suppliers.json`
+- `data/public/brochures.json`
+
+Deze datasets bevatten alleen bezoekersvelden. Interne Studio-velden zoals governance, readiness, statusvelden, validatiemetadata en beheeropmerkingen blijven buiten de publieke projecties.
+
+## Studio
+
+Studio draait lokaal/statisch in de browser via `studio/index.html`.
+
+Studio gebruikt een in-memory werksessie:
+
+- data wordt geladen uit JSON-bestanden;
+- wijzigingen blijven in de actieve browserwerksessie;
+- export is een handmatige overdrachtsstap;
+- Studio schrijft niet naar de repository, browseropslag, backend of database.
 
 ## Lokaal bekijken
 
-Open een terminal in de projectmap `NonFoodHub` en start:
+Start een lokale previewserver vanuit de projectmap:
 
 ```bash
-python3 -m http.server 8080
+python -m http.server 8080
 ```
 
 Open daarna:
@@ -69,70 +85,46 @@ Open daarna:
 http://localhost:8080
 ```
 
-Je kunt `index.html` ook rechtstreeks openen, maar de previewserver is aanbevolen omdat dit beter overeenkomt met GitHub Pages.
+De Playwright-tests starten hun eigen lokale testserver via `npm run test:e2e`.
 
-## Ontwikkelworkflow
+## Checks
 
-1. Werk lokaal binnen de projectmap.
-2. Test wijzigingen lokaal via `python3 -m http.server 8080`.
-3. Controleer de aangepaste bestanden in GitHub Desktop.
-4. Maak een duidelijke commit in GitHub Desktop.
-5. Push daarna naar `main`.
-6. Controleer de live website kort nadat GitHub Pages opnieuw gepubliceerd heeft.
+Belangrijke lokale checks:
 
-Zie ook [WORKFLOW.md](WORKFLOW.md).
+```bash
+node scripts/check-public-content.mjs
+node scripts/check-content-readiness.mjs
+node scripts/check-content-governance.mjs
+node scripts/check-studio.mjs
+node scripts/check-suppliers.mjs
+node scripts/check-brochures.mjs
+node scripts/check-media.mjs
+node scripts/check-articles.mjs
+node scripts/check-article-quality.mjs
+node scripts/check-library.mjs
+node scripts/check-library-quality.mjs
+node --check assets/js/main.js
+npm run test:e2e
+git diff --check
+```
 
-## Projectdocumentatie
+## Documentatie
 
-De volledige projectblauwdruk staat in [docs/MASTERPLAN.md](docs/MASTERPLAN.md).
+De projectdocumentatie staat in `docs/`, met `docs/MASTERPLAN.md` als centrale ingang. De technische architectuur staat in `docs/07-software-architecture.md`.
 
-Gebruik dit document als leidende bron voor toekomstige ontwikkeling, waaronder Fase 1A, NonFood Hub Studio, contentbeheer, navigatie, PDF-beheer en Codex-opdrachten.
+## Publicatie
 
-AI-assistenten gebruiken [AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md) als operationele startinstructie en lezen daarna de volledige `docs/`-map.
+Publicatie blijft handmatig en Git-gebaseerd:
 
-## Publicatie via GitHub Pages
+1. wijzigingen lokaal controleren;
+2. checks draaien;
+3. wijzigingen reviewen;
+4. committen;
+5. pushen naar `main`;
+6. GitHub Pages publiceert de statische website.
 
-GitHub Pages publiceert vanaf:
-
-- Branch: `main`
-- Map: `/ (root)`
-
-Er is geen buildstap nodig. `index.html` staat in de hoofdmap van het project.
-
-## Changelog
-
-Belangrijke wijzigingen worden bijgehouden in [CHANGELOG.md](CHANGELOG.md).
-
-## Nog handmatig toe te voegen
-
-Deze onderdelen konden niet volledig automatisch uit de Notion-pagina worden overgenomen:
-
-- Directe PDF-downloadlinks van brochures. De bron gaf wel leverancier, categorie en PDF-bestandsnaam terug, maar niet betrouwbaar de directe PDF-URL.
-- De echte virtuele showroomtour-embed of tourlink. De tekst en contactroute zijn wel overgenomen.
-- Het droogijs-bestelformulier. De inhoud is overgenomen; de formulier-embed kwam niet mee in de automatische extractie.
-- Eventuele verborgen databasevelden uit Notion, zoals statusvelden, sortering, filters of interne eigenschappen die niet in de openbare tekstextractie verschenen.
-- Definitieve merkassets zoals een officieel Bidfood-logo in vectorformaat, als die later beschikbaar zijn.
-
-## Roadmap
-
-### Fase 2A
-
-- Brochurebibliotheek uitbreiden met echte PDF-downloadlinks.
-- Contentstructuur verder professionaliseren voor makkelijker onderhoud.
-- Leveranciersinformatie verder verrijken waar bronmateriaal beschikbaar is.
-- Formulieren of aanvraagroutes voorbereiden voor showroombezoek, samples en droogijs.
-
-### Latere fases
-
-- Zoekfunctie uitbreiden naar volledige contentsearch.
-- Leveranciersdetailpagina's per partner.
-- Virtuele showroom embedden zodra de tourlink beschikbaar is.
-- CMS-achtige datafile of JSON-structuur om content later makkelijker te beheren.
-- Conversietracking en analytics toevoegen wanneer gewenst.
-- Officiële Bidfood huisstijl-assets toevoegen wanneer beschikbaar.
+Er is geen publicatieknop, automatische synchronisatie of workflowengine.
 
 ## Rechten
 
-Dit project bevat Bidfood-gerelateerde inhoud, merkuitingen en assets en is niet bedoeld voor vrij hergebruik of verspreiding zonder toestemming.
-
-Er is bewust geen open-sourcelicentie zoals MIT, Apache of GPL toegevoegd.
+Dit project bevat organisatiegerelateerde inhoud en assets en is niet bedoeld voor vrij hergebruik of verspreiding zonder toestemming. Er is bewust geen open-sourcelicentie toegevoegd.
