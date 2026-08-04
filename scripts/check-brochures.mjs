@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { CONTENT_STATUSES, CONTENT_STATUS_LABELS } from "../shared/content-status.js";
 import { validateBrochureFile } from "../shared/brochure-file-validation.js";
 import {
+  BROCHURE_STORAGE_NOTICE,
   BROCHURES_EXPORT_FILENAME,
   normalizeBrochureFileForSession,
   stableStringify,
@@ -18,7 +19,11 @@ import { createBrochureSession } from "../studio/js/state/brochure-session.js";
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function readJson(relativePath) {
-  return JSON.parse(readFileSync(resolve(rootDir, relativePath), "utf8"));
+  return JSON.parse(readText(relativePath));
+}
+
+function readText(relativePath) {
+  return readFileSync(resolve(rootDir, relativePath), "utf8");
 }
 
 function clone(value) {
@@ -55,6 +60,27 @@ export async function runBrochureChecks() {
     const report = validateBrochureFile(brochures, suppliers);
     assert.equal(report.valid, true);
     assert.deepEqual(report.errors, []);
+  });
+
+  await runCheck("brochurebeheer communiceert de actuele handmatige overdracht", () => {
+    assert.equal(brochures.storage.mode, "static-import-export");
+    assert.equal(brochures.storage.writeEnabled, false);
+    assert.equal(brochures.storage.message, BROCHURE_STORAGE_NOTICE);
+
+    const runtimeText = [
+      readText("studio/js/pages/brochures/form.js"),
+      readText("studio/js/pages/brochures/list.js")
+    ].join("\n");
+    const docsText = readText("docs/05-studio.md");
+
+    assert.doesNotMatch(
+      runtimeText,
+      /Sprint 6A|deel 2 toegevoegd|publicatie voor brochures worden later toegevoegd|Import, export, uploads en publicatie zijn nog niet beschikbaar/
+    );
+    assert.match(runtimeText, /assets\/downloads\/brochures/);
+    assert.match(runtimeText, /data\/public\/brochures\.json/);
+    assert.match(docsText, /Brochurebeheerprocedure voor v1\.0/);
+    assert.match(docsText, /data\/public\/brochures\.json/);
   });
 
   await runCheck("brochurevalidatie gebruikt centrale contentstatussen en bestaande leveranciers", () => {

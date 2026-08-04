@@ -202,6 +202,49 @@ genormaliseerde export.
 PDF-upload, thumbnail-upload, mediaopslag en automatische publicatie zijn nog
 niet actief.
 
+### Brochurebeheerprocedure voor v1.0
+
+Voor een beheerder bestaat brochurebeheer uit een Studio-stap en een
+handmatige overdrachtsstap.
+
+1. Open lokaal de website en ga naar `studio/index.html`.
+2. Ga in Studio naar `Brochures`.
+3. Kies `Nieuwe brochure` of open een bestaande brochure en kies `Bewerken`.
+4. Vul minimaal titel, slug, leverancier, status, jaar, categorieen, taal,
+   beschrijving, bijgewerkt-op en sortering in.
+5. Vul bij een brochure ter controle of gepubliceerd het relatieve PDF-pad in,
+   bijvoorbeeld `assets/downloads/brochures/naam-van-brochure.pdf`.
+6. Vul bij een gepubliceerde brochure ook een thumbnailpad in, bijvoorbeeld een
+   bestaand bestand onder `assets/images/`.
+7. Kies `Opslaan in werksessie`. Dit slaat alleen op in de actieve
+   browserwerksessie.
+8. Controleer de detailpagina, governance en content readiness. Los
+   validatiemeldingen op voordat je exporteert.
+9. Ga terug naar `Brochures` en kies `Exporteren`. Studio downloadt
+   `brochures.json`.
+10. Vervang handmatig `data/brochures.json` door het gedownloade bestand.
+11. Plaats de echte PDF handmatig op het ingevulde relatieve pad. Voeg geen
+   tijdelijke of lege PDF toe.
+12. Plaats of controleer de thumbnail handmatig op het ingevulde relatieve pad.
+13. Werk de publieke brochureprojectie `data/public/brochures.json` bij volgens
+   de bestaande publieke projectielaag. De website leest niet rechtstreeks uit
+   `data/brochures.json`.
+14. Draai de lokale checks, minimaal `node scripts/check-public-content.mjs`,
+   `node scripts/check-brochures.mjs`, `node scripts/check-studio.mjs` en
+   `npm run test:e2e`.
+15. Controleer de website in de browser: brochureoverzicht,
+   brochuredetailpagina, leverancierdetailpagina en downloadactie.
+16. Commit en push daarna zelf via GitHub Desktop.
+
+Belangrijk onderscheid:
+
+- `Opslaan in werksessie` past alleen de geopende Studio-sessie aan.
+- `Exporteren` downloadt een overdrachtsbestand.
+- Het vervangen van `data/brochures.json`, het plaatsen van PDF/thumbnail en
+  het bijwerken van `data/public/brochures.json` gebeuren handmatig buiten
+  Studio.
+- Publicatie gebeurt pas na commit en push via GitHub Desktop.
+
 ## Kennisbankbeheer
 
 Artikelen worden beheerd met een eenvoudige editor.

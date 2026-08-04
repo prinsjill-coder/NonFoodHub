@@ -123,7 +123,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "Dit bestand is alleen gedownload. Vervang handmatig /data/brochures.json en commit en push daarna zelf via GitHub Desktop.",
+      "Dit bestand is alleen gedownload. Vervang handmatig data/brochures.json, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop.",
     tone: "success"
   });
 }
@@ -193,7 +193,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     ${renderPageHeader({
       eyebrow: "Brochurebeheer",
       title: "Brochures",
-      description: "Beheer brochures als centraal contentobject dat later PDF's, leveranciers, media en publieke kaarten voedt."
+      description: "Beheer brochuredata als centraal contentobject voor leveranciers, PDF-paden en publieke brochurekaarten."
     })}
 
     ${renderSessionBanner(sessionSnapshot, {
@@ -201,7 +201,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       sourceDescription:
         "Wijzigingen bestaan alleen in browsergeheugen totdat je brochures.json exporteert.",
       exportMessage:
-        "Dit bestand is alleen gedownload. Vervang handmatig /data/brochures.json en commit en push daarna zelf via GitHub Desktop.",
+        "Dit bestand is alleen gedownload. Vervang handmatig data/brochures.json, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop.",
       statusText: renderSessionStatus,
       restoreAttributes: { "data-brochure-restore": true }
     })}

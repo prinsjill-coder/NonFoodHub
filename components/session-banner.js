@@ -26,7 +26,7 @@ export function renderSessionBanner(snapshot, options = {}) {
     `Wijzigingen bestaan alleen in browsergeheugen totdat je ${options.fileName || "suppliers.json"} exporteert.`;
   const exportMessage =
     options.exportMessage ||
-    "Dit bestand is alleen gedownload. Vervang handmatig /data/suppliers.json en commit en push daarna zelf via GitHub Desktop.";
+    "Dit bestand is alleen gedownload. Vervang handmatig data/suppliers.json en commit en push daarna zelf via GitHub Desktop.";
 
   return `
     <section class="studio-session-banner is-${tone}" aria-label="Werksessiestatus" role="status" aria-live="polite">

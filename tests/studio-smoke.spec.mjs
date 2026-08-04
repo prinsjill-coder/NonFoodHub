@@ -95,3 +95,70 @@ test("Studio toont readiness op detailpagina zonder consolefouten", async ({ pag
   await expect(page.getByText("Websiteweergave: Leveranciers")).toBeVisible();
   await expectCleanStudioPage(page, errors);
 });
+
+test("Studio brochurebeheer ondersteunt de handmatige werksessieflow", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/studio/index.html#/brochures/nieuw");
+  await expect(page.getByRole("heading", { name: "Nieuwe brochure", level: 1 })).toBeVisible();
+
+  await page.getByLabel(/Titel/).fill("RC1E praktijkbrochure");
+  await expect(page.locator("[data-form-dirty-notice]")).toBeVisible();
+  await page.getByRole("link", { name: "Annuleren" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Formulier verlaten?" })).toBeVisible();
+  await page.getByRole("button", { name: "Blijven bewerken" }).click();
+  await expect(page).toHaveURL(/#\/brochures\/nieuw$/);
+  await page.getByRole("link", { name: "Annuleren" }).click();
+  await page.getByRole("button", { name: "Wijzigingen verwerpen" }).click();
+  await expect(page).toHaveURL(/#\/brochures$/);
+  await expect(page.getByText("RC1E praktijkbrochure")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Nieuwe brochure" }).click();
+  await page.getByRole("button", { name: "Opslaan in werksessie" }).click();
+  await expect(page.getByRole("alert", { name: "Controleer het formulier" })).toBeVisible();
+  await expect(page.locator('[data-field-error="title"]')).toHaveText("Vul een brochuretitel in.");
+  await expect(page.locator('[data-field-error="supplierId"]')).toHaveText("Kies een leverancier.");
+
+  await page.getByLabel(/Titel/).fill("RC1E praktijkbrochure");
+  await page.getByLabel("Leverancier").selectOption({ label: "Amefa" });
+  await page.getByLabel("Jaar").fill("2026");
+  await page.getByLabel("Beschrijving").fill("Interne praktijktest voor brochurebeheer binnen de Studio-werksessie.");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in werksessie" }).click();
+
+  await expect(page).toHaveURL(/#\/brochures\/rc1e-praktijkbrochure$/);
+  await expect(page.getByRole("heading", { name: "RC1E praktijkbrochure", level: 1 })).toBeVisible();
+  await expect(page.getByText("Geen PDF gekoppeld. Dit is toegestaan bij concepten.")).toBeVisible();
+  await expect(page.getByText("Dit staat niet live.")).toBeVisible();
+
+  await page.getByRole("link", { name: "Bewerken" }).click();
+  await page.getByLabel("Status").selectOption("review");
+  await page.getByRole("button", { name: "Opslaan in werksessie" }).click();
+  await expect(page.locator('[data-field-error="pdfFile"]')).toHaveText(
+    "Een brochure ter controle of gepubliceerd heeft een PDF-pad nodig."
+  );
+
+  await page.getByLabel("Status").selectOption("concept");
+  await page.getByRole("button", { name: "Opslaan in werksessie" }).click();
+  await expect(page).toHaveURL(/#\/brochures\/rc1e-praktijkbrochure$/);
+
+  await page.getByRole("link", { name: "Terug naar brochures" }).click();
+  await expect(page.locator("[data-brochure-item]", { hasText: "RC1E praktijkbrochure" }).first()).toBeVisible();
+  await expect(page.getByText("Niet-opgeslagen werksessiewijzigingen")).toBeVisible();
+  const exportButton = page.getByRole("button", { name: "Brochuredata exporteren" });
+  await expect(exportButton).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await exportButton.click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("brochures.json");
+  await expect(page.getByText("Export gedownload")).toBeVisible();
+  await expect(page.getByLabel("Werksessiestatus").getByText(/Vervang handmatig data\/brochures\.json/)).toBeVisible();
+
+  await page.goto("/pages/brochures-catalogi.html");
+  await expect(page.locator("[data-public-brochure-grid]")).not.toContainText("RC1E praktijkbrochure");
+  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Download brochure" })).toHaveCount(0);
+
+  await expectCleanStudioPage(page, errors);
+});

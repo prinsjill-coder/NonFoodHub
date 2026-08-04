@@ -2,9 +2,9 @@
   "schemaVersion": "0.1.0",
   "prototype": true,
   "storage": {
-    "mode": "static-session",
+    "mode": "static-import-export",
     "writeEnabled": false,
-    "message": "Brochures worden in Sprint 6A alleen in browsergeheugen gewijzigd. Import, export, uploads en publicatie zijn nog niet beschikbaar."
+    "message": "Brochures worden in browsergeheugen gewijzigd. Export downloadt alleen brochures.json; vervang data/brochures.json handmatig, plaats PDF en thumbnail op de ingevulde relatieve paden, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop."
   },
   "statuses": [
     "concept",

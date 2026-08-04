@@ -23,7 +23,7 @@ export const BROCHURE_KEYS = [
 ];
 
 export const BROCHURE_STORAGE_NOTICE =
-  "Brochures worden in browsergeheugen gewijzigd. Export downloadt alleen brochures.json; vervang /data/brochures.json handmatig en commit en push daarna zelf via GitHub Desktop.";
+  "Brochures worden in browsergeheugen gewijzigd. Export downloadt alleen brochures.json; vervang data/brochures.json handmatig, plaats PDF en thumbnail op de ingevulde relatieve paden, werk data/public/brochures.json bij en commit en push daarna zelf via GitHub Desktop.";
 
 export function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

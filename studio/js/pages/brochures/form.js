@@ -66,7 +66,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
       title: "Opslaan in werksessie",
       message:
         brochureData.storage?.message ||
-        "Opslaan past alleen de actieve browserdata aan. Export en publicatie voor brochures worden later toegevoegd.",
+        "Opslaan past alleen de actieve browserdata aan. Exporteer daarna brochures.json en vervang het bestand handmatig in data/.",
       tone: "warning"
     })}
 
@@ -159,7 +159,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
           label: "Categorieen",
           values: brochure.categories,
           options: brochureData.categories || [],
-          help: "Categorieen blijven in Sprint 6A eenvoudige tekstwaarden."
+          help: "Gebruik een of meer bestaande brochurecategorieen."
         })}
       </section>
 
@@ -170,7 +170,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
             name: "pdfFile",
             label: "PDF-pad",
             value: brochure.pdfFile,
-            help: "Voorlopig alleen een relatief pad. Verplicht bij Ter controle en Gepubliceerd."
+            help: "Relatief pad, bijvoorbeeld assets/downloads/brochures/naam.pdf. Plaats het PDF-bestand handmatig op dit pad; verplicht bij Ter controle en Gepubliceerd."
           })}
           ${renderTextField({
             name: "pdfSize",
@@ -182,7 +182,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
             name: "thumbnail",
             label: "Thumbnailpad",
             value: brochure.thumbnail,
-            help: "Voorlopig alleen een relatief pad. Verplicht bij Gepubliceerd."
+            help: "Relatief pad, bijvoorbeeld assets/images/supplier-amefa.jpg. Plaats of registreer de thumbnail handmatig; verplicht bij Gepubliceerd."
           })}
         </div>
       </section>
@@ -252,7 +252,7 @@ export function setupBrochureForm({ brochureSession, supplierSession, formDirtyG
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in werksessie",
       message:
-        "De brochure is toegepast op workingData in browsergeheugen. Import, export en publicatie voor brochures worden in deel 2 toegevoegd.",
+        "De brochure is toegepast op workingData in browsergeheugen. Exporteer brochures.json om de wijziging als overdrachtsbestand te downloaden; plaats PDF en thumbnail zelf op het ingevulde relatieve pad.",
       tone: "success"
     });
     window.location.hash = `#/brochures/${brochure.slug}`;
