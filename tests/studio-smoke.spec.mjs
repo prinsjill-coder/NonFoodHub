@@ -11,6 +11,27 @@ function collectConsoleErrors(page) {
   return errors;
 }
 
+async function expectKeyboardFocusVisible(page) {
+  await page.keyboard.press("Tab");
+  const focusState = await page.evaluate(() => {
+    const element = document.activeElement;
+    if (!element || element === document.body) {
+      return { hasFocus: false, hasOutline: false };
+    }
+
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+
+    return {
+      hasFocus: rect.width > 0 && rect.height > 0,
+      hasOutline: style.outlineStyle !== "none" && Number.parseFloat(style.outlineWidth) > 0
+    };
+  });
+
+  expect(focusState.hasFocus).toBe(true);
+  expect(focusState.hasOutline).toBe(true);
+}
+
 async function expectCleanStudioPage(page, errors) {
   await page.waitForLoadState("networkidle", { timeout: 3000 }).catch(() => {});
   await page.locator("img").evaluateAll((images) =>
@@ -40,6 +61,7 @@ async function expectCleanStudioPage(page, errors) {
   await expect(page.locator("text=/Pagina niet gevonden|niet geladen/i")).toHaveCount(0);
   expect(brokenImages).toEqual([]);
   expect(horizontalOverflow).toBeLessThanOrEqual(1);
+  await expectKeyboardFocusVisible(page);
   expect(errors).toEqual([]);
 }
 

@@ -376,6 +376,28 @@ export async function runPublicContentChecks() {
     assert.match(publicCss, /\.contact-card a:not\(\.btn\)/);
   });
 
+  await runCheck("publieke navigatie en filters hebben toegankelijke states", () => {
+    const publicJs = readText("assets/js/main.js");
+    const publicCss = readText("assets/css/styles.css");
+    const brochurePageHtml = readText("pages/brochures-catalogi.html");
+    const publicShell = publicHtmlFiles().map(readText).join("\n");
+
+    assert.match(publicShell, /aria-current="page"/);
+    assert.match(brochurePageHtml, /role="group" aria-label="Filter brochures op categorie"/);
+    assert.match(brochurePageHtml, /aria-pressed="true"/);
+    assert.match(publicJs, /aria-current="page"/);
+    assert.match(publicJs, /aria-controls="mobile-navigation"/);
+    assert.match(publicJs, /aria-hidden="true"/);
+    assert.match(publicJs, /aria-controls="site-search-overlay"/);
+    assert.match(publicJs, /setSearchExpanded/);
+    assert.match(publicJs, /aria-pressed/);
+    assert.match(publicJs, /aria-expanded/);
+    assert.match(publicCss, /\.mobile-panel a:focus-visible/);
+    assert.match(publicCss, /body\.nav-open \.mobile-panel/);
+    assert.match(publicCss, /visibility: hidden/);
+    assert.match(publicCss, /pointer-events: none/);
+  });
+
   await runCheck("publieke leveranciersdetailpagina koppelt relaties via bestaande websitepagina's", () => {
     const supplierPageHtml = readText("pages/leveranciers.html");
     const inspirationPageHtml = readText("pages/inspiratie.html");

@@ -317,7 +317,12 @@ textarea:focus-visible {
   display: flex;
   align-items: start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.studio-card-head > * {
+  min-width: 0;
 }
 
 .studio-card h3 {
@@ -337,6 +342,7 @@ textarea:focus-visible {
 }
 
 .studio-badge {
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -346,7 +352,8 @@ textarea:focus-visible {
   background: var(--studio-blue-soft);
   font-size: 0.76rem;
   font-weight: 800;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .studio-badge.is-not_connected,
@@ -414,7 +421,8 @@ textarea:focus-visible {
 }
 
 .studio-button {
-  min-height: 42px;
+  max-width: 100%;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -423,6 +431,9 @@ textarea:focus-visible {
   border: 1px solid transparent;
   border-radius: var(--studio-radius);
   font-weight: 760;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .studio-button-primary {
@@ -897,6 +908,7 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--studio-line);
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 
 .studio-table th {

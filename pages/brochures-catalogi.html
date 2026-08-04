@@ -13,7 +13,7 @@
     <main>
       <section class="page-hero has-image" style="--page-image: url('../images/brochures.png');">
         <div class="container">
-          <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span>Brochures en catalogi</span></div>
+          <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span aria-current="page">Brochures en catalogi</span></div>
           <h1>Brochures en catalogi</h1>
           <p>Bekijk beschikbare brochures en catalogi van non-foodleveranciers. Een downloadactie verschijnt alleen wanneer het bestand beschikbaar is.</p>
         </div>
@@ -38,8 +38,8 @@
             <p class="kicker">Filter</p>
             <h2>Brochures per categorie</h2>
           </div>
-          <div class="filter-bar fade-in" data-filter-bar="#brochure-grid">
-            <button class="filter-button is-active" type="button" data-filter="all">Alle</button>
+          <div class="filter-bar fade-in" data-filter-bar="#brochure-grid" role="group" aria-label="Filter brochures op categorie">
+            <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">Alle</button>
             <button class="filter-button" type="button" data-filter="servies">Servies</button>
             <button class="filter-button" type="button" data-filter="bestek">Bestek</button>
             <button class="filter-button" type="button" data-filter="glaswerk">Glaswerk</button>

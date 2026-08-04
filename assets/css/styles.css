@@ -49,7 +49,9 @@ a {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 3px solid var(--sky);
   outline-offset: 3px;
 }
@@ -72,7 +74,9 @@ body.is-detail-route [data-public-brochure-overview] {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
   letter-spacing: 0;
 }
@@ -204,7 +208,8 @@ input {
 .nav-link:hover,
 .nav-link.is-active,
 .dropdown:hover .dropdown-toggle,
-.dropdown-toggle:focus-visible {
+.dropdown-toggle:focus-visible,
+.dropdown-toggle[aria-expanded="true"] {
   color: var(--blue);
   background: var(--blue-soft);
 }
@@ -261,6 +266,13 @@ input {
 }
 
 .dropdown-menu a:hover {
+  background: var(--blue-pale);
+  color: var(--blue);
+}
+
+.dropdown-menu a:focus-visible,
+.mobile-panel a:focus-visible,
+.search-result:focus-visible {
   background: var(--blue-pale);
   color: var(--blue);
 }
@@ -329,6 +341,7 @@ input {
 }
 
 .btn {
+  max-width: 100%;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -339,6 +352,8 @@ input {
   border-radius: var(--radius);
   font-weight: 750;
   line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
 }
@@ -699,6 +714,11 @@ h4 {
   margin-top: auto;
 }
 
+.resource-card-body .card-link + .card-link,
+.resource-card-body .card-link + .file-name {
+  margin-top: 10px;
+}
+
 .card-link::after {
   content: "→";
 }
@@ -827,10 +847,12 @@ h4 {
 .breadcrumb {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-bottom: 22px;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.86rem;
+  line-height: 1.35;
 }
 
 .breadcrumb a {
@@ -840,10 +862,12 @@ h4 {
 .detail-breadcrumb {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-bottom: 24px;
   color: var(--muted);
   font-size: 0.9rem;
+  line-height: 1.35;
 }
 
 .detail-breadcrumb a {
@@ -952,6 +976,7 @@ h4 {
   color: var(--ink-soft);
   background: var(--white);
   cursor: pointer;
+  min-height: 40px;
 }
 
 .filter-button.is-active,
@@ -1236,6 +1261,8 @@ body.search-open .search-overlay {
     inset: 76px 0 auto 0;
     z-index: 45;
     display: block;
+    visibility: hidden;
+    pointer-events: none;
     max-height: calc(100vh - 76px);
     overflow: auto;
     padding: 18px 20px 26px;
@@ -1247,6 +1274,8 @@ body.search-open .search-overlay {
   }
 
   body.nav-open .mobile-panel {
+    visibility: visible;
+    pointer-events: auto;
     transform: translateY(0);
   }
 

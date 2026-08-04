@@ -49,7 +49,7 @@
         ${items
           .map((item, index) => {
             const isLast = index === items.length - 1;
-            if (isLast || !item.href) return `<span>${escapeHtml(item.label)}</span>`;
+            if (isLast || !item.href) return `<span aria-current="page">${escapeHtml(item.label)}</span>`;
             return `<a href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a><span>/</span>`;
           })
           .join("")}
@@ -111,12 +111,15 @@
     const mount = document.querySelector("[data-site-header]");
     if (!mount) return;
 
+    const activeClass = (id) => (currentPage === id ? "is-active" : "");
+    const currentAttribute = (id) => (currentPage === id ? ' aria-current="page"' : "");
+
     const dropdowns = navGroups.map((group) => {
       const items = group.items.map((id) => {
         const link = linkById(id);
         return `
           <li>
-            <a href="${href(link.path)}" class="${currentPage === link.id ? "is-active" : ""}">
+            <a href="${href(link.path)}" class="${activeClass(link.id)}"${currentAttribute(link.id)}>
               ${link.title}
               <span>${link.description}</span>
             </a>
@@ -126,14 +129,14 @@
 
       return `
         <li class="dropdown">
-          <button class="dropdown-toggle" type="button" aria-haspopup="true">${group.title}</button>
+          <button class="dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">${group.title}</button>
           <ul class="dropdown-menu">${items}</ul>
         </li>
       `;
     }).join("");
 
     const mobileLinks = links.map((link) => `
-      <a href="${href(link.path)}" class="${currentPage === link.id ? "is-active" : ""}">
+      <a href="${href(link.path)}" class="${activeClass(link.id)}"${currentAttribute(link.id)}>
         ${link.title}
         <small>${link.description}</small>
       </a>
@@ -151,23 +154,23 @@
           </a>
           <nav class="desktop-nav" aria-label="Hoofdnavigatie">
             <ul class="nav-list">
-              <li><a class="nav-link ${currentPage === "home" ? "is-active" : ""}" href="${href("index.html")}">Home</a></li>
+              <li><a class="nav-link ${activeClass("home")}" href="${href("index.html")}"${currentAttribute("home")}>Home</a></li>
               ${dropdowns}
             </ul>
           </nav>
           <div class="header-actions">
-            <button class="icon-button search-trigger" type="button" aria-label="Zoeken">
+            <button class="icon-button search-trigger" type="button" aria-label="Zoeken" aria-controls="site-search-overlay" aria-expanded="false">
               <span class="icon-search" aria-hidden="true"></span>
             </button>
             <a class="btn btn-primary" href="${href("pages/contact.html")}">Advies aanvragen</a>
-            <button class="nav-toggle" type="button" aria-label="Menu openen" aria-expanded="false">
+            <button class="nav-toggle" type="button" aria-label="Menu openen" aria-controls="mobile-navigation" aria-expanded="false">
               <span></span><span></span><span></span>
             </button>
           </div>
         </div>
       </header>
-      <nav class="mobile-panel" aria-label="Mobiele navigatie">${mobileLinks}</nav>
-      <div class="search-overlay" role="dialog" aria-modal="true" aria-label="Zoeken">
+      <nav class="mobile-panel" id="mobile-navigation" aria-label="Mobiele navigatie" aria-hidden="true">${mobileLinks}</nav>
+      <div class="search-overlay" id="site-search-overlay" role="dialog" aria-modal="true" aria-label="Zoeken">
         <div class="search-dialog">
           <div class="search-head">
             <input type="search" id="site-search" aria-label="Zoeken binnen de Non-Food Hub" placeholder="Zoek op brochures, terras, showroom of personalisatie" autocomplete="off">
@@ -224,17 +227,43 @@
 
   function setupNavigation() {
     const toggle = document.querySelector(".nav-toggle");
+    const panel = document.querySelector("#mobile-navigation");
+
+    function setNavigationOpen(isOpen) {
+      body.classList.toggle("nav-open", isOpen);
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", String(isOpen));
+        toggle.setAttribute("aria-label", isOpen ? "Menu sluiten" : "Menu openen");
+      }
+      if (panel) panel.setAttribute("aria-hidden", String(!isOpen));
+    }
+
     if (toggle) {
       toggle.addEventListener("click", () => {
-        const isOpen = body.classList.toggle("nav-open");
-        toggle.setAttribute("aria-expanded", String(isOpen));
+        setNavigationOpen(!body.classList.contains("nav-open"));
       });
     }
 
     document.querySelectorAll(".mobile-panel a").forEach((link) => {
       link.addEventListener("click", () => {
-        body.classList.remove("nav-open");
-        if (toggle) toggle.setAttribute("aria-expanded", "false");
+        setNavigationOpen(false);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setNavigationOpen(false);
+    });
+
+    document.querySelectorAll(".dropdown").forEach((dropdown) => {
+      const button = dropdown.querySelector(".dropdown-toggle");
+      if (!button) return;
+      const setExpanded = (expanded) => button.setAttribute("aria-expanded", String(expanded));
+
+      dropdown.addEventListener("mouseenter", () => setExpanded(true));
+      dropdown.addEventListener("mouseleave", () => setExpanded(false));
+      dropdown.addEventListener("focusin", () => setExpanded(true));
+      dropdown.addEventListener("focusout", (event) => {
+        if (!event.relatedTarget || !dropdown.contains(event.relatedTarget)) setExpanded(false);
       });
     });
   }
@@ -261,14 +290,20 @@
       `).join("");
     }
 
+    function setSearchExpanded(expanded) {
+      openButtons.forEach((button) => button.setAttribute("aria-expanded", String(expanded)));
+    }
+
     function openSearch() {
       body.classList.add("search-open");
+      setSearchExpanded(true);
       renderResults("");
       window.setTimeout(() => input.focus(), 30);
     }
 
     function closeSearch() {
       body.classList.remove("search-open");
+      setSearchExpanded(false);
       input.value = "";
     }
 
@@ -278,7 +313,6 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        body.classList.remove("nav-open");
         closeSearch();
       }
     });
@@ -296,14 +330,22 @@
         const filter = button.dataset.filter.toLowerCase();
         const cards = Array.from(scope.querySelectorAll("[data-categories]"));
 
-        bar.querySelectorAll("[data-filter]").forEach((item) => item.classList.remove("is-active"));
+        bar.querySelectorAll("[data-filter]").forEach((item) => {
+          item.classList.remove("is-active");
+          item.setAttribute("aria-pressed", "false");
+        });
         button.classList.add("is-active");
+        button.setAttribute("aria-pressed", "true");
 
         cards.forEach((card) => {
           const categories = card.dataset.categories.toLowerCase();
           const visible = filter === "all" || categories.includes(filter);
           card.classList.toggle("is-hidden", !visible);
         });
+      });
+
+      bar.querySelectorAll("[data-filter]").forEach((button) => {
+        button.setAttribute("aria-pressed", button.classList.contains("is-active") ? "true" : "false");
       });
     });
   }

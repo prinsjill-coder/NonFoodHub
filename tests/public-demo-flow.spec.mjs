@@ -55,10 +55,26 @@ async function expectCleanPage(page, errors) {
     return checks.filter((check) => !check.ok).map((check) => check.url);
   });
   const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const breadcrumbsWithoutCurrent = await page.locator(".breadcrumb, .detail-breadcrumb").evaluateAll((breadcrumbs) =>
+    breadcrumbs
+      .filter((breadcrumb) => !breadcrumb.querySelector('[aria-current="page"]'))
+      .map((breadcrumb) => breadcrumb.textContent.trim())
+  );
   expect(brokenImages).toEqual([]);
   expect(brokenHeroImages).toEqual([]);
+  expect(breadcrumbsWithoutCurrent).toEqual([]);
   expect(horizontalOverflow).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
+}
+
+async function tabUntilFocused(page, locator, maxTabs = 30) {
+  for (let index = 0; index < maxTabs; index += 1) {
+    await page.keyboard.press("Tab");
+    const isFocused = await locator.evaluate((element) => element === document.activeElement).catch(() => false);
+    if (isFocused) return;
+  }
+
+  throw new Error(`Focusdoel niet bereikt na ${maxTabs} Tab-stappen.`);
 }
 
 const publicPages = [
@@ -168,12 +184,64 @@ test("overzicht en detail blijven gescheiden bij directe publieke URLs", async (
   await expect(page.locator("[data-public-brochure-overview]")).toBeVisible();
   await expect(page.locator("[data-public-brochure-detail-section]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Alle" })).toHaveAttribute("aria-pressed", "true");
   await expectCleanPage(page, errors);
 
   await page.goto("/pages/brochures-catalogi.html#amefa-for-professionals-2026");
   await expect(page.locator("[data-public-brochure-intro]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText("Amefa for Professionals 2026");
+  await expectCleanPage(page, errors);
+});
+
+test("publieke navigatie, filters en focusstates blijven toegankelijk", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/index.html");
+  await expect(page.locator('a[aria-current="page"]', { hasText: "Home" }).first()).toBeAttached();
+
+  const startCta = page.getByRole("link", { name: "Start met inspiratie" });
+  await tabUntilFocused(page, startCta);
+  await expect(startCta).toBeFocused();
+  await expect(startCta).toHaveCSS("outline-style", "solid");
+
+  const searchButton = page.getByRole("button", { name: "Zoeken" }).first();
+  await expect(searchButton).toHaveAttribute("aria-expanded", "false");
+  await searchButton.click();
+  await expect(searchButton).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("dialog", { name: "Zoeken" })).toBeVisible();
+  await page.getByRole("button", { name: "Zoeken sluiten" }).click();
+  await expect(searchButton).toHaveAttribute("aria-expanded", "false");
+
+  const viewport = page.viewportSize();
+  if (viewport && viewport.width <= 1080) {
+    const navToggle = page.locator(".nav-toggle");
+    const mobileNavigation = page.locator("#mobile-navigation");
+
+    await expect(navToggle).toHaveAccessibleName("Menu openen");
+    await expect(mobileNavigation).toHaveAttribute("aria-hidden", "true");
+    await expect(mobileNavigation).toHaveCSS("visibility", "hidden");
+    await navToggle.click();
+    await expect(navToggle).toHaveAccessibleName("Menu sluiten");
+    await expect(navToggle).toHaveAttribute("aria-expanded", "true");
+    await expect(mobileNavigation).toHaveAttribute("aria-hidden", "false");
+    await expect(mobileNavigation).toHaveCSS("visibility", "visible");
+    await page.keyboard.press("Escape");
+    await expect(navToggle).toHaveAccessibleName("Menu openen");
+    await expect(navToggle).toHaveAttribute("aria-expanded", "false");
+    await expect(mobileNavigation).toHaveAttribute("aria-hidden", "true");
+  }
+
+  await expectCleanPage(page, errors);
+
+  await page.goto("/pages/brochures-catalogi.html");
+  const allFilter = page.getByRole("button", { name: "Alle" });
+  const serviesFilter = page.getByRole("button", { name: "Servies" });
+
+  await expect(allFilter).toHaveAttribute("aria-pressed", "true");
+  await serviesFilter.click();
+  await expect(serviesFilter).toHaveAttribute("aria-pressed", "true");
+  await expect(allFilter).toHaveAttribute("aria-pressed", "false");
   await expectCleanPage(page, errors);
 });
 
