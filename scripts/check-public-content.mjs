@@ -300,6 +300,7 @@ export async function runPublicContentChecks() {
     assert.match(publicJs, /data\/public\/suppliers\.json/);
     assert.match(publicJs, /data\/public\/brochures\.json/);
     assert.match(publicJs, /linkToArticlePage/);
+    assert.match(publicJs, /articlePageLink/);
     assert.match(publicJs, /linkToSupplierPage/);
     assert.match(publicJs, /linkToBrochurePage/);
     assert.match(publicJs, /Geen inspiratie beschikbaar/);
@@ -313,9 +314,13 @@ export async function runPublicContentChecks() {
     const pageHtml = readText("pages/inspiratie.html");
     const publicJs = readText("assets/js/main.js");
 
+    assert.match(pageHtml, /data-public-article-overview/);
     assert.match(pageHtml, /data-public-article-grid/);
+    assert.match(pageHtml, /data-public-article-detail-section/);
     assert.match(pageHtml, /data-public-article-body/);
     assert.match(publicJs, /data\/public\/articles\.json/);
+    assert.match(publicJs, /selectedHashSlug/);
+    assert.match(publicJs, /renderArticleState/);
     assert.doesNotMatch(publicJs, /data\/public-articles\.json/);
     assert.doesNotMatch(publicJs, /data\/articles\.json/);
     assert.doesNotMatch(pageHtml, /data\/articles\.json/);
@@ -325,9 +330,12 @@ export async function runPublicContentChecks() {
     const pageHtml = readText("pages/leveranciers.html");
     const publicJs = readText("assets/js/main.js");
 
+    assert.match(pageHtml, /data-public-supplier-overview/);
     assert.match(pageHtml, /data-public-supplier-grid/);
+    assert.match(pageHtml, /data-public-supplier-detail-section/);
     assert.match(pageHtml, /data-public-supplier-detail/);
     assert.match(publicJs, /data\/public\/suppliers\.json/);
+    assert.match(publicJs, /renderSupplierState/);
     assert.doesNotMatch(publicJs, /data\/suppliers\.json/);
     assert.doesNotMatch(pageHtml, /data\/suppliers\.json/);
   });
@@ -336,10 +344,29 @@ export async function runPublicContentChecks() {
     const pageHtml = readText("pages/brochures-catalogi.html");
     const publicJs = readText("assets/js/main.js");
 
+    assert.match(pageHtml, /data-public-brochure-overview/);
     assert.match(pageHtml, /data-public-brochure-grid/);
+    assert.match(pageHtml, /data-public-brochure-detail-section/);
+    assert.match(pageHtml, /data-public-brochure-detail/);
     assert.match(publicJs, /data\/public\/brochures\.json/);
+    assert.match(publicJs, /renderBrochureState/);
+    assert.match(publicJs, /renderPublicBrochureDetail/);
     assert.doesNotMatch(publicJs, /data\/brochures\.json/);
     assert.doesNotMatch(pageHtml, /data\/brochures\.json/);
+  });
+
+  await runCheck("publieke detailflow gebruikt consistente hashroutes en breadcrumbs", () => {
+    const publicJs = readText("assets/js/main.js");
+    const publicCss = readText("assets/css/styles.css");
+
+    assert.match(publicJs, /renderDetailBreadcrumb/);
+    assert.match(publicJs, /Terug naar inspiratie/);
+    assert.match(publicJs, /Terug naar leveranciers/);
+    assert.match(publicJs, /Terug naar brochures/);
+    assert.match(publicJs, /window\.addEventListener\("hashchange"/);
+    assert.match(publicCss, /\.detail-breadcrumb/);
+    assert.match(publicCss, /\.detail-status/);
+    assert.match(publicCss, /\.card-link:hover/);
   });
 
   await runCheck("publieke leveranciersdetailpagina koppelt relaties via bestaande websitepagina's", () => {
@@ -366,6 +393,35 @@ export async function runPublicContentChecks() {
     assert.doesNotMatch(
       [supplierPageHtml, inspirationPageHtml, brochurePageHtml].join("\n"),
       /data\/suppliers\.json|data\/articles\.json|data\/brochures\.json/
+    );
+  });
+
+  await runCheck("lokale browseracceptatie is voorbereid zonder CI of publicatieflow", () => {
+    const packageJson = readJson("package.json");
+    const config = readText("playwright.config.mjs");
+    const publicSpec = readText("tests/public-demo-flow.spec.mjs");
+    const studioSpec = readText("tests/studio-smoke.spec.mjs");
+    const testReadme = readText("tests/README.md");
+
+    assert.equal(packageJson.scripts["test:e2e"], "playwright test");
+    assert.equal(packageJson.scripts["test:e2e:report"], "playwright show-report");
+    assert.match(config, /webServer/);
+    assert.match(config, /tests\/serve-static\.mjs/);
+    assert.match(publicSpec, /data-home-article-grid/);
+    assert.match(publicSpec, /data-public-article-overview/);
+    assert.match(publicSpec, /data-public-supplier-overview/);
+    assert.match(publicSpec, /data-public-brochure-overview/);
+    assert.match(studioSpec, /#\/dashboard/);
+    assert.match(studioSpec, /#\/governance/);
+    assert.match(studioSpec, /#\/leveranciers/);
+    assert.match(studioSpec, /#\/brochures/);
+    assert.match(studioSpec, /#\/kennisbank/);
+    assert.match(studioSpec, /#\/bibliotheek/);
+    assert.match(testReadme, /npm install/);
+    assert.match(testReadme, /npx playwright install/);
+    assert.doesNotMatch(
+      [config, publicSpec, studioSpec, testReadme].join("\n"),
+      /\.github|workflows|deploy|publicatieknop|cms-framework|database|backend|api\.github|Octokit/i
     );
   });
 

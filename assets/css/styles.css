@@ -59,6 +59,10 @@ img {
   max-width: 100%;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 button,
 input {
   font: inherit;
@@ -586,6 +590,13 @@ h4 {
   box-shadow: var(--shadow-soft);
 }
 
+.article-card:focus-visible,
+.supplier-card:focus-visible,
+.resource-card a:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 4px;
+}
+
 .feature-card {
   overflow: hidden;
 }
@@ -647,12 +658,18 @@ h4 {
   align-items: center;
   gap: 8px;
   margin-top: 16px;
-  color: var(--blue);
+  color: var(--blue-dark);
   font-weight: 850;
 }
 
 .card-link::after {
   content: "→";
+}
+
+.card-link:hover {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .split {
@@ -781,6 +798,43 @@ h4 {
 
 .breadcrumb a {
   color: var(--white);
+}
+
+.detail-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.detail-breadcrumb a {
+  color: var(--blue);
+  font-weight: 750;
+}
+
+.detail-breadcrumb a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.detail-breadcrumb span:last-child {
+  color: var(--ink-soft);
+}
+
+.detail-actions {
+  margin-top: 26px;
+}
+
+.detail-status {
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 79, 159, 0.18);
+  border-radius: var(--radius);
+  color: var(--blue-dark);
+  background: var(--blue-pale);
+  font-weight: 680;
 }
 
 .intro-panel {

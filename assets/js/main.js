@@ -11,6 +11,64 @@
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
+  function hashSlug(value) {
+    return encodeURIComponent(String(value || ""));
+  }
+
+  function selectedHashSlug() {
+    const raw = window.location.hash.replace(/^#/, "");
+    if (!raw) return "";
+
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+
+  function itemBySlug(items, slug) {
+    if (!slug) return null;
+    return items.find((item) => item?.slug === slug) || items.find((item) => slug.startsWith(`${item?.slug}-`)) || null;
+  }
+
+  function toggleElement(element, hidden) {
+    if (element) element.hidden = hidden;
+  }
+
+  function scrollToHashTarget() {
+    const slug = selectedHashSlug();
+    if (!slug) return;
+    window.requestAnimationFrame(() => {
+      document.getElementById(slug)?.scrollIntoView({ block: "start" });
+    });
+  }
+
+  function renderDetailBreadcrumb(items) {
+    return `
+      <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+        ${items
+          .map((item, index) => {
+            const isLast = index === items.length - 1;
+            if (isLast || !item.href) return `<span>${escapeHtml(item.label)}</span>`;
+            return `<a href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a><span>/</span>`;
+          })
+          .join("")}
+      </nav>
+    `;
+  }
+
+  function renderDetailEmptyState(title, message, backHref, backLabel) {
+    return `
+      <article class="contact-card fade-in">
+        <h2>${escapeHtml(title)}</h2>
+        <p>${escapeHtml(message)}</p>
+        <div class="section-actions detail-actions">
+          <a class="btn btn-secondary" href="${escapeHtml(backHref)}">${escapeHtml(backLabel)}</a>
+        </div>
+      </article>
+    `;
+  }
+
   const links = [
     { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
     { id: "leveranciers", title: "Leveranciers", path: "pages/leveranciers.html", description: "Partners, merken en productgroepen" },
@@ -296,11 +354,15 @@
   }
 
   function supplierPageLink(supplier) {
-    return `${href("pages/leveranciers.html")}#${escapeHtml(supplier.slug)}`;
+    return `${href("pages/leveranciers.html")}#${hashSlug(supplier.slug)}`;
+  }
+
+  function articlePageLink(article) {
+    return `${href("pages/inspiratie.html")}#${hashSlug(article.slug)}`;
   }
 
   function renderPublicArticleCard(article, options = {}) {
-    const cardLink = options.linkToArticlePage ? `${href("pages/inspiratie.html")}#${escapeHtml(article.slug)}` : `#${escapeHtml(article.slug)}`;
+    const cardLink = options.linkToArticlePage ? articlePageLink(article) : `#${hashSlug(article.slug)}`;
     const action = options.actionLabel ? `<span class="card-link">${escapeHtml(options.actionLabel)}</span>` : "";
 
     return `
@@ -329,10 +391,18 @@
 
     return `
       <article id="${escapeHtml(article.slug)}" class="fade-in">
+        ${renderDetailBreadcrumb([
+          { label: "Home", href: href("index.html") },
+          { label: "Inspiratie", href: href("pages/inspiratie.html") },
+          { label: article.title }
+        ])}
         <p class="kicker">${escapeHtml(article.category || "Inspiratie")}${article.updatedAt ? ` - Bijgewerkt ${escapeHtml(article.updatedAt)}` : ""}</p>
         <h2>${escapeHtml(article.title)}</h2>
         <p class="lead">${escapeHtml(article.summary)}</p>
         ${paragraphs}
+        <div class="section-actions detail-actions">
+          <a class="btn btn-secondary" href="${href("pages/inspiratie.html")}">Terug naar inspiratie</a>
+        </div>
         ${renderArticleSupplierLinks(article)}
       </article>
     `;
@@ -360,6 +430,8 @@
 
     const grid = document.querySelector("[data-public-article-grid]");
     const bodyMount = document.querySelector("[data-public-article-body]");
+    const overviewSection = document.querySelector("[data-public-article-overview]");
+    const detailSection = document.querySelector("[data-public-article-detail-section]");
     if (!grid || !bodyMount) return;
 
     try {
@@ -369,21 +441,49 @@
       const data = await response.json();
       const articles = Array.isArray(data.items) ? data.items : [];
 
-      if (!articles.length) {
-        grid.innerHTML = `
-          <article class="contact-card fade-in">
-            <h3>Geen artikelen beschikbaar</h3>
-            <p>Er zijn nog geen kennisbankartikelen beschikbaar.</p>
-          </article>
-        `;
+      function renderArticleState() {
+        const selectedSlug = selectedHashSlug();
+        const selectedArticle = itemBySlug(articles, selectedSlug);
+
+        if (!articles.length) {
+          toggleElement(overviewSection, false);
+          toggleElement(detailSection, true);
+          grid.innerHTML = `
+            <article class="contact-card fade-in">
+              <h3>Geen artikelen beschikbaar</h3>
+              <p>Er zijn nog geen kennisbankartikelen beschikbaar.</p>
+            </article>
+          `;
+          bodyMount.innerHTML = "";
+          setupAnimations();
+          return;
+        }
+
+        if (selectedSlug) {
+          toggleElement(overviewSection, true);
+          toggleElement(detailSection, false);
+          bodyMount.innerHTML = selectedArticle
+            ? renderPublicArticleBody(selectedArticle)
+            : renderDetailEmptyState(
+                "Artikel niet gevonden",
+                "Dit kennisbankartikel is niet beschikbaar.",
+                href("pages/inspiratie.html"),
+                "Terug naar inspiratie"
+              );
+          setupAnimations();
+          scrollToHashTarget();
+          return;
+        }
+
+        toggleElement(overviewSection, false);
+        toggleElement(detailSection, true);
+        grid.innerHTML = articles.map(renderPublicArticleCard).join("");
         bodyMount.innerHTML = "";
         setupAnimations();
-        return;
       }
 
-      grid.innerHTML = articles.map(renderPublicArticleCard).join("");
-      bodyMount.innerHTML = articles.map(renderPublicArticleBody).join("");
-      setupAnimations();
+      renderArticleState();
+      window.addEventListener("hashchange", renderArticleState);
     } catch (error) {
       grid.innerHTML = `
         <article class="contact-card fade-in">
@@ -445,6 +545,10 @@
     return brochureCategory(brochure).toLowerCase();
   }
 
+  function brochurePageLink(brochure) {
+    return `${href("pages/brochures-catalogi.html")}#${hashSlug(brochure.slug)}`;
+  }
+
   function publicBrochureSupplierMeta(brochure, suppliersById) {
     const supplier = suppliersById?.get(brochure.supplierId);
     return supplier ? `<a class="tag sky" href="${supplierPageLink(supplier)}">Van ${escapeHtml(supplier.name)}</a>` : "";
@@ -454,7 +558,7 @@
     const downloadAction = brochure.downloadUrl
       ? `<a class="card-link" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
       : `<p class="file-name">PDF nog niet beschikbaar</p>`;
-    const cardLink = options.linkToBrochurePage ? `${href("pages/brochures-catalogi.html")}#${escapeHtml(brochure.slug)}` : `#${escapeHtml(brochure.slug)}`;
+    const cardLink = options.linkToBrochurePage ? brochurePageLink(brochure) : `#${hashSlug(brochure.slug)}`;
     const openAction = `<a class="card-link" href="${cardLink}">Bekijk brochure</a>`;
 
     return `
@@ -476,9 +580,44 @@
     `;
   }
 
+  function renderPublicBrochureDetail(brochure, suppliersById = new Map()) {
+    const supplier = suppliersById.get(brochure.supplierId);
+    const supplierAction = supplier
+      ? `<a class="btn btn-primary" href="${supplierPageLink(supplier)}">Bekijk ${escapeHtml(supplier.name)}</a>`
+      : "";
+    const downloadStatus = brochure.downloadUrl
+      ? `<a class="btn btn-primary" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
+      : `<p class="detail-status">PDF nog niet beschikbaar. Vraag advies aan het non-food team wanneer je deze collectie wilt bespreken.</p>`;
+
+    return `
+      <article id="${escapeHtml(brochure.slug)}" class="fade-in">
+        ${renderDetailBreadcrumb([
+          { label: "Home", href: href("index.html") },
+          { label: "Brochures", href: href("pages/brochures-catalogi.html") },
+          { label: brochure.title }
+        ])}
+        <div class="split">
+          <div>
+            <p class="kicker">${escapeHtml(brochureCategory(brochure))}${brochure.updatedAt ? ` - Bijgewerkt ${escapeHtml(brochure.updatedAt)}` : ""}</p>
+            <h2>${escapeHtml(brochure.title)}</h2>
+            <p class="lead">${escapeHtml(brochure.summary)}</p>
+            ${downloadStatus}
+            <div class="section-actions detail-actions">
+              ${supplierAction}
+              <a class="btn btn-secondary" href="${href("pages/brochures-catalogi.html")}">Terug naar brochures</a>
+            </div>
+          </div>
+          <div class="split-media">
+            <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}">
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
   function renderSupplierRelatedArticleCard(article) {
     return `
-      <a class="article-card fade-in" href="${href("pages/inspiratie.html")}#${escapeHtml(article.slug)}">
+      <a class="article-card fade-in" href="${href("pages/inspiratie.html")}#${hashSlug(article.slug)}">
         <img src="${escapeHtml(publicArticleImage(article))}" alt="${escapeHtml(article.title)}">
         <div class="article-card-body">
           <div class="card-meta"><span class="tag">${escapeHtml(article.category || "Inspiratie")}</span></div>
@@ -527,6 +666,10 @@
 
   function renderPublicSupplierDetail(supplier) {
     const description = supplier.description ? `<p>${escapeHtml(supplier.description)}</p>` : "";
+    const brochures = relatedBrochures(supplier);
+    const primaryBrochureAction = brochures.length
+      ? `<a class="btn btn-primary" href="${brochurePageLink(brochures[0])}">Bekijk brochure</a>`
+      : `<a class="btn btn-primary" href="#${hashSlug(`${supplier.slug}-brochures`)}">Bekijk brochures</a>`;
     const logo = supplier.logo
       ? `
         <div class="supplier-detail-logo">
@@ -540,6 +683,11 @@
 
     return `
       <article id="${escapeHtml(supplier.slug)}" class="fade-in">
+        ${renderDetailBreadcrumb([
+          { label: "Home", href: href("index.html") },
+          { label: "Leveranciers", href: href("pages/leveranciers.html") },
+          { label: supplier.name }
+        ])}
         <div class="split">
           <div>
             ${logo}
@@ -548,8 +696,9 @@
             <p class="lead">${escapeHtml(supplier.summary)}</p>
             ${description}
             <div class="section-actions">
-              <a class="btn btn-primary" href="#${escapeHtml(supplier.slug)}-brochures">Bekijk brochures</a>
-              <a class="btn btn-secondary" href="#${escapeHtml(supplier.slug)}-artikelen">Meer inspiratie</a>
+              ${primaryBrochureAction}
+              <a class="btn btn-secondary" href="#${hashSlug(`${supplier.slug}-artikelen`)}">Meer inspiratie</a>
+              <a class="btn btn-secondary" href="${href("pages/leveranciers.html")}">Terug naar leveranciers</a>
               ${website}
             </div>
           </div>
@@ -576,6 +725,8 @@
 
     const grid = document.querySelector("[data-public-supplier-grid]");
     const detailMount = document.querySelector("[data-public-supplier-detail]");
+    const overviewSection = document.querySelector("[data-public-supplier-overview]");
+    const detailSection = document.querySelector("[data-public-supplier-detail-section]");
     if (!grid || !detailMount) return;
 
     try {
@@ -585,21 +736,49 @@
       const data = await response.json();
       const suppliers = Array.isArray(data.items) ? data.items : [];
 
-      if (!suppliers.length) {
-        grid.innerHTML = `
-          <article class="contact-card fade-in">
-            <h3>Geen leveranciers beschikbaar</h3>
-            <p>Er zijn nog geen leveranciers beschikbaar.</p>
-          </article>
-        `;
+      function renderSupplierState() {
+        const selectedSlug = selectedHashSlug();
+        const selectedSupplier = itemBySlug(suppliers, selectedSlug);
+
+        if (!suppliers.length) {
+          toggleElement(overviewSection, false);
+          toggleElement(detailSection, true);
+          grid.innerHTML = `
+            <article class="contact-card fade-in">
+              <h3>Geen leveranciers beschikbaar</h3>
+              <p>Er zijn nog geen leveranciers beschikbaar.</p>
+            </article>
+          `;
+          detailMount.innerHTML = "";
+          setupAnimations();
+          return;
+        }
+
+        if (selectedSlug) {
+          toggleElement(overviewSection, true);
+          toggleElement(detailSection, false);
+          detailMount.innerHTML = selectedSupplier
+            ? renderPublicSupplierDetail(selectedSupplier)
+            : renderDetailEmptyState(
+                "Leverancier niet gevonden",
+                "Deze leverancier is niet beschikbaar.",
+                href("pages/leveranciers.html"),
+                "Terug naar leveranciers"
+              );
+          setupAnimations();
+          scrollToHashTarget();
+          return;
+        }
+
+        toggleElement(overviewSection, false);
+        toggleElement(detailSection, true);
+        grid.innerHTML = suppliers.map(renderPublicSupplierCard).join("");
         detailMount.innerHTML = "";
         setupAnimations();
-        return;
       }
 
-      grid.innerHTML = suppliers.map(renderPublicSupplierCard).join("");
-      detailMount.innerHTML = suppliers.map(renderPublicSupplierDetail).join("");
-      setupAnimations();
+      renderSupplierState();
+      window.addEventListener("hashchange", renderSupplierState);
     } catch (error) {
       grid.innerHTML = `
         <article class="contact-card fade-in">
@@ -617,6 +796,9 @@
     if (currentPage !== "brochures") return;
 
     const grid = document.querySelector("[data-public-brochure-grid]");
+    const detailMount = document.querySelector("[data-public-brochure-detail]");
+    const overviewSection = document.querySelector("[data-public-brochure-overview]");
+    const detailSection = document.querySelector("[data-public-brochure-detail-section]");
     if (!grid) return;
 
     try {
@@ -633,19 +815,51 @@
       const suppliers = Array.isArray(supplierData.items) ? supplierData.items : [];
       const suppliersById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
 
-      if (!brochures.length) {
-        grid.innerHTML = `
-          <article class="contact-card fade-in">
-            <h3>Geen brochures beschikbaar</h3>
-            <p>Er zijn nog geen brochures beschikbaar.</p>
-          </article>
-        `;
+      function renderBrochureState() {
+        const selectedSlug = selectedHashSlug();
+        const selectedBrochure = itemBySlug(brochures, selectedSlug);
+
+        if (!brochures.length) {
+          toggleElement(overviewSection, false);
+          toggleElement(detailSection, true);
+          grid.innerHTML = `
+            <article class="contact-card fade-in">
+              <h3>Geen brochures beschikbaar</h3>
+              <p>Er zijn nog geen brochures beschikbaar.</p>
+            </article>
+          `;
+          if (detailMount) detailMount.innerHTML = "";
+          setupAnimations();
+          return;
+        }
+
+        if (selectedSlug) {
+          toggleElement(overviewSection, true);
+          toggleElement(detailSection, false);
+          if (detailMount) {
+            detailMount.innerHTML = selectedBrochure
+              ? renderPublicBrochureDetail(selectedBrochure, suppliersById)
+              : renderDetailEmptyState(
+                  "Brochure niet gevonden",
+                  "Deze brochure is niet beschikbaar.",
+                  href("pages/brochures-catalogi.html"),
+                  "Terug naar brochures"
+                );
+          }
+          setupAnimations();
+          scrollToHashTarget();
+          return;
+        }
+
+        toggleElement(overviewSection, false);
+        toggleElement(detailSection, true);
+        grid.innerHTML = brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById)).join("");
+        if (detailMount) detailMount.innerHTML = "";
         setupAnimations();
-        return;
       }
 
-      grid.innerHTML = brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById)).join("");
-      setupAnimations();
+      renderBrochureState();
+      window.addEventListener("hashchange", renderBrochureState);
     } catch (error) {
       grid.innerHTML = `
         <article class="contact-card fade-in">
