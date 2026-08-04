@@ -154,7 +154,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <div class="container">Fase 1 statische website. Content wordt gecontroleerd via centrale publieke projecties.</div>
+          <div class="container">Non-Food Hub brengt inspiratie, leveranciers en collecties samen voor professionele horeca.</div>
         </div>
       </footer>
     `;
@@ -263,6 +263,17 @@
     `;
   }
 
+  function formatCount(count, singular, plural) {
+    const total = Number(count || 0);
+    return `${total} ${total === 1 ? singular : plural} beschikbaar`;
+  }
+
+  function updateHomepageCount(type, count, singular, plural) {
+    const target = document.querySelector(`[data-home-count="${type}"]`);
+    if (!target) return;
+    target.textContent = formatCount(count, singular, plural);
+  }
+
   async function fetchPublicItems(path, label) {
     const response = await fetch(href(path), { cache: "no-store" });
     if (!response.ok) throw new Error(`${label} kon niet worden geladen.`);
@@ -334,9 +345,11 @@
     return `
       <div class="contact-card supplier-detail-section">
         <p class="kicker">Leveranciers</p>
-        <h3>Gerelateerde leveranciers</h3>
+        <h3>Van inspiratie naar leverancier</h3>
+        <p>Bekijk welke leverancier aansluit bij dit onderwerp en ga daarna door naar gekoppelde collecties.</p>
         <div class="section-actions">
-          ${suppliers.map((supplier) => `<a class="btn btn-secondary" href="${supplierPageLink(supplier)}">${escapeHtml(supplier.name)}</a>`).join("")}
+          ${suppliers.map((supplier) => `<a class="btn btn-primary" href="${supplierPageLink(supplier)}">Bekijk ${escapeHtml(supplier.name)}</a>`).join("")}
+          <a class="btn btn-secondary" href="${href("pages/brochures-catalogi.html")}">Bekijk brochures</a>
         </div>
       </div>
     `;
@@ -351,7 +364,7 @@
 
     try {
       const response = await fetch(href("data/public/articles.json"), { cache: "no-store" });
-      if (!response.ok) throw new Error("Publieke kennisbankdata kon niet worden geladen.");
+      if (!response.ok) throw new Error("Kennisbankdata kon niet worden geladen.");
 
       const data = await response.json();
       const articles = Array.isArray(data.items) ? data.items : [];
@@ -360,7 +373,7 @@
         grid.innerHTML = `
           <article class="contact-card fade-in">
             <h3>Geen artikelen beschikbaar</h3>
-            <p>Er zijn nog geen gepubliceerde kennisbankartikelen beschikbaar.</p>
+            <p>Er zijn nog geen kennisbankartikelen beschikbaar.</p>
           </article>
         `;
         bodyMount.innerHTML = "";
@@ -484,7 +497,7 @@
       return `
         <div class="contact-card fade-in">
           <h3>Geen gekoppelde kennisbankartikelen</h3>
-          <p>Voor deze leverancier zijn nog geen publieke kennisbankartikelen gekoppeld.</p>
+          <p>Voor deze leverancier zijn nog geen kennisbankartikelen gekoppeld.</p>
         </div>
       `;
     }
@@ -504,7 +517,7 @@
       return `
         <div class="contact-card fade-in">
           <h3>Geen gekoppelde brochures</h3>
-          <p>Voor deze leverancier zijn nog geen publieke brochures gekoppeld.</p>
+          <p>Voor deze leverancier zijn nog geen brochures gekoppeld.</p>
         </div>
       `;
     }
@@ -567,7 +580,7 @@
 
     try {
       const response = await fetch(href("data/public/suppliers.json"), { cache: "no-store" });
-      if (!response.ok) throw new Error("Publieke leveranciersdata kon niet worden geladen.");
+      if (!response.ok) throw new Error("Leveranciersdata kon niet worden geladen.");
 
       const data = await response.json();
       const suppliers = Array.isArray(data.items) ? data.items : [];
@@ -576,7 +589,7 @@
         grid.innerHTML = `
           <article class="contact-card fade-in">
             <h3>Geen leveranciers beschikbaar</h3>
-            <p>Er zijn nog geen gepubliceerde leveranciers beschikbaar.</p>
+            <p>Er zijn nog geen leveranciers beschikbaar.</p>
           </article>
         `;
         detailMount.innerHTML = "";
@@ -611,8 +624,8 @@
         fetch(href("data/public/brochures.json"), { cache: "no-store" }),
         fetch(href("data/public/suppliers.json"), { cache: "no-store" })
       ]);
-      if (!brochureResponse.ok) throw new Error("Publieke brochuredata kon niet worden geladen.");
-      if (!supplierResponse.ok) throw new Error("Publieke leveranciersdata kon niet worden geladen.");
+      if (!brochureResponse.ok) throw new Error("Brochuredata kon niet worden geladen.");
+      if (!supplierResponse.ok) throw new Error("Leveranciersdata kon niet worden geladen.");
 
       const brochureData = await brochureResponse.json();
       const supplierData = await supplierResponse.json();
@@ -624,7 +637,7 @@
         grid.innerHTML = `
           <article class="contact-card fade-in">
             <h3>Geen brochures beschikbaar</h3>
-            <p>Er zijn nog geen gepubliceerde brochures beschikbaar.</p>
+            <p>Er zijn nog geen brochures beschikbaar.</p>
           </article>
         `;
         setupAnimations();
@@ -661,38 +674,41 @@
 
     try {
       const [articles, suppliers, brochures] = await Promise.all([
-        fetchPublicItems("data/public/articles.json", "Publieke inspiratie"),
-        fetchPublicItems("data/public/suppliers.json", "Publieke leveranciers"),
-        fetchPublicItems("data/public/brochures.json", "Publieke brochures")
+        fetchPublicItems("data/public/articles.json", "Inspiratie"),
+        fetchPublicItems("data/public/suppliers.json", "Leveranciers"),
+        fetchPublicItems("data/public/brochures.json", "Brochures")
       ]);
       const suppliersById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+      updateHomepageCount("articles", articles.length, "artikel", "artikelen");
+      updateHomepageCount("suppliers", suppliers.length, "leverancier", "leveranciers");
+      updateHomepageCount("brochures", brochures.length, "brochure", "brochures");
 
       renderGrid(
         articleGrid,
         articles,
         (article) => renderPublicArticleCard(article, { linkToArticlePage: true, actionLabel: "Lees inspiratie" }),
         "Geen inspiratie beschikbaar",
-        "Er zijn nog geen publieke kennisbankartikelen beschikbaar."
+        "Er zijn nog geen kennisbankartikelen beschikbaar."
       );
       renderGrid(
         supplierGrid,
         suppliers,
         (supplier) => renderPublicSupplierCard(supplier, { linkToSupplierPage: true, useDescription: true }),
         "Geen leveranciers beschikbaar",
-        "Er zijn nog geen publieke leveranciers beschikbaar."
+        "Er zijn nog geen leveranciers beschikbaar."
       );
       renderGrid(
         brochureGrid,
         brochures,
         (brochure) => renderPublicBrochureCard(brochure, suppliersById, { linkToBrochurePage: true }),
         "Geen brochures beschikbaar",
-        "Er zijn nog geen publieke brochures beschikbaar."
+        "Er zijn nog geen brochures beschikbaar."
       );
       setupAnimations();
     } catch (error) {
       const errorState = renderHomepageEmptyState(
-        "Publieke content niet geladen",
-        "De publieke content kon niet worden geladen. Probeer de pagina later opnieuw."
+        "Content niet geladen",
+        "De content kon niet worden geladen. Probeer de pagina later opnieuw."
       );
       [articleGrid, supplierGrid, brochureGrid].filter(Boolean).forEach((mount) => {
         mount.innerHTML = errorState;

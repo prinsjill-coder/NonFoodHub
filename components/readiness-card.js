@@ -54,6 +54,19 @@ function renderPublicationCheck(check) {
   return `<li>${escapeHtml(check?.message || check || "Onderdeel is ingevuld.")}</li>`;
 }
 
+function publicationIntro(publication) {
+  if (publication.status === "ready") {
+    return "Dit staat live via de gecontroleerde publieke projectie.";
+  }
+  if (publication.status === "review") {
+    return "Dit wordt gecontroleerd: het item is zichtbaar, maar onderstaande punten vragen nog aandacht.";
+  }
+  if (publication.status === "not_public") {
+    return "Dit staat niet live. De redenen hieronder tonen wat nog ontbreekt.";
+  }
+  return "Deze module heeft nog geen publieke projectie; Studio toont alleen de interne readiness.";
+}
+
 function renderPublication(publication) {
   if (!publication) return "";
 
@@ -74,6 +87,7 @@ function renderPublication(publication) {
         </div>
         ${renderStatusBadge(publication.state || publication.status, publication.label)}
       </div>
+      <p class="studio-muted">${escapeHtml(publicationIntro(publication))}</p>
       ${
         checks.length
           ? `<div class="studio-publication-checks">

@@ -290,7 +290,11 @@ export async function runPublicContentChecks() {
     assert.match(pageHtml, /data-home-article-grid/);
     assert.match(pageHtml, /data-home-supplier-grid/);
     assert.match(pageHtml, /data-home-brochure-grid/);
+    assert.match(pageHtml, /data-home-count="articles"/);
+    assert.match(pageHtml, /data-home-count="suppliers"/);
+    assert.match(pageHtml, /data-home-count="brochures"/);
     assert.match(publicJs, /setupHomepageDiscovery/);
+    assert.match(publicJs, /updateHomepageCount/);
     assert.match(publicJs, /data\/public\/articles\.json/);
     assert.match(publicJs, /data\/public\/suppliers\.json/);
     assert.match(publicJs, /data\/public\/brochures\.json/);

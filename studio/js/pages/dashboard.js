@@ -7,6 +7,7 @@ import { getArticleCounts } from "../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../shared/article-quality.js";
 import { getBrochureCounts } from "../../../shared/brochure-model.js";
 import { getContentGovernanceReport } from "../../../shared/content-governance.js";
+import { CONTENT_READINESS_LABELS, getContentReadinessReport } from "../../../shared/content-readiness.js";
 import { getContentRelationStats } from "../../../shared/content-relations.js";
 import { getLibraryCounts } from "../../../shared/library-model.js";
 import { getLibraryQualityReport } from "../../../shared/library-quality.js";
@@ -14,6 +15,8 @@ import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
 import { renderNotFoundState } from "../shared/not-found.js";
+
+const PUBLIC_DEMO_MODULE_IDS = ["articles", "suppliers", "brochures"];
 
 function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
   const supplierCounts = getSupplierCounts(supplierData);
@@ -191,10 +194,142 @@ function renderQuickAction(action) {
   `;
 }
 
+function renderDashboardMetric({ label, value, note, state = "foundation", badgeLabel = "" }) {
+  return `
+    <article class="studio-card studio-metric-card">
+      <div class="studio-card-head">
+        <h3>${escapeHtml(label)}</h3>
+        ${renderStatusBadge(state, badgeLabel || CONTENT_READINESS_LABELS[state])}
+      </div>
+      <p class="studio-metric-value">${Number(value || 0)}</p>
+      <p class="studio-muted">${escapeHtml(note)}</p>
+    </article>
+  `;
+}
+
+function publicDashboardState(readinessReport) {
+  if (readinessReport.totals.needs_attention) return "review";
+  if (readinessReport.totals.publication.review) return "warning";
+  return "ready";
+}
+
+function publicModuleLabel(moduleId) {
+  if (moduleId === "articles") return "Kennisbankartikelen";
+  if (moduleId === "suppliers") return "Leveranciers";
+  if (moduleId === "brochures") return "Brochures";
+  return moduleId;
+}
+
+function publicDemoModules(readinessReport) {
+  return PUBLIC_DEMO_MODULE_IDS.map((moduleId) => readinessReport.modules.find((module) => module.id === moduleId)).filter(Boolean);
+}
+
+function renderPublicModuleOverview(readinessReport) {
+  const modules = publicDemoModules(readinessReport);
+
+  return `
+    <article class="studio-card">
+      <div class="studio-card-head">
+        <div>
+          <h3>Publieke modules actief</h3>
+          <p class="studio-muted">Aantallen uit gecontroleerde publieke projecties.</p>
+        </div>
+        ${renderStatusBadge("ready", `${modules.filter((module) => module.publication.visible).length} actief`)}
+      </div>
+      <dl class="studio-detail-list">
+        ${modules
+          .map(
+            (module) => `
+              <div>
+                <dt>${escapeHtml(publicModuleLabel(module.id))}</dt>
+                <dd>${Number(module.publication.visible || 0)} ${renderStatusBadge(module.publication.visible ? "ready" : "foundation", module.publication.visible ? "Zichtbaar" : "Niet zichtbaar")}</dd>
+              </div>
+            `
+          )
+          .join("")}
+      </dl>
+      <div class="studio-actions">
+        ${renderButton({ label: "Governance openen", href: "#/governance", variant: "secondary" })}
+      </div>
+    </article>
+  `;
+}
+
+function renderPublicationExplanation() {
+  return `
+    <article class="studio-card">
+      <div class="studio-card-head">
+        <h3>Publicatie-uitleg</h3>
+        ${renderStatusBadge("foundation")}
+      </div>
+      <ul class="studio-relation-list">
+        <li><span>Dit staat live</span><strong>Item zit in data/public en heeft geen extra publicatiefeedback.</strong></li>
+        <li><span>Dit wordt gecontroleerd</span><strong>Item is zichtbaar, maar vraagt nog review op relatie, context of PDF-actie.</strong></li>
+        <li><span>Dit ontbreekt nog</span><strong>Readiness of governance geeft aan welke informatie eerst nodig is.</strong></li>
+      </ul>
+    </article>
+  `;
+}
+
+function renderDemoReadinessSummary(readinessReport) {
+  const totals = readinessReport.totals;
+  const state = publicDashboardState(readinessReport);
+
+  return `
+    <section class="studio-section">
+      <div class="studio-section-head">
+        <h2>Demo-overzicht</h2>
+        ${renderStatusBadge(state, state === "ready" ? "Demo gereed" : "Aandachtspunten")}
+      </div>
+      <div class="studio-grid studio-grid-4">
+        ${renderDashboardMetric({
+          label: "Zichtbaar op website",
+          value: totals.publication.visible,
+          note: "Items die via gecontroleerde publieke projecties op de website verschijnen.",
+          state: totals.publication.visible ? "ready" : "foundation",
+          badgeLabel: totals.publication.visible ? "Live" : "Leeg"
+        })}
+        ${renderDashboardMetric({
+          label: "Publicatiegereed",
+          value: totals.publication.ready,
+          note: "Zichtbare items zonder extra publicatiefeedback.",
+          state: totals.publication.ready ? "ready" : "foundation",
+          badgeLabel: "Klaar"
+        })}
+        ${renderDashboardMetric({
+          label: "Nog controleren",
+          value: totals.publication.review,
+          note: "Zichtbare items waar relatie, context of PDF-actie nog review vraagt.",
+          state: totals.publication.review ? "review" : "foundation",
+          badgeLabel: "Review"
+        })}
+        ${renderDashboardMetric({
+          label: "Aandacht nodig",
+          value: totals.needs_attention,
+          note: "Contentitems waar belangrijke informatie ontbreekt volgens bestaande signalen.",
+          state: totals.needs_attention ? "needs_attention" : "foundation",
+          badgeLabel: "Aandacht"
+        })}
+      </div>
+      <div class="studio-grid studio-grid-2">
+        ${renderPublicModuleOverview(readinessReport)}
+        ${renderPublicationExplanation()}
+      </div>
+    </section>
+  `;
+}
+
 export function renderDashboard(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
   const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData).map(renderMetricCard).join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
+  const readinessReport = getContentReadinessReport({
+    suppliers: supplierData,
+    brochures: brochureData,
+    media: mediaData,
+    articles: articleData,
+    library: libraryData
+  });
 
   return `
     ${renderPageHeader({
@@ -202,6 +337,8 @@ export function renderDashboard(dashboardData, supplierData, brochureData, media
       title: "Dashboard",
       description: dashboardData.summary
     })}
+
+    ${renderDemoReadinessSummary(readinessReport)}
 
     <section class="studio-section">
       <div class="studio-section-head">

@@ -211,6 +211,7 @@ export async function runContentReadinessChecks() {
     assert.match(cardHtml, /Publieke website/);
     assert.match(cardHtml, /Projectie: data\/public\/articles\.json/);
     assert.match(cardHtml, /Nog controleren/);
+    assert.match(cardHtml, /Dit wordt gecontroleerd/);
   });
 
   await runCheck("readiness is afgeleid van bestaande governance issues", () => {
