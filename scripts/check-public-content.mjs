@@ -12,10 +12,18 @@ import {
 import { projectPublicSuppliers, PUBLIC_SUPPLIER_KEYS } from "../shared/public-suppliers.js";
 import {
   PUBLIC_DATASET_CONFIG,
-  PUBLIC_DATASET_ROOT_KEYS
+  PUBLIC_DATASET_ROOT_KEYS,
+  isPublicContentItem
 } from "../shared/public-content.js";
+import {
+  createPublicContentOutputs,
+  createPublicDownloadChecker,
+  stringifyPublicContentOutputs,
+  writePublicContentFiles
+} from "./generate-public-content.mjs";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const isPublicDownload = createPublicDownloadChecker(rootDir);
 const PUBLIC_ARTICLE_FILE = PUBLIC_DATASET_CONFIG.articles.publicPath;
 const PUBLIC_BROCHURE_FILE = PUBLIC_DATASET_CONFIG.brochures.publicPath;
 const PUBLIC_SUPPLIER_FILE = PUBLIC_DATASET_CONFIG.suppliers.publicPath;
@@ -99,6 +107,10 @@ function byId(items) {
   return new Map(items.map((item) => [item.id, item]));
 }
 
+function outputByKey(outputs, key) {
+  return outputs.find((output) => output.key === key)?.data;
+}
+
 function isRelativeProjectPath(value) {
   if (!value) return false;
   return (
@@ -116,10 +128,6 @@ function isRelativeProjectPath(value) {
 
 function publicFileExists(relativePath) {
   return isRelativeProjectPath(relativePath) && existsSync(resolve(rootDir, relativePath));
-}
-
-function isPublicDownload(downloadUrl) {
-  return publicFileExists(downloadUrl) && String(downloadUrl).toLowerCase().endsWith(".pdf");
 }
 
 function assertKeys(item, requiredKeys, optionalKeys = []) {
@@ -153,6 +161,98 @@ export async function runPublicContentChecks() {
       assert.equal(existsSync(resolve(rootDir, config.publicPath)), true, `Publieke dataset ontbreekt: ${config.publicPath}`);
     });
     assert.equal(existsSync(resolve(rootDir, "data/public-articles.json")), false);
+  });
+
+  await runCheck("centrale publieke-projectiegenerator is aangesloten", () => {
+    const packageJson = readJson("package.json");
+    const generatorScript = readText("scripts/generate-public-content.mjs");
+
+    assert.equal(packageJson.scripts["generate:public"], "node scripts/generate-public-content.mjs");
+    assert.match(generatorScript, /projectPublicArticles/);
+    assert.match(generatorScript, /projectPublicSuppliers/);
+    assert.match(generatorScript, /projectPublicBrochures/);
+    assert.match(generatorScript, /validateArticleFile/);
+    assert.match(generatorScript, /validateSupplierFile/);
+    assert.match(generatorScript, /validateBrochureFile/);
+    assert.match(generatorScript, /PUBLIC_DATASET_CONFIG/);
+    assert.doesNotMatch(generatorScript, /localStorage|sessionStorage|indexedDB|fetch\(|api\.github|Octokit/i);
+  });
+
+  await runCheck("publieke projectiegenerator levert dezelfde output als data/public", () => {
+    const outputs = createPublicContentOutputs({ articles, suppliers, brochures }, { isPublicDownload });
+    const outputPaths = outputs.map((output) => output.path);
+
+    Object.values(PUBLIC_DATASET_CONFIG).forEach((config) => {
+      assert.ok(outputPaths.includes(config.publicPath), `Generator mist publieke output: ${config.publicPath}`);
+    });
+    assert.deepEqual(outputByKey(outputs, "articles"), publicArticles);
+    assert.deepEqual(outputByKey(outputs, "suppliers"), publicSuppliers);
+    assert.deepEqual(outputByKey(outputs, "brochures"), publicBrochures);
+  });
+
+  await runCheck("publieke projectiegenerator filtert beheerstatussen per module", () => {
+    const outputs = createPublicContentOutputs({ articles, suppliers, brochures }, { isPublicDownload });
+    const generatedArticles = outputByKey(outputs, "articles");
+    const generatedSuppliers = outputByKey(outputs, "suppliers");
+    const generatedBrochures = outputByKey(outputs, "brochures");
+    const articleIds = new Set(generatedArticles.items.map((item) => item.id));
+    const supplierIds = new Set(generatedSuppliers.items.map((item) => item.id));
+    const brochureIds = new Set(generatedBrochures.items.map((item) => item.id));
+
+    assert.ok(supplierIds.has("supplier-amefa"), "Amefa moet behouden blijven in de publieke leveranciersprojectie.");
+    assert.equal(
+      suppliers.items.find((supplier) => supplier.id === "supplier-churchill")?.status,
+      "published",
+      "Churchill moet in de beheerdata published zijn voor deze RC1K-validatie."
+    );
+    assert.ok(supplierIds.has("supplier-churchill"), "Churchill moet na generatie publiek zichtbaar zijn.");
+
+    suppliers.items.forEach((supplier) => {
+      assert.equal(
+        supplierIds.has(supplier.id),
+        isPublicContentItem(supplier),
+        `Leveranciersstatusfilter klopt niet voor ${supplier.id}.`
+      );
+    });
+    articles.items.forEach((article) => {
+      assert.equal(articleIds.has(article.id), isPublicContentItem(article), `Artikelstatusfilter klopt niet voor ${article.id}.`);
+    });
+    brochures.items.forEach((brochure) => {
+      const expectedPublic = isPublicContentItem(brochure) && supplierIds.has(brochure.supplierId);
+      assert.equal(brochureIds.has(brochure.id), expectedPublic, `Brochurestatusfilter klopt niet voor ${brochure.id}.`);
+    });
+  });
+
+  await runCheck("publieke projectiegenerator is deterministisch", () => {
+    const firstRun = stringifyPublicContentOutputs(
+      createPublicContentOutputs({ articles, suppliers, brochures }, { isPublicDownload })
+    ).map(({ path, content }) => ({ path, content }));
+    const secondRun = stringifyPublicContentOutputs(
+      createPublicContentOutputs({ articles, suppliers, brochures }, { isPublicDownload })
+    ).map(({ path, content }) => ({ path, content }));
+
+    assert.deepEqual(secondRun, firstRun);
+  });
+
+  await runCheck("publieke projectiegenerator stopt bij ongeldige brondata zonder gedeeltelijke writes", () => {
+    const invalidSuppliers = {
+      ...suppliers,
+      items: suppliers.items.map((supplier, index) => (index === 0 ? { ...supplier, id: "" } : supplier))
+    };
+    let writeCount = 0;
+
+    assert.throws(
+      () =>
+        writePublicContentFiles({
+          rootDir,
+          sources: { articles, suppliers: invalidSuppliers, brochures },
+          writeFile: () => {
+            writeCount += 1;
+          }
+        }),
+      /Publieke contentprojectie niet gegenereerd/
+    );
+    assert.equal(writeCount, 0);
   });
 
   await runCheck("publieke artikelprojectie is afgeleid van gepubliceerde Studio-artikelen", () => {

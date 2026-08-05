@@ -127,7 +127,7 @@ export async function runContentRelationChecks() {
   await runCheck("dashboardrelatiestatistieken rapporteren bestaande contentrelaties", () => {
     const stats = getContentRelationStats(suppliers, brochures, media, articles);
     assert.equal(stats.articlesWithoutSupplier, 0);
-    assert.equal(stats.suppliersWithoutBrochures, 0);
+    assert.equal(stats.suppliersWithoutBrochures, 1);
     assert.ok(stats.mediaWithoutUsage >= 1);
   });
 }

@@ -143,7 +143,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
+      "De gegevens zijn gedownload. Vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
     tone: "success"
   });
 }
@@ -240,7 +240,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       sourceDescription:
         "Wijzigingen blijven alleen in de bewerkversie totdat je artikelgegevens exporteert.",
       exportMessage:
-        "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
+        "De gegevens zijn gedownload. Vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
       statusText: renderSessionStatus,
       restoreLabel: "Bewerkversie herstellen",
       restoreAttributes: { "data-article-restore": true }
@@ -254,7 +254,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       title: "Bewerkversie",
       message:
         articleData.storage?.message ||
-        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren, vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
       tone: "warning"
     })}
 

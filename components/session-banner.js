@@ -26,7 +26,7 @@ export function renderSessionBanner(snapshot, options = {}) {
     `Wijzigingen blijven alleen in de bewerkversie totdat je ${options.fileName || "het bestand"} exporteert.`;
   const exportMessage =
     options.exportMessage ||
-    "Dit bestand is gedownload. Vervang het beheerbestand handmatig en gebruik daarna Website bijwerken.";
+    "Dit bestand is gedownload. Vervang het beheerbestand handmatig en voer daarna npm run generate:public uit voor Website bijwerken.";
 
   return `
     <section class="studio-session-banner is-${tone}" aria-label="Status van de bewerkversie" role="status" aria-live="polite">

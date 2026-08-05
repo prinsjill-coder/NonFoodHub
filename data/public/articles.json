@@ -11,6 +11,11 @@
       "updatedAt": "2026-07-31",
       "suppliers": [
         {
+          "id": "supplier-churchill",
+          "slug": "churchill",
+          "name": "Churchill"
+        },
+        {
           "id": "supplier-amefa",
           "slug": "amefa",
           "name": "Amefa"
@@ -31,6 +36,11 @@
           "id": "supplier-amefa",
           "slug": "amefa",
           "name": "Amefa"
+        },
+        {
+          "id": "supplier-churchill",
+          "slug": "churchill",
+          "name": "Churchill"
         }
       ]
     }

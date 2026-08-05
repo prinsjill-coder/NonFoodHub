@@ -124,7 +124,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Plaats PDF en afbeelding waar nodig en gebruik daarna Website bijwerken.",
+      "De gegevens zijn gedownload. Vervang het beheerbestand, plaats PDF en afbeelding waar nodig en voer daarna npm run generate:public uit voor Website bijwerken.",
     tone: "success"
   });
 }
@@ -202,7 +202,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       sourceDescription:
         "Wijzigingen blijven alleen in de bewerkversie totdat je brochuregegevens exporteert.",
       exportMessage:
-        "De gegevens zijn gedownload. Plaats PDF en afbeelding waar nodig en gebruik daarna Website bijwerken.",
+        "De gegevens zijn gedownload. Vervang het beheerbestand, plaats PDF en afbeelding waar nodig en voer daarna npm run generate:public uit voor Website bijwerken.",
       statusText: renderSessionStatus,
       restoreAttributes: { "data-brochure-restore": true }
     })}
@@ -215,7 +215,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       title: "Bewerkversie",
       message:
         brochureData.storage?.message ||
-        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren, vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
       tone: "warning"
     })}
 

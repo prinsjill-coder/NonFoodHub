@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:public": "node scripts/generate-public-content.mjs",
     "test:e2e": "node tests/run-e2e.mjs",
     "test:e2e:report": "playwright show-report"
   },

@@ -170,7 +170,10 @@ test("overzicht en detail blijven gescheiden bij directe publieke URLs", async (
   await page.goto("/pages/leveranciers.html");
   await expect(page.locator("[data-public-supplier-overview]")).toBeVisible();
   await expect(page.locator("[data-public-supplier-detail-section]")).toBeHidden();
-  await expect(page.locator("[data-public-supplier-grid] .supplier-card")).toHaveCount(1);
+  await expect(page.locator("[data-public-supplier-grid] .supplier-card")).toHaveCount(2);
+  await expect(page.locator("[data-public-supplier-grid] .supplier-card", { hasText: "Churchill" })).toBeVisible();
+  await page.reload();
+  await expect(page.locator("[data-public-supplier-grid] .supplier-card", { hasText: "Churchill" })).toBeVisible();
   await expectCleanPage(page, errors);
 
   await page.goto("/pages/leveranciers.html#amefa");

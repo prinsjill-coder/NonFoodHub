@@ -105,7 +105,7 @@ function renderExportNotice(sessionSnapshot) {
   return renderNotice({
     title: "Export gedownload",
     message:
-      "De gegevens zijn gedownload. Gebruik daarna Website bijwerken om de publieke gegevens klaar te zetten.",
+      "De gegevens zijn gedownload. Vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
     tone: "success"
   });
 }
@@ -169,7 +169,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
       title: "Bewerkversie",
       message:
         supplierData.storage?.message ||
-        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren voordat je Website bijwerken gebruikt.",
+        "Wijzigingen blijven in de bewerkversie. Gebruik Gegevens exporteren, vervang het beheerbestand en voer daarna npm run generate:public uit voor Website bijwerken.",
       tone: "warning"
     })}
 

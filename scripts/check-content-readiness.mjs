@@ -191,27 +191,27 @@ export async function runContentReadinessChecks() {
     const article = findReadinessByRoute(report, "articles", "#/kennisbank/terras-outdoor-inspiratie");
     const supplier = findReadinessByRoute(report, "suppliers", "#/leveranciers/amefa");
     const brochure = findReadinessByRoute(report, "brochures", "#/brochures/amefa-for-professionals-2026");
-    const reviewSupplier = findReadinessByRoute(report, "suppliers", "#/leveranciers/churchill");
+    const churchillSupplier = findReadinessByRoute(report, "suppliers", "#/leveranciers/churchill");
 
     assert.equal(report.totals.publication.visible, report.totals.publication.ready + report.totals.publication.review);
     assert.ok(report.totals.publication.ready >= 1);
     assert.ok(report.totals.publication.not_public >= 1);
     assert.equal(article.publication.included, true);
-    assert.equal(article.publication.status, "review");
-    assert.match(JSON.stringify(article.publication.reasons), /leverancier|koppeling/i);
+    assert.equal(article.publication.status, "ready");
+    assert.match(JSON.stringify(article.publication.checks), /Publieke leveranciercontext/);
     assert.equal(supplier.publication.included, true);
     assert.match(JSON.stringify(supplier.publication.checks), /Logo is gekoppeld|Categorie is ingevuld/);
     assert.equal(brochure.publication.status, "ready");
     assert.match(JSON.stringify(brochure.publication.checks), /PDF-bestand is ingevuld/);
-    assert.equal(reviewSupplier.publication.included, false);
-    assert.equal(reviewSupplier.publication.status, "not_public");
-    assert.match(JSON.stringify(reviewSupplier.publication.reasons), /status Review/);
+    assert.equal(churchillSupplier.publication.included, true);
+    assert.equal(churchillSupplier.publication.status, "review");
+    assert.match(JSON.stringify(churchillSupplier.publication.reasons), /brochure/i);
 
     const cardHtml = renderReadinessCard(article);
     assert.match(cardHtml, /Publieke website/);
     assert.match(cardHtml, /Publieke website: Kennisbank/);
-    assert.match(cardHtml, /Nog afronden|Controlepunt/);
-    assert.match(cardHtml, /Dit is zichtbaar, maar onderstaande punten moeten nog worden gecontroleerd/);
+    assert.match(cardHtml, /Nog enkele punten afronden|Controlepunt/);
+    assert.match(cardHtml, /Dit staat op de publieke website via de gecontroleerde gegevens/);
   });
 
   await runCheck("readiness is afgeleid van bestaande governance issues", () => {

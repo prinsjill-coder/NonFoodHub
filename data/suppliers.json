@@ -37,6 +37,24 @@
   ],
   "items": [
     {
+      "id": "supplier-rc1k-test-supplier",
+      "name": "RC1K Test Supplier",
+      "slug": "rc1k-test-supplier",
+      "type": "leverancier",
+      "summary": "test",
+      "description": "test",
+      "categories": [
+        "Keukengerei"
+      ],
+      "logo": "",
+      "image": "",
+      "brochureIds": [],
+      "relatedArticleIds": [],
+      "featured": false,
+      "sortOrder": 0,
+      "status": "concept"
+    },
+    {
       "id": "supplier-amefa",
       "name": "Amefa",
       "slug": "amefa",
@@ -63,8 +81,8 @@
       "summary": "Servies en hospitality-presentatie voor professionele horeca.",
       "description": "Churchill is opgenomen als leverancier in review voor servies en hospitality-presentatie. De content wordt nog gecontroleerd voordat deze publiek zichtbaar wordt.",
       "categories": [
-        "Servies",
-        "Buffet & presentatie"
+        "Buffet & presentatie",
+        "Servies"
       ],
       "logo": "assets/images/supplier-churchill.jpg",
       "image": "assets/images/supplier-churchill.jpg",
@@ -72,7 +90,7 @@
       "relatedArticleIds": [],
       "featured": false,
       "sortOrder": 20,
-      "status": "review"
+      "status": "published"
     }
   ]
 }

@@ -44,6 +44,41 @@
           "updatedAt": "2026-07-30"
         }
       ]
+    },
+    {
+      "id": "supplier-churchill",
+      "slug": "churchill",
+      "name": "Churchill",
+      "type": "leverancier",
+      "summary": "Servies en hospitality-presentatie voor professionele horeca.",
+      "description": "Churchill is opgenomen als leverancier in review voor servies en hospitality-presentatie. De content wordt nog gecontroleerd voordat deze publiek zichtbaar wordt.",
+      "categories": [
+        "Buffet & presentatie",
+        "Servies"
+      ],
+      "logo": "assets/images/supplier-churchill.jpg",
+      "image": "assets/images/supplier-churchill.jpg",
+      "relatedArticles": [
+        {
+          "id": "article-terras-outdoor-inspiratie",
+          "slug": "terras-outdoor-inspiratie",
+          "title": "Terras & outdoor tafelpresentatie",
+          "summary": "Praktische inspiratie voor een gastvrij terras met slimme routing, stevige materialen en een verzorgde tafelsetting.",
+          "category": "Terras & Outdoor",
+          "heroImage": "assets/images/blog-terrace.png",
+          "updatedAt": "2026-07-31"
+        },
+        {
+          "id": "article-professioneel-tafelconcept",
+          "slug": "professioneel-tafelconcept-hospitality",
+          "title": "Professioneel tafelconcept voor hospitality",
+          "summary": "Maak tafelpresentatie consistenter door bestek, servies, glaswerk en routing als een samenhangend concept te ontwerpen.",
+          "category": "Tafelpresentatie",
+          "heroImage": "assets/images/blog-tableware.png",
+          "updatedAt": "2026-07-31"
+        }
+      ],
+      "relatedBrochures": []
     }
   ]
 }
