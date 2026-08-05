@@ -187,7 +187,7 @@ function renderQualitySummary(qualityReport) {
           <p class="studio-muted">Relaties, mediaregistraties en conceptkwaliteit.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Ontbrekende media</h3>
+          <h3>Mediaregistratie ontbreekt</h3>
           <p class="studio-metric-value">${qualityReport.stats.missingMediaRegistrations}</p>
           <p class="studio-muted">Headerafbeeldingen die nog niet in Media staan.</p>
         </article>

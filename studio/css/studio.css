@@ -353,7 +353,8 @@ textarea:focus-visible {
   font-size: 0.76rem;
   font-weight: 800;
   line-height: 1.2;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .studio-badge.is-not_connected,

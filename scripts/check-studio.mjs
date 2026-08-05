@@ -533,6 +533,8 @@ async function runStudioChecks() {
     assert.match(listHtml, /articles\.json importeren/);
     assert.match(listHtml, /Kwaliteitsrapport kennisbank/);
     assert.match(listHtml, /Contentkwaliteit/);
+    assert.match(listHtml, /Mediaregistratie ontbreekt/);
+    assert.doesNotMatch(listHtml, /Ontbrekende media/);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw artikel/);
     assert.match(newHtml, /data-article-form/);
