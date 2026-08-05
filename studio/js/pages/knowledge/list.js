@@ -258,9 +258,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       tone: "warning"
     })}
 
-    ${renderWorkflowPanel({
-      nextStep: "Volgende stap na export: artikelgegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren."
-    })}
+    ${renderWorkflowPanel()}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport kennisbank"

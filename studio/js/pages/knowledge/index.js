@@ -44,6 +44,10 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
 }
 
 export function setupKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession, options = {}) {
+  if (route.id === "articleNew") {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   if (route.id === "knowledge") {
     setupArticleList({
       articleSession,

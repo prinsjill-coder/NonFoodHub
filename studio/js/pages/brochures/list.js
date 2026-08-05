@@ -219,9 +219,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       tone: "warning"
     })}
 
-    ${renderWorkflowPanel({
-      nextStep: "Volgende stap na export: echte PDF en afbeelding plaatsen, Website bijwerken gebruiken en daarna handmatig publiceren."
-    })}
+    ${renderWorkflowPanel()}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport brochurebestand"

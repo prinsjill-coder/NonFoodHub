@@ -74,6 +74,15 @@ function assertNoPattern({ roots, pattern, label }) {
   assert.deepEqual(matches, [], `${label}: ${matches.join(", ")}`);
 }
 
+function assertWorkflowPanel(html) {
+  assert.match(html, /Van beheer naar website/);
+  assert.match(html, /Concept/);
+  assert.match(html, /Review/);
+  assert.match(html, /Publiceerbaar/);
+  assert.match(html, /Gepubliceerd/);
+  assert.match(html, /Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren\./);
+}
+
 function createFakeForm() {
   const fields = {
     name: {
@@ -401,9 +410,11 @@ async function runStudioChecks() {
       articleSession
     };
 
-    assert.match(renderRoute(routeFromHash("#/leveranciers"), state), /Leveranciers/);
+    const listHtml = renderRoute(routeFromHash("#/leveranciers"), state);
     const detailHtml = renderRoute(routeFromHash("#/leveranciers/amefa"), state);
 
+    assert.match(listHtml, /Leveranciers/);
+    assertWorkflowPanel(listHtml);
     assert.match(detailHtml, /Amefa/);
     assert.match(detailHtml, /Amefa for Professionals 2026/);
     assert.match(detailHtml, /Professioneel tafelconcept voor hospitality/);
@@ -438,6 +449,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Brochurebeheer/);
     assert.match(listHtml, /Amefa for Professionals 2026/);
+    assertWorkflowPanel(listHtml);
     assert.match(listHtml, /data-brochure-import-button/);
     assert.match(listHtml, /data-brochure-export-button/);
     assert.match(listHtml, /brochures\.json importeren/);
@@ -486,6 +498,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Mediaregister/);
     assert.match(listHtml, /Brochures overzichtsbeeld/);
+    assertWorkflowPanel(listHtml);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw media-asset/);
     assert.match(newHtml, /data-media-form/);
@@ -528,6 +541,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Kennisbankbeheer/);
     assert.match(listHtml, /Terras &amp; outdoor tafelpresentatie/);
+    assertWorkflowPanel(listHtml);
     assert.match(listHtml, /data-article-import-button/);
     assert.match(listHtml, /data-article-export-button/);
     assert.match(listHtml, /articles\.json importeren/);
@@ -538,8 +552,10 @@ async function runStudioChecks() {
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw artikel/);
     assert.match(newHtml, /data-article-form/);
-    assert.match(newHtml, /Bestand van de headerafbeelding/);
-    assert.match(newHtml, /assets\/images\/blog-terrace\.png/);
+    assert.match(newHtml, /Headerafbeelding/);
+    assert.match(newHtml, /data-article-image-picker/);
+    assert.match(newHtml, /data-article-image-choice/);
+    assert.doesNotMatch(newHtml, /Bestand van de headerafbeelding/);
     assert.match(newHtml, /Inspiratie/);
     assert.doesNotMatch(newHtml, /Hoofdafbeelding/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);

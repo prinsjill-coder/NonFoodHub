@@ -173,9 +173,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
       tone: "warning"
     })}
 
-    ${renderWorkflowPanel({
-      nextStep: "Volgende stap na export: leveranciersgegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren."
-    })}
+    ${renderWorkflowPanel()}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport leveranciersbestand"

@@ -19,11 +19,14 @@ const DEFAULT_STEPS = [
   }
 ];
 
+const DEFAULT_NEXT_STEP =
+  "Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren.";
+
 export function renderWorkflowPanel({
   title = "Van beheer naar website",
   intro = "Gebruik deze stappen om te zien waar content staat in de beheerflow.",
   steps = DEFAULT_STEPS,
-  nextStep = ""
+  nextStep = DEFAULT_NEXT_STEP
 } = {}) {
   const stepItems = steps
     .map(

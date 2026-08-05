@@ -68,6 +68,69 @@ function brochureOptions(brochureData) {
   }));
 }
 
+function renderHeroImageChoice(article) {
+  const currentPath = article.heroImage || "";
+  const hasCurrentPath = Boolean(currentPath);
+
+  return `
+    <div
+      class="studio-field studio-file-picker"
+      data-article-image-picker
+      data-current-path="${escapeHtml(currentPath)}"
+    >
+      <label for="article-hero-image-choice">Headerafbeelding</label>
+      <input id="article-hero-image-choice" type="file" accept="image/*" data-article-image-choice>
+      <p class="studio-field-help">
+        Kies een afbeelding vanaf je computer. Studio slaat alleen het projectpad op; het bestand wordt niet geupload of verplaatst.
+      </p>
+      <label class="studio-meta" for="studio-field-heroimage">Gekozen projectpad</label>
+      <input
+        id="studio-field-heroimage"
+        name="heroImage"
+        type="text"
+        value="${escapeHtml(currentPath)}"
+        placeholder="Nog geen headerafbeelding gekozen"
+        aria-describedby="studio-field-heroimage-help studio-field-heroimage-error"
+        readonly
+      >
+      <p id="studio-field-heroimage-help" class="studio-field-help">
+        Dit pad wordt automatisch ingevuld na het kiezen van een bestand.
+      </p>
+      <dl class="studio-file-choice-summary" data-file-choice-summary aria-live="polite">
+        <div>
+          <dt>Gekozen lokaal bestand</dt>
+          <dd data-file-choice-name>${escapeHtml(hasCurrentPath ? "Geen nieuw lokaal bestand gekozen" : "Geen lokaal bestand gekozen in dit formulier")}</dd>
+        </div>
+        <div>
+          <dt>Gekoppeld projectbestand</dt>
+          <dd class="${hasCurrentPath ? "studio-meta" : "studio-muted"}" data-file-current-path>${escapeHtml(currentPath || "Nog geen headerafbeelding gekoppeld")}</dd>
+        </div>
+        <div>
+          <dt>Bestandstype</dt>
+          <dd data-file-choice-type>Niet gekozen</dd>
+        </div>
+        <div>
+          <dt>Bestandsgrootte</dt>
+          <dd data-file-choice-size>Niet gekozen</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd data-file-choice-state>${escapeHtml(hasCurrentPath ? "Bestaand projectbestand blijft gekoppeld" : "Wachten op keuze")}</dd>
+        </div>
+        <div>
+          <dt>Projectpad</dt>
+          <dd data-file-choice-expected>${escapeHtml(currentPath || "Nog niet bekend")}</dd>
+        </div>
+      </dl>
+      <p class="studio-field-help">
+        Na het kiezen wordt de bestandsnaam automatisch veilig gemaakt en opgeslagen als assets/images/bestandsnaam.extensie.
+        Plaats het bestand daarna zelf onder die naam in de projectmap.
+      </p>
+      <p id="studio-field-heroimage-error" class="studio-field-error" data-field-error="heroImage" aria-live="polite"></p>
+    </div>
+  `;
+}
+
 export function renderArticleForm({
   articleData,
   supplierData,
@@ -151,13 +214,7 @@ export function renderArticleForm({
             required: true,
             help: "Lager nummer = eerder zichtbaar. Hoogste waarde: geen vaste limiet; gebruik bij voorkeur stappen van 10."
           })}
-          ${renderTextField({
-            name: "heroImage",
-            label: "Bestand van de headerafbeelding",
-            value: article.heroImage,
-            help:
-              "Vul het beeldbestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/blog-terrace.png. Uploaden gebeurt nog niet."
-          })}
+          ${renderHeroImageChoice(article)}
         </div>
       </section>
 
@@ -221,6 +278,87 @@ export function renderArticleForm({
   `;
 }
 
+function formatFileSize(size) {
+  if (!Number.isFinite(size) || size <= 0) return "Onbekend";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = size;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function fileExtension(name, fallback) {
+  const match = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+  return match ? `.${match[1]}` : fallback;
+}
+
+function projectFileNameFromChoice(file) {
+  const originalName = String(file?.name || "");
+  const extension = fileExtension(originalName, ".jpg").toLowerCase();
+  const baseName = originalName.replace(/\.[^.]+$/, "");
+  const safeName = normalizeSlug(baseName) || "headerafbeelding";
+  return `${safeName}${extension}`;
+}
+
+function expectedHeroImagePath(file) {
+  return `assets/images/${projectFileNameFromChoice(file)}`;
+}
+
+function setSummaryText(picker, selector, value) {
+  const element = picker.querySelector(selector);
+  if (element) element.textContent = value;
+}
+
+function syncHeroImagePath(targetInput, projectPath) {
+  if (!targetInput || !projectPath) return;
+  targetInput.value = projectPath;
+  targetInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function setupHeroImageChoice(form) {
+  const picker = form.querySelector("[data-article-image-picker]");
+  const input = picker?.querySelector("[data-article-image-choice]");
+  const targetInput = form.elements.heroImage;
+
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+
+    if (!file) {
+      const currentPath = picker.dataset.currentPath || "";
+      setSummaryText(
+        picker,
+        "[data-file-choice-name]",
+        currentPath ? "Geen nieuw lokaal bestand gekozen" : "Geen lokaal bestand gekozen in dit formulier"
+      );
+      setSummaryText(picker, "[data-file-choice-type]", "Niet gekozen");
+      setSummaryText(picker, "[data-file-choice-size]", "Niet gekozen");
+      setSummaryText(
+        picker,
+        "[data-file-choice-state]",
+        currentPath ? "Bestaand projectbestand blijft gekoppeld" : "Wachten op keuze"
+      );
+      setSummaryText(picker, "[data-file-choice-expected]", currentPath || "Nog niet bekend");
+      return;
+    }
+
+    const projectPath = expectedHeroImagePath(file);
+
+    setSummaryText(picker, "[data-file-choice-name]", file.name);
+    setSummaryText(picker, "[data-file-choice-type]", file.type || fileExtension(file.name, "Onbekend"));
+    setSummaryText(picker, "[data-file-choice-size]", formatFileSize(file.size));
+    setSummaryText(picker, "[data-file-choice-state]", "Gekozen lokaal bestand gekoppeld; nog niet geplaatst in de projectmap");
+    setSummaryText(picker, "[data-file-choice-expected]", projectPath);
+    setSummaryText(picker, "[data-file-current-path]", projectPath);
+    picker.dataset.currentPath = projectPath;
+    syncHeroImagePath(targetInput, projectPath);
+  });
+}
+
 export function setupArticleForm({ articleSession, supplierSession, brochureSession, mediaSession, formDirtyGuard }) {
   const form = document.querySelector("[data-article-form]");
   if (!form) return;
@@ -237,6 +375,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
   const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
   setupErrorLinkFocus(feedback, form);
+  setupHeroImageChoice(form);
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;

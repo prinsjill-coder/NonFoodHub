@@ -87,9 +87,10 @@ async function expectJsonDownload(page, button, fileName) {
 const studioRoutes = [
   { path: "/studio/index.html#/dashboard", heading: "Dashboard" },
   { path: "/studio/index.html#/governance", heading: "Governance" },
-  { path: "/studio/index.html#/leveranciers", heading: "Leveranciers" },
-  { path: "/studio/index.html#/brochures", heading: "Brochures" },
-  { path: "/studio/index.html#/kennisbank", heading: "Kennisbank" },
+  { path: "/studio/index.html#/leveranciers", heading: "Leveranciers", workflow: true },
+  { path: "/studio/index.html#/brochures", heading: "Brochures", workflow: true },
+  { path: "/studio/index.html#/media", heading: "Media", workflow: true },
+  { path: "/studio/index.html#/kennisbank", heading: "Kennisbank", workflow: true },
   { path: "/studio/index.html#/bibliotheek", heading: "Bibliotheek" }
 ];
 
@@ -100,6 +101,14 @@ for (const route of studioRoutes) {
     await page.goto(route.path);
     await expect(page.locator("#studio-app")).toBeVisible();
     await expect(page.getByRole("heading", { name: route.heading, level: 1 })).toBeVisible();
+    if (route.workflow) {
+      const workflow = page.locator(".studio-workflow-panel");
+      await expect(workflow.getByRole("heading", { name: "Van beheer naar website", level: 2 })).toBeVisible();
+      await expect(workflow.getByText("Concept", { exact: true })).toBeVisible();
+      await expect(workflow.getByText("Review", { exact: true })).toBeVisible();
+      await expect(workflow.getByText("Publiceerbaar", { exact: true })).toBeVisible();
+      await expect(workflow.getByText("Gepubliceerd", { exact: true })).toBeVisible();
+    }
     await expectCleanStudioPage(page, errors);
   });
 }
@@ -388,8 +397,22 @@ test("Studio contentbeheerflows tonen bewerkstatus, validatie en export per modu
   await expectJsonDownload(page, page.getByRole("button", { name: "Leveranciersgegevens exporteren" }), "suppliers.json");
   await expect(page.getByText("Export gedownload")).toBeVisible();
 
-  await page.goto("/studio/index.html#/kennisbank/nieuw");
+  await page.goto("/studio/index.html#/kennisbank");
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.getByRole("link", { name: "Nieuw artikel" }).click();
+  await expect(page).toHaveURL(/#\/kennisbank\/nieuw$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.getByRole("heading", { name: "Nieuw artikel", level: 1 })).toBeVisible();
+  await expect(page.getByText("Bestand van de headerafbeelding")).toHaveCount(0);
+  await expect(page.locator("[data-article-image-picker]")).toBeVisible();
+  await page.locator("[data-article-image-choice]").setInputFiles(
+    filePayload("Cover zomer.jpeg", "image/jpeg", "article image fixture")
+  );
+  await expect(page.locator("[data-article-image-picker] [data-file-choice-name]")).toHaveText("Cover zomer.jpeg");
+  await expect(page.locator('input[name="heroImage"]')).toHaveValue("assets/images/cover-zomer.jpeg");
+  await expect(page.locator("[data-article-image-picker] [data-file-choice-expected]")).toHaveText(
+    "assets/images/cover-zomer.jpeg"
+  );
   await page.getByLabel("Titel").fill("RC1F artikel");
   await page.getByLabel("Status").selectOption("review");
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();

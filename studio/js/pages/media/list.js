@@ -7,6 +7,7 @@ import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
+import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import {
   getMediaAssets,
   getMediaCounts,
@@ -161,6 +162,8 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
         "Mediabestanden worden alleen geregistreerd. Studio uploadt, verplaatst of publiceert geen bestanden.",
       tone: "warning"
     })}
+
+    ${renderWorkflowPanel()}
 
     ${renderValidationReport(sessionSnapshot.lastValidationReport, {
       title: "Validatierapport mediaregister"
