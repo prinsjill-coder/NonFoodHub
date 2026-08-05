@@ -211,7 +211,7 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearFieldErrors(form);
 
@@ -227,7 +227,7 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
       return;
     }
 
-    supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
+    await supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",

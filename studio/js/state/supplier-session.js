@@ -20,14 +20,14 @@ function createInitialReport(data) {
   };
 }
 
-export function createSupplierSession(initialData) {
-  let sourceData = deepClone(initialData);
-  let workingData = deepClone(initialData);
+export function createSupplierSession(initialData, options = {}) {
+  let sourceData = deepClone(options.sourceData || initialData);
+  let workingData = deepClone(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
-  let sourceFileName = "data/suppliers.json";
-  let sourceType = "bundled";
+  let sourceFileName = options.sourceFileName || "data/suppliers.json";
+  let sourceType = options.sourceType || "bundled";
   let lastValidationReport = createInitialReport(workingData);
-  let lastExport = null;
+  let lastExport = deepClone(options.lastExport || null);
 
   function workingHash() {
     return createHash(workingData);

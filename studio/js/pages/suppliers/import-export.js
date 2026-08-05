@@ -184,11 +184,11 @@ async function handleImportFile({ file, supplierSession, rerender }) {
     return;
   }
 
-  supplierSession.importSource(parsed, file.name, report);
+  await supplierSession.importSource(parsed, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 
-export function setupSupplierImportExport({ supplierSession, rerender = () => {} }) {
+export function setupSupplierImportExport({ supplierSession, rerender = () => {}, restoreDraft }) {
   const importButton = document.querySelector("[data-supplier-import-button]");
   const importInput = document.querySelector("[data-supplier-import-file]");
   const exportButton = document.querySelector("[data-supplier-export-button]");
@@ -264,7 +264,7 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
           return;
         }
 
-        supplierSession.markExported(exportResult.report);
+        await supplierSession.markExported(exportResult.report);
         rerenderAndFocusReport(rerender);
       } finally {
         setButtonBusy(exportButton, false, "Gegevens exporteren");
@@ -277,7 +277,11 @@ export function setupSupplierImportExport({ supplierSession, rerender = () => {}
       return;
     }
 
-    supplierSession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      supplierSession.restoreSource();
+    }
     rerender();
   });
 }

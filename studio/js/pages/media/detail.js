@@ -277,7 +277,7 @@ function setActionFeedback(id, title, message, tone = "success") {
 
 export function setupMediaWorkflowActions({ mediaSession, asset, rerender }) {
   document.querySelectorAll("[data-media-status-action]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       if (button.disabled) return;
 
       const targetStatus = button.dataset.mediaStatusAction || "";
@@ -292,7 +292,7 @@ export function setupMediaWorkflowActions({ mediaSession, asset, rerender }) {
         return;
       }
 
-      mediaSession.applyMediaAsset({ ...currentAsset, status: targetStatus }, currentAsset.id);
+      await mediaSession.applyMediaAsset({ ...currentAsset, status: targetStatus }, currentAsset.id);
       setActionFeedback(
         currentAsset.id,
         "Status aangepast in bewerkversie",

@@ -223,7 +223,7 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
   `;
 }
 
-export function setupMediaList({ mediaSession, rerender }) {
+export function setupMediaList({ mediaSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-media-search]");
   const filters = Array.from(document.querySelectorAll("[data-media-filter]"));
   const items = Array.from(document.querySelectorAll("[data-media-item]"));
@@ -266,7 +266,11 @@ export function setupMediaList({ mediaSession, rerender }) {
       if (!confirmed) return;
     }
 
-    mediaSession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      mediaSession.restoreSource();
+    }
     rerender();
   });
 

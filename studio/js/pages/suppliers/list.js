@@ -224,13 +224,13 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
   `;
 }
 
-export function setupSupplierList({ supplierSession, rerender }) {
+export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-supplier-search]");
   const filters = Array.from(document.querySelectorAll("[data-supplier-filter]"));
   const items = Array.from(document.querySelectorAll("[data-supplier-item]"));
   const empty = document.querySelector("[data-supplier-empty]");
 
-  setupSupplierImportExport({ supplierSession, rerender });
+  setupSupplierImportExport({ supplierSession, rerender, restoreDraft });
 
   function applyFilters() {
     const query = search?.value.trim().toLowerCase() || "";

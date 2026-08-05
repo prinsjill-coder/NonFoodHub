@@ -494,7 +494,7 @@ export function setupBrochureWorkflowActions({ brochureSession, brochure, rerend
 
     const workingData = brochureSession.getWorkingData();
     const draft = createBrochureEditionDraft(brochure, getBrochures(workingData));
-    brochureSession.applyBrochure(draft, "");
+    await brochureSession.applyBrochure(draft, "");
     window.location.hash = `#/brochures/${draft.slug}/bewerken`;
   });
 
@@ -509,7 +509,7 @@ export function setupBrochureWorkflowActions({ brochureSession, brochure, rerend
     });
     if (!confirmed) return;
 
-    brochureSession.applyBrochure({ ...brochure, status: "archived", updatedAt: todayValue() }, brochure.slug);
+    await brochureSession.applyBrochure({ ...brochure, status: "archived", updatedAt: todayValue() }, brochure.slug);
     setActionFeedback(brochure.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -521,7 +521,7 @@ export function setupBrochureWorkflowActions({ brochureSession, brochure, rerend
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      brochureSession.applyBrochure({ ...brochure, status: targetStatus, updatedAt: todayValue() }, brochure.slug);
+      await brochureSession.applyBrochure({ ...brochure, status: targetStatus, updatedAt: todayValue() }, brochure.slug);
       const label = targetStatus === "published" ? "Publiceren" : getBrochureStatusLabel(targetStatus);
       setActionFeedback(brochure.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();

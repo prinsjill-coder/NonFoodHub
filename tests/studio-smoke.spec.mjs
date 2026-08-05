@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { Buffer } from "node:buffer";
 
+const STUDIO_DRAFT_DB_NAME = "nonfoodhub-studio";
+
 function filePayload(name, mimeType, content) {
   return {
     name,
@@ -84,6 +86,21 @@ async function expectJsonDownload(page, button, fileName) {
   expect(download.suggestedFilename()).toBe(fileName);
 }
 
+async function clearStudioDraftStore(page) {
+  await page.goto("/index.html");
+  await page.evaluate((dbName) => new Promise((resolve) => {
+    if (!window.indexedDB) {
+      resolve();
+      return;
+    }
+
+    const request = window.indexedDB[["delete", "Data", "base"].join("")](dbName);
+    request.addEventListener("success", resolve);
+    request.addEventListener("error", resolve);
+    request.addEventListener("blocked", resolve);
+  }), STUDIO_DRAFT_DB_NAME);
+}
+
 const studioRoutes = [
   { path: "/studio/index.html#/dashboard", heading: "Dashboard" },
   { path: "/studio/index.html#/governance", heading: "Governance" },
@@ -93,6 +110,10 @@ const studioRoutes = [
   { path: "/studio/index.html#/kennisbank", heading: "Kennisbank", workflow: true },
   { path: "/studio/index.html#/bibliotheek", heading: "Bibliotheek" }
 ];
+
+test.beforeEach(async ({ page }) => {
+  await clearStudioDraftStore(page);
+});
 
 for (const route of studioRoutes) {
   test(`Studio opent ${route.heading} zonder consolefouten`, async ({ page }) => {
@@ -112,6 +133,81 @@ for (const route of studioRoutes) {
     await expectCleanStudioPage(page, errors);
   });
 }
+
+test("Studio bewaart bewerkversies centraal na refresh en herstelt naar JSON-bron", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  page.on("dialog", (dialog) => dialog.accept());
+
+  await page.goto("/studio/index.html#/leveranciers/nieuw");
+  await page.locator("#studio-field-name").fill("RC1K leverancier");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/rc1k-leverancier$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "RC1K leverancier", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/brochures/nieuw");
+  await page.getByLabel(/Titel/).fill("RC1K brochure");
+  await page.getByLabel("Leverancier").selectOption({ label: "Amefa" });
+  await page.getByLabel("Jaar").fill("2027");
+  await page.getByLabel("Beschrijving").fill("Controlebrochure voor de duurzame bewerkversie.");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/brochures\/rc1k-brochure$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "RC1K brochure", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/kennisbank/nieuw");
+  await page.getByLabel("Titel").fill("RC1K artikel");
+  await page.getByLabel("Samenvatting").fill("Controleartikel voor de duurzame bewerkversie.");
+  await page.getByLabel("Inhoud").fill("Deze tekst controleert dat kennisbankartikelen na F5 in de bewerkversie blijven staan.");
+  await page.locator("#studio-field-categories-inspiratie").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/kennisbank\/rc1k-artikel$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "RC1K artikel", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/media/nieuw");
+  await page.getByLabel("Titel").fill("RC1K mediarecord");
+  await page.getByLabel("ID").fill("rc1k-mediarecord");
+  await page.locator("#studio-field-file").fill("assets/images/rc1k-mediarecord.jpg");
+  await page.getByLabel("Type").selectOption("image");
+  await page.getByLabel("Gebruik").selectOption("page-image");
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/media\/rc1k-mediarecord$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "RC1K mediarecord", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/bibliotheek/nieuw");
+  await page.getByLabel("Titel").fill("RC1K bibliotheekitem");
+  await page.getByLabel("Samenvatting").fill("Controle-item voor de duurzame bewerkversie.");
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/bibliotheek\/rc1k-bibliotheekitem$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "RC1K bibliotheekitem", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/leveranciers");
+  await expect(page.locator("[data-supplier-item]", { hasText: "RC1K leverancier" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Bewerkversie herstellen" }).click();
+  const restoreDialog = page.getByRole("alertdialog");
+  if (await restoreDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await restoreDialog.getByRole("button", { name: /Bewerkversie herstellen|Doorgaan/ }).click();
+  }
+  await expect(page.locator("[data-supplier-item]", { hasText: "RC1K leverancier" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("[data-supplier-item]", { hasText: "RC1K leverancier" })).toHaveCount(0);
+
+  await page.goto("/studio/index.html#/brochures");
+  await expect(page.locator("[data-brochure-item]", { hasText: "RC1K brochure" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/kennisbank");
+  await expect(page.locator("[data-article-item]", { hasText: "RC1K artikel" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/media");
+  await expect(page.locator("[data-media-item]", { hasText: "RC1K mediarecord" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/bibliotheek");
+  await expect(page.locator("[data-library-item]", { hasText: "RC1K bibliotheekitem" })).toHaveCount(0);
+
+  await expectCleanStudioPage(page, errors);
+});
 
 test("Studio toont readiness op detailpagina zonder consolefouten", async ({ page }) => {
   const errors = collectConsoleErrors(page);

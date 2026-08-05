@@ -388,7 +388,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearFieldErrors(form);
 
@@ -405,7 +405,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
       return;
     }
 
-    articleSession.applyArticle(article, form.dataset.originalSlug || "");
+    await articleSession.applyArticle(article, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",

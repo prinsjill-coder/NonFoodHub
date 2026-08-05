@@ -290,7 +290,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearFieldErrors(form);
 
@@ -316,7 +316,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
       return;
     }
 
-    librarySession.applyLibraryItem(item, form.dataset.originalSlug || "");
+    await librarySession.applyLibraryItem(item, form.dataset.originalSlug || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",

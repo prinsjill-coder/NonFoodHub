@@ -93,7 +93,7 @@ export function setupArticleExport({ articleSession, rerender = () => {} }) {
           return;
         }
 
-        articleSession.markExported(exportResult.report);
+        await articleSession.markExported(exportResult.report);
         rerenderAndFocusReport(rerender);
       } finally {
         setButtonBusy(exportButton, false);

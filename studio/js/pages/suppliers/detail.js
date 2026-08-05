@@ -332,7 +332,7 @@ export function setupSupplierWorkflowActions({ supplierSession, supplier, rerend
     });
     if (!confirmed) return;
 
-    supplierSession.applySupplier({ ...supplier, status: "archived" }, supplier.slug);
+    await supplierSession.applySupplier({ ...supplier, status: "archived" }, supplier.slug);
     setActionFeedback(supplier.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -344,7 +344,7 @@ export function setupSupplierWorkflowActions({ supplierSession, supplier, rerend
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      supplierSession.applySupplier({ ...supplier, status: targetStatus }, supplier.slug);
+      await supplierSession.applySupplier({ ...supplier, status: targetStatus }, supplier.slug);
       const label = targetStatus === "published" ? "Publiceren" : getSupplierStatusLabel(targetStatus);
       setActionFeedback(supplier.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();

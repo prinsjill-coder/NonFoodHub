@@ -305,7 +305,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
   `;
 }
 
-export function setupLibraryList({ librarySession, rerender }) {
+export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-library-search]");
   const filters = Array.from(document.querySelectorAll("[data-library-filter]"));
   const items = Array.from(document.querySelectorAll("[data-library-item]"));
@@ -347,7 +347,11 @@ export function setupLibraryList({ librarySession, rerender }) {
       if (!confirmed) return;
     }
 
-    librarySession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      librarySession.restoreSource();
+    }
     rerender();
   });
 

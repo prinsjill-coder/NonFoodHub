@@ -42,7 +42,7 @@ export function renderMediaRoute(route, mediaSession, supplierSession, brochureS
 
 export function setupMediaRoute(route, mediaSession, options = {}) {
   if (route.id === "media") {
-    setupMediaList({ mediaSession, rerender: options.rerender });
+    setupMediaList({ mediaSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
 
   if (route.id === "mediaNew" || route.id === "mediaEdit") {

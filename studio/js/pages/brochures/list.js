@@ -273,7 +273,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
   `;
 }
 
-export function setupBrochureList({ brochureSession, supplierSession, rerender }) {
+export function setupBrochureList({ brochureSession, supplierSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-brochure-search]");
   const filters = Array.from(document.querySelectorAll("[data-brochure-filter]"));
   const items = Array.from(document.querySelectorAll("[data-brochure-item]"));
@@ -318,7 +318,11 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender }
       if (!confirmed) return;
     }
 
-    brochureSession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      brochureSession.restoreSource();
+    }
     rerender();
   });
 }

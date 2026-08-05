@@ -30,14 +30,14 @@ function createValidationReport(data, sources, action, sourceFileName) {
   };
 }
 
-export function createLibrarySession(initialData, sources = {}) {
-  let sourceData = normalizeLibraryFileForSession(initialData);
-  let workingData = deepClone(sourceData);
+export function createLibrarySession(initialData, sources = {}, options = {}) {
+  let sourceData = normalizeLibraryFileForSession(options.sourceData || initialData);
+  let workingData = normalizeLibraryFileForSession(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
-  let sourceFileName = "data/library.json";
-  let sourceType = "bundled";
+  let sourceFileName = options.sourceFileName || "data/library.json";
+  let sourceType = options.sourceType || "bundled";
   let lastValidationReport = createValidationReport(workingData, sources, "load", sourceFileName);
-  let lastExport = null;
+  let lastExport = deepClone(options.lastExport || null);
 
   function workingHash() {
     return createHash(workingData);

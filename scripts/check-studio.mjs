@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, extname, resolve } from "node:path";
+import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -820,6 +820,14 @@ async function runStudioChecks() {
     assertNoPattern({ roots, pattern: /localStorage/, label: "localStorage gevonden" });
     assertNoPattern({ roots, pattern: /sessionStorage/, label: "sessionStorage gevonden" });
     assertNoPattern({ roots, pattern: /file:\/\//, label: "file:// gevonden" });
+  });
+
+  await runCheck("IndexedDB-opslag blijft centraal in de Studio-draftstore", () => {
+    const matches = filesIn("studio", new Set([".js"]))
+      .filter((file) => /indexedDB/i.test(readFileSync(file, "utf8")))
+      .map((file) => relative(rootDir, file).replaceAll("\\", "/"));
+
+    assert.deepEqual(matches, ["studio/js/state/studio-draft-store.js"]);
   });
 
   await runCheck("geen generieke content-session toegevoegd", () => {

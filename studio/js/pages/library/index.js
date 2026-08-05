@@ -61,7 +61,7 @@ export function renderLibraryRoute(route, librarySession, supplierSession, broch
 
 export function setupLibraryRoute(route, librarySession, supplierSession, brochureSession, articleSession, mediaSession, options = {}) {
   if (route.id === "library") {
-    setupLibraryList({ librarySession, rerender: options.rerender });
+    setupLibraryList({ librarySession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
 
   if (route.id === "libraryImport") {
@@ -71,14 +71,16 @@ export function setupLibraryRoute(route, librarySession, supplierSession, brochu
       brochureSession,
       articleSession,
       mediaSession,
-      rerender: options.rerender
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft
     });
   }
 
   if (route.id === "libraryExport") {
     setupLibraryExport({
       librarySession,
-      rerender: options.rerender
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft
     });
   }
 

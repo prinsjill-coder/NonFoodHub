@@ -94,7 +94,8 @@ export function setupKnowledgeRoute(route, articleSession, supplierSession, broc
       supplierSession,
       brochureSession,
       mediaSession,
-      rerender: options.rerender
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft
     });
   }
 

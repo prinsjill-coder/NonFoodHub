@@ -322,7 +322,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
   `;
 }
 
-export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender }) {
+export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-article-search]");
   const filters = Array.from(document.querySelectorAll("[data-article-filter]"));
   const items = Array.from(document.querySelectorAll("[data-article-item]"));
@@ -366,7 +366,11 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
       if (!confirmed) return;
     }
 
-    articleSession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      articleSession.restoreSource();
+    }
     rerender();
   });
 

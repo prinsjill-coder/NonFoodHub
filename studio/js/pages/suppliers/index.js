@@ -38,7 +38,7 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
 
 export function setupSuppliersRoute(route, supplierSession, options = {}) {
   if (route.id === "suppliers") {
-    setupSupplierList({ supplierSession, rerender: options.rerender });
+    setupSupplierList({ supplierSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
 
   if (route.id === "supplierNew" || route.id === "supplierEdit") {

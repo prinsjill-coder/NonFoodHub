@@ -19,19 +19,19 @@ function createInitialReport(data, supplierData, brochureData, mediaData) {
   };
 }
 
-export function createArticleSession(initialData, supplierDataSource = {}, brochureDataSource = {}, mediaDataSource = {}) {
-  let sourceData = deepClone(initialData);
-  let workingData = deepClone(initialData);
+export function createArticleSession(initialData, supplierDataSource = {}, brochureDataSource = {}, mediaDataSource = {}, options = {}) {
+  let sourceData = normalizeArticleFileForSession(options.sourceData || initialData);
+  let workingData = normalizeArticleFileForSession(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
-  let sourceFileName = "data/articles.json";
-  let sourceType = "bundled";
+  let sourceFileName = options.sourceFileName || "data/articles.json";
+  let sourceType = options.sourceType || "bundled";
   let lastValidationReport = createInitialReport(
     workingData,
     resolveSource(supplierDataSource),
     resolveSource(brochureDataSource),
     resolveSource(mediaDataSource)
   );
-  let lastExport = null;
+  let lastExport = deepClone(options.lastExport || null);
 
   function workingHash() {
     return createHash(workingData);

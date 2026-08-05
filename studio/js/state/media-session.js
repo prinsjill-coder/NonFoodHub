@@ -14,12 +14,12 @@ function createInitialReport(data) {
   };
 }
 
-export function createMediaSession(initialData) {
-  let sourceData = deepClone(initialData);
-  let workingData = deepClone(initialData);
+export function createMediaSession(initialData, options = {}) {
+  let sourceData = normalizeMediaFileForSession(options.sourceData || initialData);
+  let workingData = normalizeMediaFileForSession(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
-  let sourceFileName = "data/media.json";
-  let sourceType = "bundled";
+  let sourceFileName = options.sourceFileName || "data/media.json";
+  let sourceType = options.sourceType || "bundled";
   let lastValidationReport = createInitialReport(workingData);
   const localProjectFiles = new Map();
 

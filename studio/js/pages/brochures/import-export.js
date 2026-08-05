@@ -185,7 +185,7 @@ async function handleImportFile({ file, brochureSession, supplierSession, rerend
     return;
   }
 
-  brochureSession.importSource(parsed, file.name, report);
+  await brochureSession.importSource(parsed, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 
@@ -251,7 +251,7 @@ export function setupBrochureImportExport({ brochureSession, supplierSession, re
           return;
         }
 
-        brochureSession.markExported(exportResult.report);
+        await brochureSession.markExported(exportResult.report);
         rerenderAndFocusReport(rerender);
       } finally {
         setButtonBusy(exportButton, false, "Gegevens exporteren");

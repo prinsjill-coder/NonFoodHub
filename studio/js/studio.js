@@ -10,6 +10,12 @@ import { createBrochureSession } from "./state/brochure-session.js";
 import { createLibrarySession } from "./state/library-session.js";
 import { createMediaSession } from "./state/media-session.js";
 import { createSupplierSession } from "./state/supplier-session.js";
+import {
+  clearStudioDraft,
+  createStudioDraftPayload,
+  loadStudioDraft,
+  saveStudioDraft
+} from "./state/studio-draft-store.js";
 
 const app = document.querySelector("#studio-app");
 
@@ -27,42 +33,141 @@ function getStudioDataPath(key) {
   return STUDIO_CONFIG.data?.[key] || STUDIO_DATA_PATHS[key];
 }
 
-async function loadStudioData() {
-  const [navigation, dashboard, suppliers, brochures, media, articles, library] = await Promise.all([
+async function loadStudioShellData() {
+  const [navigation, dashboard] = await Promise.all([
     fetchJson(getStudioDataPath("navigation")),
-    fetchJson(getStudioDataPath("dashboard")),
+    fetchJson(getStudioDataPath("dashboard"))
+  ]);
+
+  return { navigation, dashboard };
+}
+
+async function loadBundledContentData() {
+  const [suppliers, brochures, media, articles, library] = await Promise.all([
     fetchJson(getStudioDataPath("suppliers")),
     fetchJson(getStudioDataPath("brochures")),
     fetchJson(getStudioDataPath("media")),
     fetchJson(getStudioDataPath("articles")),
     fetchJson(getStudioDataPath("library"))
   ]);
-  const supplierSession = createSupplierSession(suppliers);
-  const brochureSession = createBrochureSession(brochures, () => supplierSession.getWorkingData());
-  const mediaSession = createMediaSession(media);
-  const articleSession = createArticleSession(
-    articles,
-    () => supplierSession.getWorkingData(),
-    () => brochureSession.getWorkingData(),
-    () => mediaSession.getWorkingData()
-  );
-  const librarySession = createLibrarySession(library, {
-    suppliers: () => supplierSession.getWorkingData(),
-    brochures: () => brochureSession.getWorkingData(),
-    articles: () => articleSession.getWorkingData(),
-    media: () => mediaSession.getWorkingData()
-  });
+
+  return { suppliers, brochures, media, articles, library };
+}
+
+function draftOptions(draft, moduleKey) {
+  const moduleDraft = draft?.modules?.[moduleKey];
+  if (!moduleDraft) return {};
 
   return {
-    navigation,
-    dashboard,
+    sourceData: moduleDraft.sourceData,
+    workingData: moduleDraft.workingData,
+    sourceFileName: moduleDraft.sourceFileName,
+    sourceType: moduleDraft.sourceType,
+    lastExport: moduleDraft.lastExport
+  };
+}
+
+function contentSource(contentData, draft, moduleKey) {
+  return draft?.modules?.[moduleKey]?.sourceData || contentData?.[moduleKey] || {};
+}
+
+function createStudioSessions({ contentData = {}, draft = null } = {}) {
+  const supplierSession = createSupplierSession(
+    contentSource(contentData, draft, "suppliers"),
+    draftOptions(draft, "suppliers")
+  );
+  const brochureSession = createBrochureSession(
+    contentSource(contentData, draft, "brochures"),
+    () => supplierSession.getWorkingData(),
+    draftOptions(draft, "brochures")
+  );
+  const mediaSession = createMediaSession(
+    contentSource(contentData, draft, "media"),
+    draftOptions(draft, "media")
+  );
+  const articleSession = createArticleSession(
+    contentSource(contentData, draft, "articles"),
+    () => supplierSession.getWorkingData(),
+    () => brochureSession.getWorkingData(),
+    () => mediaSession.getWorkingData(),
+    draftOptions(draft, "articles")
+  );
+  const librarySession = createLibrarySession(
+    contentSource(contentData, draft, "library"),
+    {
+      suppliers: () => supplierSession.getWorkingData(),
+      brochures: () => brochureSession.getWorkingData(),
+      articles: () => articleSession.getWorkingData(),
+      media: () => mediaSession.getWorkingData()
+    },
+    draftOptions(draft, "library")
+  );
+
+  return {
     supplierSession,
     brochureSession,
     mediaSession,
     articleSession,
-    librarySession,
+    librarySession
+  };
+}
+
+function replaceStudioSessions(state, sessions) {
+  state.supplierSession = sessions.supplierSession;
+  state.brochureSession = sessions.brochureSession;
+  state.mediaSession = sessions.mediaSession;
+  state.articleSession = sessions.articleSession;
+  state.librarySession = sessions.librarySession;
+}
+
+function wrapSessionDraftMutations(state, persistDraft) {
+  [
+    [state.supplierSession, ["applySupplier", "importSource", "markExported"]],
+    [state.brochureSession, ["applyBrochure", "importSource", "markExported"]],
+    [state.mediaSession, ["applyMediaAsset"]],
+    [state.articleSession, ["applyArticle", "importSource", "markExported"]],
+    [state.librarySession, ["applyLibraryItem", "importSource", "markExported"]]
+  ].forEach(([session, methods]) => {
+    methods.forEach((methodName) => {
+      const original = session[methodName]?.bind(session);
+      if (!original) return;
+      session[methodName] = async (...args) => {
+        const result = original(...args);
+        await persistDraft();
+        return result;
+      };
+    });
+  });
+}
+
+function attachDraftPersistence(state) {
+  const persistDraft = () => saveStudioDraft(createStudioDraftPayload(state));
+  state.persistDraft = persistDraft;
+  state.restoreDraft = async () => {
+    await clearStudioDraft();
+    replaceStudioSessions(state, createStudioSessions({ contentData: await loadBundledContentData() }));
+    wrapSessionDraftMutations(state, persistDraft);
+  };
+
+  wrapSessionDraftMutations(state, persistDraft);
+}
+
+async function loadStudioData() {
+  const [{ navigation, dashboard }, draft] = await Promise.all([
+    loadStudioShellData(),
+    loadStudioDraft()
+  ]);
+  const contentData = draft ? null : await loadBundledContentData();
+
+  const state = {
+    navigation,
+    dashboard,
+    ...createStudioSessions({ contentData, draft }),
     formDirtyGuard: createFormDirtyGuard()
   };
+
+  attachDraftPersistence(state);
+  return state;
 }
 
 function renderStudio(state, options = {}) {
@@ -79,7 +184,11 @@ function renderStudio(state, options = {}) {
     authState,
     content
   });
-  setupRoute(currentRoute, state, { rerender: () => renderStudio(state), formDirtyGuard: state.formDirtyGuard });
+  setupRoute(currentRoute, state, {
+    rerender: () => renderStudio(state),
+    formDirtyGuard: state.formDirtyGuard,
+    restoreDraft: state.restoreDraft
+  });
   applyRouteTitle(routeTitle);
 
   if (options.focus !== false) {
@@ -156,12 +265,7 @@ async function initStudio() {
       renderStudio(state);
     });
     window.addEventListener("beforeunload", (event) => {
-      const supplierDirty = state.supplierSession?.snapshot().hasUnexportedChanges;
-      const brochureDirty = state.brochureSession?.snapshot().hasUnexportedChanges;
-      const mediaDirty = state.mediaSession?.snapshot().hasUnexportedChanges;
-      const articleDirty = state.articleSession?.snapshot().hasUnexportedChanges;
-      const libraryDirty = state.librarySession?.snapshot().hasUnexportedChanges;
-      if (!supplierDirty && !brochureDirty && !mediaDirty && !articleDirty && !libraryDirty && !state.formDirtyGuard.isDirty()) return;
+      if (!state.formDirtyGuard.isDirty()) return;
       event.preventDefault();
       event.returnValue = "";
     });

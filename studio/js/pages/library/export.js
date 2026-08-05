@@ -152,7 +152,7 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
   `;
 }
 
-export function setupLibraryExport({ librarySession, rerender = () => {} }) {
+export function setupLibraryExport({ librarySession, rerender = () => {}, restoreDraft }) {
   const exportButton = document.querySelector("[data-library-export-button]");
   const restoreButton = document.querySelector("[data-library-restore]");
   const exportGuard = createBusyGuard();
@@ -200,7 +200,7 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
           return;
         }
 
-        librarySession.markExported(exportResult.report);
+        await librarySession.markExported(exportResult.report);
         rerenderAndFocusReport(rerender);
       } finally {
         setButtonBusy(exportButton, false);
@@ -221,7 +221,11 @@ export function setupLibraryExport({ librarySession, rerender = () => {} }) {
       if (!confirmed) return;
     }
 
-    librarySession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      librarySession.restoreSource();
+    }
     rerender();
   });
 }

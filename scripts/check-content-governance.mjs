@@ -314,7 +314,7 @@ export async function runContentGovernanceChecks() {
   await runCheck("governance voegt geen opslag, backend of GitHub-integratie toe", () => {
     assertNoPattern({
       roots: ["shared", "studio", "data"],
-      pattern: /localStorage|sessionStorage|indexedDB|api\.github|Octokit/i,
+      pattern: /localStorage|sessionStorage|api\.github|Octokit/i,
       label: "Verboden opslag- of integratiepatroon gevonden"
     });
     assertNoPatternInFiles({

@@ -230,7 +230,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearFieldErrors(form);
 
@@ -246,7 +246,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
       return;
     }
 
-    mediaSession.applyMediaAsset(asset, form.dataset.originalId || "");
+    await mediaSession.applyMediaAsset(asset, form.dataset.originalId || "");
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",

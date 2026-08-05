@@ -358,7 +358,7 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearFieldErrors(form);
 
@@ -375,8 +375,8 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
       return;
     }
 
-    brochureSession.applyBrochure(brochure, form.dataset.originalSlug || "");
-    const createdMedia = registerBrochureMedia({ brochure, mediaSession });
+    await brochureSession.applyBrochure(brochure, form.dataset.originalSlug || "");
+    const createdMedia = await registerBrochureMedia({ brochure, mediaSession });
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
@@ -425,7 +425,7 @@ function nextMediaSortOrder(mediaData) {
   return getMediaAssets(mediaData).reduce((highest, asset) => Math.max(highest, Number(asset.sortOrder) || 0), 0) + 10;
 }
 
-function registerBrochureMedia({ brochure, mediaSession }) {
+async function registerBrochureMedia({ brochure, mediaSession }) {
   if (!mediaSession) return [];
 
   const specs = [
@@ -434,11 +434,11 @@ function registerBrochureMedia({ brochure, mediaSession }) {
   ].filter((spec) => spec.path);
   const created = [];
 
-  specs.forEach((spec) => {
+  for (const spec of specs) {
     const mediaData = mediaSession.getWorkingData();
     const existingAssets = getMediaAssets(mediaData);
     const hasRegistration = existingAssets.some((asset) => asset.file === spec.path);
-    if (hasRegistration) return;
+    if (hasRegistration) continue;
 
     const asset = mediaAssetForBrochureFile({
       brochure,
@@ -447,9 +447,9 @@ function registerBrochureMedia({ brochure, mediaSession }) {
       sortOrder: nextMediaSortOrder(mediaData),
       existingAssets
     });
-    mediaSession.applyMediaAsset(asset, "");
+    await mediaSession.applyMediaAsset(asset, "");
     created.push(asset);
-  });
+  }
 
   return created;
 }

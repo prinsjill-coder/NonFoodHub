@@ -73,7 +73,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
 
 export function setupBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession, options = {}) {
   if (route.id === "brochures") {
-    setupBrochureList({ brochureSession, supplierSession, rerender: options.rerender });
+    setupBrochureList({ brochureSession, supplierSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
 
   if (route.id === "brochureNew" || route.id === "brochureEdit") {

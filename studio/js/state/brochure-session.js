@@ -21,18 +21,18 @@ function createInitialReport(data, supplierData) {
   };
 }
 
-export function createBrochureSession(initialData, supplierDataSource) {
+export function createBrochureSession(initialData, supplierDataSource, options = {}) {
   const getSupplierData =
     typeof supplierDataSource === "function"
       ? supplierDataSource
       : () => supplierDataSource;
-  let sourceData = deepClone(initialData);
-  let workingData = deepClone(initialData);
+  let sourceData = normalizeBrochureFileForSession(options.sourceData || initialData);
+  let workingData = normalizeBrochureFileForSession(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
-  let sourceFileName = "data/brochures.json";
-  let sourceType = "bundled";
+  let sourceFileName = options.sourceFileName || "data/brochures.json";
+  let sourceType = options.sourceType || "bundled";
   let lastValidationReport = createInitialReport(workingData, getSupplierData());
-  let lastExport = null;
+  let lastExport = deepClone(options.lastExport || null);
 
   function workingHash() {
     return createHash(workingData);

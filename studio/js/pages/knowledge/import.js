@@ -153,7 +153,7 @@ async function handleImportFile({ file, articleSession, supplierSession, brochur
     return;
   }
 
-  articleSession.importSource(parsed, file.name, report);
+  await articleSession.importSource(parsed, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 

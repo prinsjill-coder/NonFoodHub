@@ -212,7 +212,7 @@ async function handleImportFile({
     return;
   }
 
-  librarySession.importSource(parsed, file.name, report);
+  await librarySession.importSource(parsed, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 
@@ -286,7 +286,8 @@ export function setupLibraryImport({
   brochureSession,
   articleSession,
   mediaSession,
-  rerender = () => {}
+  rerender = () => {},
+  restoreDraft
 }) {
   const importButton = document.querySelector("[data-library-import-button]");
   const importInput = document.querySelector("[data-library-import-file]");
@@ -318,7 +319,11 @@ export function setupLibraryImport({
       if (!confirmed) return;
     }
 
-    librarySession.restoreSource();
+    if (restoreDraft) {
+      await restoreDraft();
+    } else {
+      librarySession.restoreSource();
+    }
     rerender();
   });
 }

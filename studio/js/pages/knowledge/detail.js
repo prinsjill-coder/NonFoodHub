@@ -371,7 +371,7 @@ export function setupArticleWorkflowActions({
     });
     if (!confirmed) return;
 
-    articleSession.applyArticle({ ...article, status: "archived" }, article.slug);
+    await articleSession.applyArticle({ ...article, status: "archived" }, article.slug);
     setActionFeedback(article.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -404,7 +404,7 @@ export function setupArticleWorkflowActions({
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      articleSession.applyArticle({ ...currentArticle, status: targetStatus }, currentArticle.slug);
+      await articleSession.applyArticle({ ...currentArticle, status: targetStatus }, currentArticle.slug);
       const label = targetStatus === "published" ? "Publiceren" : getArticleStatusLabel(targetStatus);
       setActionFeedback(currentArticle.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();
