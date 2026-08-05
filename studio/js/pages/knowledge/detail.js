@@ -15,7 +15,7 @@ import {
   findMediaAssetByPath
 } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
-import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
+import { getSupplierStatusLabel, getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
 let articleActionFeedback = null;
@@ -143,6 +143,43 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
+function canDeleteStatus(status) {
+  return status === "concept" || status === "archived";
+}
+
+function deleteBlocker({ article, supplierData }) {
+  if (!canDeleteStatus(article.status)) return "";
+
+  const incomingSupplierLinks = getSuppliers(supplierData).filter((supplier) =>
+    Array.isArray(supplier.relatedArticleIds) && supplier.relatedArticleIds.includes(article.id)
+  );
+  if (incomingSupplierLinks.length) {
+    return "Verwijder eerst de handmatige koppeling bij gekoppelde leveranciers.";
+  }
+
+  return "";
+}
+
+function renderDeleteAction(reason = "") {
+  if (reason) {
+    return `
+      ${renderButton({
+        label: "Definitief verwijderen",
+        variant: "secondary",
+        disabled: true,
+        attributes: { "data-article-delete": true, "data-disabled-reason": reason }
+      })}
+      <p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>
+    `;
+  }
+
+  return renderButton({
+    label: "Definitief verwijderen",
+    variant: "secondary",
+    attributes: { "data-article-delete": true }
+  });
+}
+
 function renderArticleWorkflowActions({ article, articleData, supplierData, brochureData, mediaData }) {
   const reviewErrors = validationMessages(
     validationForStatus({ article, status: "review", articleData, supplierData, brochureData, mediaData })
@@ -192,6 +229,10 @@ function renderArticleWorkflowActions({ article, articleData, supplierData, broc
 
   if (article.status === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
+  }
+
+  if (canDeleteStatus(article.status)) {
+    actions.push(renderDeleteAction(deleteBlocker({ article, supplierData })));
   }
 
   return renderWorkflowActionCard({
@@ -360,6 +401,32 @@ export function setupArticleWorkflowActions({
   article,
   rerender
 }) {
+  document.querySelector("[data-article-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const supplierData = supplierSession.getWorkingData();
+    const reason = deleteBlocker({ article, supplierData });
+    if (reason) {
+      setActionFeedback(article.slug, "Artikel niet verwijderd", reason, "warning");
+      rerender?.();
+      return;
+    }
+
+    const confirmed = await confirmStudioAction({
+      title: "Artikel definitief verwijderen?",
+      message:
+        "Dit artikel wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await articleSession.deleteArticle(article.slug);
+    window.location.hash = "#/kennisbank";
+    rerender?.();
+  });
+
   document.querySelector("[data-article-archive]")?.addEventListener("click", async () => {
     const confirmed = await confirmStudioAction({
       title: "Artikel archiveren?",

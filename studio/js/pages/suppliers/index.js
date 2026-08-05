@@ -36,7 +36,7 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
   return renderSupplierDetail({ supplierData, brochureData, articleData, supplier });
 }
 
-export function setupSuppliersRoute(route, supplierSession, options = {}) {
+export function setupSuppliersRoute(route, supplierSession, brochureSession, articleSession, options = {}) {
   if (route.id === "suppliers") {
     setupSupplierList({ supplierSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
@@ -50,6 +50,8 @@ export function setupSuppliersRoute(route, supplierSession, options = {}) {
     if (supplier) {
       setupSupplierWorkflowActions({
         supplierSession,
+        brochureData: brochureSession?.getWorkingData(),
+        articleData: articleSession?.getWorkingData(),
         supplier,
         rerender: options.rerender
       });

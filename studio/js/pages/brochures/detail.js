@@ -167,7 +167,42 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
-function renderBrochureWorkflowActions({ brochure, brochureData, supplierData }) {
+function canDeleteStatus(status) {
+  return status === "concept" || status === "archived";
+}
+
+function deleteBlocker({ brochure, articleData }) {
+  if (!canDeleteStatus(brochure.status)) return "";
+
+  const relatedArticles = findBrochureArticles(brochure, articleData);
+  if (relatedArticles.length) {
+    return "Verwijder of verplaats eerst gekoppelde kennisbankartikelen.";
+  }
+
+  return "";
+}
+
+function renderDeleteAction(reason = "") {
+  if (reason) {
+    return `
+      ${renderButton({
+        label: "Definitief verwijderen",
+        variant: "secondary",
+        disabled: true,
+        attributes: { "data-brochure-delete": true, "data-disabled-reason": reason }
+      })}
+      <p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>
+    `;
+  }
+
+  return renderButton({
+    label: "Definitief verwijderen",
+    variant: "secondary",
+    attributes: { "data-brochure-delete": true }
+  });
+}
+
+function renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData = {} }) {
   const reviewErrors = validationMessages(validationForStatus({ brochure, status: "review", brochureData, supplierData }));
   const publishErrors = validationMessages(validationForStatus({ brochure, status: "published", brochureData, supplierData }));
   const canReview = !reviewErrors.length;
@@ -222,6 +257,10 @@ function renderBrochureWorkflowActions({ brochure, brochureData, supplierData })
 
   if (brochure.status === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
+  }
+
+  if (canDeleteStatus(brochure.status)) {
+    actions.push(renderDeleteAction(deleteBlocker({ brochure, articleData })));
   }
 
   return renderWorkflowActionCard({
@@ -299,7 +338,7 @@ export function renderBrochureDetail({
       ${renderReadinessCard(readiness)}
     </section>
 
-    ${renderBrochureWorkflowActions({ brochure, brochureData, supplierData })}
+    ${renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
@@ -480,7 +519,32 @@ async function confirmStatusChange(targetStatus) {
   });
 }
 
-export function setupBrochureWorkflowActions({ brochureSession, brochure, rerender }) {
+export function setupBrochureWorkflowActions({ brochureSession, articleData = {}, brochure, rerender }) {
+  document.querySelector("[data-brochure-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const reason = deleteBlocker({ brochure, articleData });
+    if (reason) {
+      setActionFeedback(brochure.slug, "Brochure niet verwijderd", reason, "warning");
+      rerender?.();
+      return;
+    }
+
+    const confirmed = await confirmStudioAction({
+      title: "Brochure definitief verwijderen?",
+      message:
+        "Deze brochure wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await brochureSession.deleteBrochure(brochure.slug);
+    window.location.hash = "#/brochures";
+    rerender?.();
+  });
+
   document.querySelector("[data-brochure-new-edition]")?.addEventListener("click", async () => {
     const confirmed = await confirmStudioAction({
       title: "Nieuwe jaargang toevoegen?",

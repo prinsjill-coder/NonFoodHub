@@ -297,6 +297,30 @@ export async function runArticleChecks() {
     assert.equal(session.findBySlug(article.slug).title, article.title);
   });
 
+  await runCheck("sessie kan conceptartikel definitief verwijderen uit de bewerkversie", () => {
+    const source = clone(articles);
+    const draft = {
+      ...firstArticle(source),
+      id: "article-delete-check",
+      title: "Delete check artikel",
+      slug: "delete-check-artikel",
+      status: "concept",
+      supplierIds: [],
+      brochureIds: [],
+      sortOrder: 999
+    };
+    source.items.push(draft);
+    const session = createArticleSession(source, suppliers, brochures, media);
+
+    assert.equal(session.findBySlug(draft.slug).id, draft.id);
+    session.deleteArticle(draft.slug);
+
+    assert.equal(session.findBySlug(draft.slug), null);
+    assert.equal(session.snapshot().dirty, true);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.equal(session.getSourceData().items.some((article) => article.id === draft.id), true);
+  });
+
   await runCheck("sessie kan importeren, exporteren en exportstatus registreren", () => {
     const session = createArticleSession(articles, suppliers, brochures, media);
     const data = clone(articles);

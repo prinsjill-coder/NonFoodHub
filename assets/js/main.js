@@ -597,12 +597,26 @@
     return brochure.thumbnail ? href(brochure.thumbnail) : href("assets/images/brochures.png");
   }
 
-  function brochureCategory(brochure) {
-    return String(brochure.category || "Brochure");
+  function brochureCategories(brochure) {
+    if (Array.isArray(brochure.categories) && brochure.categories.length) {
+      return brochure.categories.filter(Boolean);
+    }
+
+    return ["Brochure"];
+  }
+
+  function brochureCategoryLabel(brochure) {
+    return brochureCategories(brochure).join(", ");
   }
 
   function brochureFilterValue(brochure) {
-    return brochureCategory(brochure).toLowerCase();
+    return brochureCategories(brochure).join(" ").toLowerCase();
+  }
+
+  function renderBrochureCategoryTags(brochure) {
+    return brochureCategories(brochure)
+      .map((category) => `<span class="tag">${escapeHtml(category)}</span>`)
+      .join("");
   }
 
   function brochurePageLink(brochure) {
@@ -628,7 +642,7 @@
         </a>
         <div class="resource-card-body">
           <div class="card-meta">
-            <span class="tag">${escapeHtml(brochureCategory(brochure))}</span>
+            ${renderBrochureCategoryTags(brochure)}
             ${publicBrochureSupplierMeta(brochure, suppliersById)}
           </div>
           <h3>${escapeHtml(brochure.title)}</h3>
@@ -658,7 +672,7 @@
         ])}
         <div class="split">
           <div>
-            <p class="kicker">${escapeHtml(brochureCategory(brochure))}${brochure.updatedAt ? ` - Bijgewerkt ${escapeHtml(brochure.updatedAt)}` : ""}</p>
+            <p class="kicker">${escapeHtml(brochureCategoryLabel(brochure))}${brochure.updatedAt ? ` - Bijgewerkt ${escapeHtml(brochure.updatedAt)}` : ""}</p>
             <h2>${escapeHtml(brochure.title)}</h2>
             <p class="lead">${escapeHtml(brochure.summary)}</p>
             ${downloadStatus}

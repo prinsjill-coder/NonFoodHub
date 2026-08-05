@@ -83,6 +83,10 @@ function assertWorkflowPanel(html) {
   assert.match(html, /Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren\./);
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function createFakeForm() {
   const fields = {
     name: {
@@ -146,6 +150,10 @@ async function runStudioChecks() {
   const media = readJson("data/media.json");
   const articles = readJson("data/articles.json");
   const library = readJson("data/library.json");
+  const amefaBrochureTitle =
+    brochures.items.find((item) => item.slug === "amefa-for-professionals-2026")?.title ||
+    "Amefa for Professionals 2026";
+  const amefaBrochureEditTitlePattern = new RegExp(`${escapeRegExp(amefaBrochureTitle)} bewerken`);
 
   await runCheck("basis JSON-bestanden zijn geldig", () => {
     readJson("data/suppliers.json");
@@ -359,7 +367,7 @@ async function runStudioChecks() {
     assert.equal(getRouteTitle(routeFromHash("#/governance"), state), "Governance");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/amefa"), state), "Amefa");
     assert.equal(getRouteTitle(routeFromHash("#/leveranciers/onbekend"), state), "Leverancier niet gevonden");
-    assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), "Amefa for Professionals 2026");
+    assert.equal(getRouteTitle(routeFromHash("#/brochures/amefa-for-professionals-2026"), state), amefaBrochureTitle);
     assert.equal(getRouteTitle(routeFromHash("#/brochures/onbekend"), state), "Brochure niet gevonden");
     assert.equal(getRouteTitle(routeFromHash("#/media/media-brochures-overview"), state), "Brochures overzichtsbeeld");
     assert.equal(getRouteTitle(routeFromHash("#/media/onbekend"), state), "Media-asset niet gevonden");
@@ -474,7 +482,7 @@ async function runStudioChecks() {
     assert.match(detailHtml, /Artikel bekijken/);
     assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
-    assert.match(editHtml, /Amefa for Professionals 2026 bewerken/);
+    assert.match(editHtml, amefaBrochureEditTitlePattern);
   });
 
   await runCheck("mediaroutes renderen lijst, detail, nieuw en bewerken", () => {

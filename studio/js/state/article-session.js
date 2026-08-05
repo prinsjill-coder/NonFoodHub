@@ -123,6 +123,13 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
     lastValidationReport = deepClone(currentReport("session"));
   }
 
+  function deleteArticle(slug) {
+    const articles = getArticles(workingData);
+    workingData.items = sortArticles(articles.filter((article) => article.slug !== slug));
+    workingData = normalizeArticleFileForSession(workingData);
+    lastValidationReport = deepClone(currentReport("session"));
+  }
+
   function findBySlug(slug) {
     const article = findArticleBySlug(workingData, slug);
     return article ? deepClone(article) : null;
@@ -162,6 +169,7 @@ export function createArticleSession(initialData, supplierDataSource = {}, broch
     importSource,
     restoreSource,
     applyArticle,
+    deleteArticle,
     findBySlug,
     findById,
     prepareExport,

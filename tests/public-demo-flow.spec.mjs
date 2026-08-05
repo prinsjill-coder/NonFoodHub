@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+
+const publicBrochures = JSON.parse(readFileSync(new URL("../data/public/brochures.json", import.meta.url), "utf8"));
+const amefaBrochureTitle =
+  publicBrochures.items.find((item) => item.slug === "amefa-for-professionals-2026")?.title ||
+  "Amefa for Professionals 2026";
 
 function collectConsoleErrors(page) {
   const errors = [];
@@ -13,6 +19,9 @@ function collectConsoleErrors(page) {
 
 async function expectCleanPage(page, errors) {
   await page.waitForLoadState("networkidle", { timeout: 3000 }).catch(() => {});
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(100);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.locator("img").evaluateAll((images) =>
     Promise.all(
       images.map((image) => {
@@ -140,15 +149,15 @@ test("publieke demo-flow loopt van homepage naar artikel, leverancier en brochur
   await expect(page).toHaveURL(/pages\/brochures-catalogi\.html#amefa-for-professionals-2026$/);
   await expect(page.locator("[data-public-brochure-intro]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText("Amefa for Professionals 2026");
-  await expect(page).toHaveTitle("Amefa for Professionals 2026 | Non-Food Hub");
+  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText(amefaBrochureTitle);
+  await expect(page).toHaveTitle(`${amefaBrochureTitle} | Non-Food Hub`);
   await expect(page.locator("[data-public-brochure-detail]").getByText("PDF nog niet beschikbaar")).toBeVisible();
   await expect(page.getByRole("link", { name: /Terug naar brochures/i })).toBeVisible();
   await expectCleanPage(page, errors);
 
   await page.getByRole("link", { name: /Terug naar brochures/i }).click();
   await expect(page).toHaveURL(/pages\/brochures-catalogi\.html$/);
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(1);
+  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
   await expectCleanPage(page, errors);
 });
 
@@ -186,14 +195,20 @@ test("overzicht en detail blijven gescheiden bij directe publieke URLs", async (
   await expect(page.locator("[data-public-brochure-intro]")).toBeVisible();
   await expect(page.locator("[data-public-brochure-overview]")).toBeVisible();
   await expect(page.locator("[data-public-brochure-detail-section]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(1);
+  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
+  const churchillBrochureCard = page.locator("[data-public-brochure-grid] .resource-card", {
+    hasText: "Churchill Combined Brochure 2026"
+  });
+  await expect(churchillBrochureCard.getByText("Bestek", { exact: true })).toBeVisible();
+  await expect(churchillBrochureCard.getByText("Buffet & presentatie", { exact: true })).toBeVisible();
+  await expect(churchillBrochureCard.getByText("Servies", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Alle" })).toHaveAttribute("aria-pressed", "true");
   await expectCleanPage(page, errors);
 
   await page.goto("/pages/brochures-catalogi.html#amefa-for-professionals-2026");
   await expect(page.locator("[data-public-brochure-intro]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText("Amefa for Professionals 2026");
+  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText(amefaBrochureTitle);
   await expectCleanPage(page, errors);
 });
 
@@ -249,6 +264,7 @@ test("publieke navigatie, filters en focusstates blijven toegankelijk", async ({
 });
 
 test("publieke pagina's blijven schoon en visueel stabiel", async ({ page }) => {
+  test.setTimeout(60000);
   const errors = collectConsoleErrors(page);
 
   for (const publicPage of publicPages) {

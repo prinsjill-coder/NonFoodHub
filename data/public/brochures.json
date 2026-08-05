@@ -3,12 +3,30 @@
     {
       "id": "brochure-amefa-2026",
       "slug": "amefa-for-professionals-2026",
-      "title": "Amefa for Professionals 2026",
+      "title": "Amefa for Professionals 2026 1",
       "summary": "Brochure met professionele besteklijnen en tafelpresentatie-oplossingen voor horeca en hospitality.",
       "supplierId": "supplier-amefa",
-      "category": "Bestek",
+      "categories": [
+        "Bestek",
+        "Tafelpresentatie"
+      ],
       "thumbnail": "assets/images/supplier-amefa.jpg",
       "updatedAt": "2026-07-30"
+    },
+    {
+      "id": "brochure-churchill-2026",
+      "slug": "churchill-combined-brochure-2026",
+      "title": "Churchill Combined Brochure 2026",
+      "summary": "Brochure in review voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
+      "supplierId": "supplier-churchill",
+      "categories": [
+        "Bestek",
+        "Buffet & presentatie",
+        "Servies"
+      ],
+      "thumbnail": "assets/images/brochures/chruchill-thumbnail.jpg",
+      "updatedAt": "2026-08-05",
+      "downloadUrl": "assets/downloads/brochures/churchill-combined-brochure-2026-eu-unpriced-web.pdf"
     }
   ]
 }

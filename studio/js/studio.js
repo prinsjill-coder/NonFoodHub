@@ -122,10 +122,10 @@ function replaceStudioSessions(state, sessions) {
 
 function wrapSessionDraftMutations(state, persistDraft) {
   [
-    [state.supplierSession, ["applySupplier", "importSource", "markExported"]],
-    [state.brochureSession, ["applyBrochure", "importSource", "markExported"]],
+    [state.supplierSession, ["applySupplier", "deleteSupplier", "importSource", "markExported"]],
+    [state.brochureSession, ["applyBrochure", "deleteBrochure", "importSource", "markExported"]],
     [state.mediaSession, ["applyMediaAsset"]],
-    [state.articleSession, ["applyArticle", "importSource", "markExported"]],
+    [state.articleSession, ["applyArticle", "deleteArticle", "importSource", "markExported"]],
     [state.librarySession, ["applyLibraryItem", "importSource", "markExported"]]
   ].forEach(([session, methods]) => {
     methods.forEach((methodName) => {

@@ -151,7 +151,7 @@ export function setupRoute(route, state, options = {}) {
   }
 
   if (route.sectionId === "suppliers") {
-    setupSuppliersRoute(route, state.supplierSession, options);
+    setupSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, options);
   }
 
   if (route.sectionId === "brochures") {

@@ -37,24 +37,6 @@
   ],
   "items": [
     {
-      "id": "supplier-rc1k-test-supplier",
-      "name": "RC1K Test Supplier",
-      "slug": "rc1k-test-supplier",
-      "type": "leverancier",
-      "summary": "test",
-      "description": "test",
-      "categories": [
-        "Keukengerei"
-      ],
-      "logo": "",
-      "image": "",
-      "brochureIds": [],
-      "relatedArticleIds": [],
-      "featured": false,
-      "sortOrder": 0,
-      "status": "concept"
-    },
-    {
       "id": "supplier-amefa",
       "name": "Amefa",
       "slug": "amefa",

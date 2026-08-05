@@ -69,7 +69,7 @@ const FORBIDDEN_PLATFORM_BRANDING = [
 ];
 const PUBLIC_SUPPLIER_REFERENCE_KEYS = ["id", "slug", "name"];
 const PUBLIC_RELATED_ARTICLE_KEYS = ["id", "slug", "title", "summary", "category", "heroImage", "updatedAt"];
-const PUBLIC_RELATED_BROCHURE_KEYS = ["id", "slug", "title", "summary", "category", "thumbnail", "updatedAt"];
+const PUBLIC_RELATED_BROCHURE_KEYS = ["id", "slug", "title", "summary", "categories", "thumbnail", "updatedAt"];
 
 function readText(relativePath) {
   return readFileSync(resolve(rootDir, relativePath), "utf8");
@@ -293,6 +293,8 @@ export async function runPublicContentChecks() {
 
     publicBrochures.items.forEach((item) => {
       assertKeys(item, PUBLIC_BROCHURE_KEYS, PUBLIC_BROCHURE_OPTIONAL_KEYS);
+      assert.equal(Array.isArray(item.categories), true, `Publieke brochure ${item.id} mist categorieen-array.`);
+      assert.equal("category" in item, false, `Publieke brochure ${item.id} gebruikt nog een enkele categorie.`);
       FORBIDDEN_ITEM_FIELDS.forEach((field) => {
         assert.equal(field in item, false, `Verboden itemveld in publieke brochureprojectie: ${field}`);
       });
@@ -346,6 +348,8 @@ export async function runPublicContentChecks() {
       assert.equal(Array.isArray(supplier.relatedBrochures), true, `Leverancier ${supplier.id} mist publieke brochurelijst.`);
       supplier.relatedBrochures.forEach((brochure) => {
         assertKeys(brochure, PUBLIC_RELATED_BROCHURE_KEYS, PUBLIC_BROCHURE_OPTIONAL_KEYS);
+        assert.equal(Array.isArray(brochure.categories), true, `Gerelateerde brochure ${brochure.id} mist categorieen-array.`);
+        assert.equal("category" in brochure, false, `Gerelateerde brochure ${brochure.id} gebruikt nog een enkele categorie.`);
         const publicBrochure = brochuresById.get(brochure.id);
         assert.ok(publicBrochure, `Leverancier ${supplier.id} verwijst naar niet-publieke brochure ${brochure.id}.`);
         assert.equal(publicBrochure.supplierId, supplier.id);

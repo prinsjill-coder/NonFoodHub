@@ -129,7 +129,47 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
-function renderSupplierWorkflowActions({ supplier, supplierData }) {
+function canDeleteStatus(status) {
+  return status === "concept" || status === "archived";
+}
+
+function deleteBlocker({ supplier, brochureData, articleData }) {
+  if (!canDeleteStatus(supplier.status)) return "";
+
+  const relatedBrochures = findSupplierBrochures(supplier, brochureData);
+  if (relatedBrochures.length) {
+    return "Verwijder of verplaats eerst gekoppelde brochures.";
+  }
+
+  const relatedArticles = findSupplierArticles(supplier, articleData);
+  if (relatedArticles.length) {
+    return "Verwijder of verplaats eerst gekoppelde kennisbankartikelen.";
+  }
+
+  return "";
+}
+
+function renderDeleteAction(reason = "") {
+  if (reason) {
+    return `
+      ${renderButton({
+        label: "Definitief verwijderen",
+        variant: "secondary",
+        disabled: true,
+        attributes: { "data-supplier-delete": true, "data-disabled-reason": reason }
+      })}
+      <p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>
+    `;
+  }
+
+  return renderButton({
+    label: "Definitief verwijderen",
+    variant: "secondary",
+    attributes: { "data-supplier-delete": true }
+  });
+}
+
+function renderSupplierWorkflowActions({ supplier, supplierData, brochureData = {}, articleData = {} }) {
   const reviewErrors = validationMessages(validationForStatus({ supplier, status: "review", supplierData }));
   const publishErrors = validationMessages(validationForStatus({ supplier, status: "published", supplierData }));
   const actions = [];
@@ -173,6 +213,10 @@ function renderSupplierWorkflowActions({ supplier, supplierData }) {
 
   if (supplier.status === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
+  }
+
+  if (canDeleteStatus(supplier.status)) {
+    actions.push(renderDeleteAction(deleteBlocker({ supplier, brochureData, articleData })));
   }
 
   return renderWorkflowActionCard({
@@ -222,7 +266,7 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
       ${renderReadinessCard(readiness)}
     </section>
 
-    ${renderSupplierWorkflowActions({ supplier, supplierData })}
+    ${renderSupplierWorkflowActions({ supplier, supplierData, brochureData, articleData })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
@@ -320,7 +364,25 @@ async function confirmStatusChange(targetStatus) {
   });
 }
 
-export function setupSupplierWorkflowActions({ supplierSession, supplier, rerender }) {
+export function setupSupplierWorkflowActions({ supplierSession, brochureData = {}, articleData = {}, supplier, rerender }) {
+  document.querySelector("[data-supplier-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const confirmed = await confirmStudioAction({
+      title: "Leverancier definitief verwijderen?",
+      message:
+        "Deze leverancier wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await supplierSession.deleteSupplier(supplier.slug);
+    window.location.hash = "#/leveranciers";
+    rerender?.();
+  });
+
   document.querySelector("[data-supplier-archive]")?.addEventListener("click", async () => {
     const confirmed = await confirmStudioAction({
       title: "Leverancier archiveren?",

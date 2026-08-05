@@ -11,8 +11,8 @@ export const PUBLIC_BROCHURE_DATASET = PUBLIC_DATASET_CONFIG.brochures;
 export const PUBLIC_BROCHURE_KEYS = PUBLIC_BROCHURE_DATASET.itemKeys;
 export const PUBLIC_BROCHURE_OPTIONAL_KEYS = PUBLIC_BROCHURE_DATASET.optionalItemKeys || [];
 
-function firstCategory(brochure) {
-  return Array.isArray(brochure?.categories) && brochure.categories.length ? brochure.categories[0] : "Brochure";
+function publicCategories(brochure) {
+  return Array.isArray(brochure?.categories) ? brochure.categories.filter(Boolean) : [];
 }
 
 function publicSupplierIds(supplierData = {}) {
@@ -24,7 +24,7 @@ export function publicBrochureSummary(brochure, options = {}) {
     {
       ...brochure,
       summary: brochure.description,
-      category: firstCategory(brochure)
+      categories: publicCategories(brochure)
     },
     PUBLIC_BROCHURE_KEYS
   );

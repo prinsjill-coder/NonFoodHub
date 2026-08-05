@@ -36,8 +36,8 @@ function publicRelatedArticles(supplier, articleData = {}) {
   ).map(publicRelatedArticle);
 }
 
-function firstBrochureCategory(brochure) {
-  return Array.isArray(brochure?.categories) && brochure.categories.length ? brochure.categories[0] : "Brochure";
+function publicBrochureCategories(brochure) {
+  return Array.isArray(brochure?.categories) ? brochure.categories.filter(Boolean) : [];
 }
 
 function publicRelatedBrochure(brochure, options = {}) {
@@ -46,7 +46,7 @@ function publicRelatedBrochure(brochure, options = {}) {
     slug: brochure.slug,
     title: brochure.title,
     summary: brochure.description,
-    category: firstBrochureCategory(brochure),
+    categories: publicBrochureCategories(brochure),
     thumbnail: brochure.thumbnail,
     updatedAt: brochure.updatedAt
   };

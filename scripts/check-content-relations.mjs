@@ -126,8 +126,12 @@ export async function runContentRelationChecks() {
 
   await runCheck("dashboardrelatiestatistieken rapporteren bestaande contentrelaties", () => {
     const stats = getContentRelationStats(suppliers, brochures, media, articles);
+    const expectedSuppliersWithoutBrochures = getSuppliers(suppliers).filter(
+      (supplier) => findSupplierBrochures(supplier, brochures).length === 0
+    ).length;
+
     assert.equal(stats.articlesWithoutSupplier, 0);
-    assert.equal(stats.suppliersWithoutBrochures, 1);
+    assert.equal(stats.suppliersWithoutBrochures, expectedSuppliersWithoutBrochures);
     assert.ok(stats.mediaWithoutUsage >= 1);
   });
 }

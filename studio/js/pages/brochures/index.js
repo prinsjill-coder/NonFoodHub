@@ -94,6 +94,7 @@ export function setupBrochuresRoute(route, brochureSession, supplierSession, art
         brochureSession,
         supplierSession,
         articleSession,
+        articleData: articleSession?.getWorkingData(),
         brochure,
         rerender: options.rerender
       });

@@ -139,6 +139,28 @@ export async function runSupplierChecks() {
     assert.equal(session.findBySlug(supplier.slug).name, supplier.name);
   });
 
+  await runCheck("sessie kan conceptleverancier definitief verwijderen uit de bewerkversie", () => {
+    const source = clone(suppliers);
+    const draft = {
+      ...firstSupplier(source),
+      id: "supplier-delete-check",
+      name: "Delete check leverancier",
+      slug: "delete-check-leverancier",
+      status: "concept",
+      sortOrder: 999
+    };
+    source.items.push(draft);
+    const session = createSupplierSession(source);
+
+    assert.equal(session.findBySlug(draft.slug).id, draft.id);
+    session.deleteSupplier(draft.slug);
+
+    assert.equal(session.findBySlug(draft.slug), null);
+    assert.equal(session.snapshot().dirty, true);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.equal(session.getSourceData().items.some((supplier) => supplier.id === draft.id), true);
+  });
+
   await runCheck("succesvolle import wordt nieuwe bron met dirty=false", () => {
     const session = createSupplierSession(suppliers);
     const imported = clone(suppliers);

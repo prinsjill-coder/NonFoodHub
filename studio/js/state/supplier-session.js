@@ -107,6 +107,16 @@ export function createSupplierSession(initialData, options = {}) {
     });
   }
 
+  function deleteSupplier(slug) {
+    const suppliers = getSuppliers(workingData);
+    workingData.items = sortSuppliers(suppliers.filter((supplier) => supplier.slug !== slug));
+    lastValidationReport = deepClone({
+      ...validateSupplierFile(workingData),
+      action: "session",
+      sourceFileName
+    });
+  }
+
   function findBySlug(slug) {
     const supplier = findSupplierBySlug(workingData, slug);
     return supplier ? deepClone(supplier) : null;
@@ -151,6 +161,7 @@ export function createSupplierSession(initialData, options = {}) {
     importSource,
     restoreSource,
     applySupplier,
+    deleteSupplier,
     findBySlug,
     prepareExport,
     markExported

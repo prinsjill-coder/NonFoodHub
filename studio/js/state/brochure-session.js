@@ -113,6 +113,16 @@ export function createBrochureSession(initialData, supplierDataSource, options =
     });
   }
 
+  function deleteBrochure(slug) {
+    const brochures = getBrochures(workingData);
+    workingData.items = sortBrochures(brochures.filter((brochure) => brochure.slug !== slug));
+    lastValidationReport = deepClone({
+      ...validateBrochureFile(workingData, getSupplierData()),
+      action: "session",
+      sourceFileName
+    });
+  }
+
   function findBySlug(slug) {
     const brochure = findBrochureBySlug(workingData, slug);
     return brochure ? deepClone(brochure) : null;
@@ -162,6 +172,7 @@ export function createBrochureSession(initialData, supplierDataSource, options =
     importSource,
     restoreSource,
     applyBrochure,
+    deleteBrochure,
     findBySlug,
     findById,
     prepareExport,

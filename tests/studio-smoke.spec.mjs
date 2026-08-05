@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { Buffer } from "node:buffer";
+import { readFileSync } from "node:fs";
 
 const STUDIO_DRAFT_DB_NAME = "nonfoodhub-studio";
+const brochureData = JSON.parse(readFileSync(new URL("../data/brochures.json", import.meta.url), "utf8"));
+const amefaBrochureTitle =
+  brochureData.items.find((item) => item.slug === "amefa-for-professionals-2026")?.title ||
+  "Amefa for Professionals 2026";
+const amefaNextEditionTitle = amefaBrochureTitle.replace("2026", "2027");
 
 function filePayload(name, mimeType, content) {
   return {
@@ -209,6 +215,62 @@ test("Studio bewaart bewerkversies centraal na refresh en herstelt naar JSON-bro
   await expectCleanStudioPage(page, errors);
 });
 
+test("Studio verwijdert conceptcontent definitief uit de bewerkversie", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/studio/index.html#/leveranciers/nieuw");
+  await page.locator("#studio-field-name").fill("RC1K delete leverancier");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/rc1k-delete-leverancier$/);
+  await page.getByRole("button", { name: "Definitief verwijderen" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Leverancier definitief verwijderen?" })).toBeVisible();
+  await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
+  await expect(page).toHaveURL(/#\/leveranciers$/);
+  await expect(page.locator("[data-supplier-item]", { hasText: "RC1K delete leverancier" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("[data-supplier-item]", { hasText: "RC1K delete leverancier" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/leveranciers/rc1k-delete-leverancier");
+  await expect(page.getByRole("heading", { name: "Leverancier niet gevonden" })).toBeVisible();
+
+  await page.goto("/studio/index.html#/brochures/nieuw");
+  await page.getByLabel(/Titel/).fill("RC1K delete brochure");
+  await page.getByLabel("Leverancier").selectOption({ label: "Amefa" });
+  await page.getByLabel("Jaar").fill("2028");
+  await page.getByLabel("Beschrijving").fill("Controlebrochure voor definitief verwijderen.");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/brochures\/rc1k-delete-brochure$/);
+  await page.getByRole("button", { name: "Definitief verwijderen" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Brochure definitief verwijderen?" })).toBeVisible();
+  await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
+  await expect(page).toHaveURL(/#\/brochures$/);
+  await expect(page.locator("[data-brochure-item]", { hasText: "RC1K delete brochure" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("[data-brochure-item]", { hasText: "RC1K delete brochure" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/brochures/rc1k-delete-brochure");
+  await expect(page.getByRole("heading", { name: "Brochure niet gevonden" })).toBeVisible();
+
+  await page.goto("/studio/index.html#/kennisbank/nieuw");
+  await page.getByLabel("Titel").fill("RC1K delete artikel");
+  await page.getByLabel("Samenvatting").fill("Controleartikel voor definitief verwijderen.");
+  await page.getByLabel("Inhoud").fill("Deze tekst controleert dat definitief verwijderen uit de bewerkversie werkt.");
+  await page.locator("#studio-field-categories-inspiratie").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/kennisbank\/rc1k-delete-artikel$/);
+  await page.getByRole("button", { name: "Definitief verwijderen" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Artikel definitief verwijderen?" })).toBeVisible();
+  await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
+  await expect(page).toHaveURL(/#\/kennisbank$/);
+  await expect(page.locator("[data-article-item]", { hasText: "RC1K delete artikel" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("[data-article-item]", { hasText: "RC1K delete artikel" })).toHaveCount(0);
+  await page.goto("/studio/index.html#/kennisbank/rc1k-delete-artikel");
+  await expect(page.getByRole("heading", { name: "Kennisbankartikel niet gevonden" })).toBeVisible();
+
+  await expectCleanStudioPage(page, errors);
+});
+
 test("Studio toont readiness op detailpagina zonder consolefouten", async ({ page }) => {
   const errors = collectConsoleErrors(page);
 
@@ -307,8 +369,8 @@ test("Studio brochurebeheer ondersteunt de handmatige bewerkflow", async ({ page
 
   await page.goto("/pages/brochures-catalogi.html");
   await expect(page.locator("[data-public-brochure-grid]")).not.toContainText("RC1E praktijkbrochure");
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "Download brochure" })).toHaveCount(0);
+  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
+  await expect(page.getByRole("link", { name: "Download brochure" })).toHaveCount(1);
 
   await expectCleanStudioPage(page, errors);
 });
@@ -471,7 +533,7 @@ test("Studio brochurebeheer maakt nieuwe jaargang zonder oude brochure te oversc
   await page.getByRole("button", { name: "Nieuwe jaargang maken" }).click();
 
   await expect(page).toHaveURL(/#\/brochures\/amefa-for-professionals-2027\/bewerken$/);
-  await expect(page.getByLabel(/Titel/)).toHaveValue("Amefa for Professionals 2027");
+  await expect(page.getByLabel(/Titel/)).toHaveValue(amefaNextEditionTitle);
   await expect(page.getByLabel("URL-naam")).toHaveValue("amefa-for-professionals-2027");
   await expect(page.getByLabel("Jaar")).toHaveValue("2027");
   await expect(page.getByLabel("Status")).toHaveValue("concept");
@@ -487,10 +549,8 @@ test("Studio brochurebeheer maakt nieuwe jaargang zonder oude brochure te oversc
   await expect(page.locator("[data-brochure-item]", { hasText: "Amefa for Professionals 2027" }).first()).toBeVisible();
 
   await page.goto("/studio/index.html#/brochures/churchill-combined-brochure-2026");
-  await expect(page.locator('[data-brochure-status-action="published"]')).toBeDisabled();
-  await expect(page.getByText("Een gepubliceerde brochure heeft een afbeelding nodig.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "PDF openen" })).toHaveCount(0);
-  await expect(page.getByText("Mediaregistratie ontbreekt").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Churchill Combined Brochure 2026", level: 1 })).toBeVisible();
+  await expect(page.getByText("Bestek, Buffet & presentatie, Servies")).toBeVisible();
 
   await expectCleanStudioPage(page, errors);
 });

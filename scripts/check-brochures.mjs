@@ -167,7 +167,7 @@ export async function runBrochureChecks() {
 
     assert.equal(draft.status, "concept");
     assert.equal(draft.year, 2027);
-    assert.equal(draft.title, "Amefa for Professionals 2027");
+    assert.equal(draft.title, source.title.replace("2026", "2027"));
     assert.equal(draft.slug, "amefa-for-professionals-2027");
     assert.equal(draft.id, "brochure-amefa-2027");
     assert.equal(draft.pdfFile, "assets/downloads/brochures/amefa-for-professionals-2027.pdf");
@@ -364,6 +364,30 @@ export async function runBrochureChecks() {
     session.restoreSource();
     assert.equal(session.snapshot().dirty, false);
     assert.equal(session.findBySlug(brochure.slug).title, brochure.title);
+  });
+
+  await runCheck("sessie kan conceptbrochure definitief verwijderen uit de bewerkversie", () => {
+    const source = clone(brochures);
+    const draft = {
+      ...firstBrochure(source),
+      id: "brochure-delete-check",
+      title: "Delete check brochure",
+      slug: "delete-check-brochure",
+      status: "concept",
+      pdfFile: "",
+      thumbnail: "",
+      sortOrder: 999
+    };
+    source.items.push(draft);
+    const session = createBrochureSession(source, suppliers);
+
+    assert.equal(session.findBySlug(draft.slug).id, draft.id);
+    session.deleteBrochure(draft.slug);
+
+    assert.equal(session.findBySlug(draft.slug), null);
+    assert.equal(session.snapshot().dirty, true);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.equal(session.getSourceData().items.some((brochure) => brochure.id === draft.id), true);
   });
 
   await runCheck("exportstatus blijft overdrachtsstatus zonder publicatieclaim", () => {
