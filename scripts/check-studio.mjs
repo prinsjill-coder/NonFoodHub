@@ -570,7 +570,12 @@ async function runStudioChecks() {
     assert.match(detailHtml, /href="#\/leveranciers\/amefa"/);
     assert.match(detailHtml, /href="#\/brochures\/churchill-combined-brochure-2026"/);
     assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
+    assert.match(detailHtml, /Klaarzetten voor website/);
+    assert.match(detailHtml, /data-article-status-action="concept"/);
+    assert.match(detailHtml, /data-article-archive/);
     assert.match(detailHtml, /Headerafbeelding/);
+    assert.match(detailHtml, /data-article-hero-preview/);
+    assert.match(detailHtml, /assets\/images\/blog-terrace\.png/);
     assert.match(editHtml, /Terras &amp; outdoor tafelpresentatie bewerken/);
   });
 

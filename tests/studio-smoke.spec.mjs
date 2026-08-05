@@ -124,6 +124,30 @@ test("Studio toont readiness op detailpagina zonder consolefouten", async ({ pag
   await expectCleanStudioPage(page, errors);
 });
 
+test("Studio kennisbankdetail toont workflowacties en headerafbeelding", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/studio/index.html#/kennisbank/terras-outdoor-inspiratie");
+  await expect(page.locator("#studio-app")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Terras & outdoor tafelpresentatie", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Klaarzetten voor website", level: 2 })).toBeVisible();
+  await expect(page.locator('[data-article-status-action="concept"]')).toBeVisible();
+  await expect(page.locator("[data-article-archive]")).toBeVisible();
+  await expect(page.locator("[data-article-hero-preview] img")).toBeVisible();
+  await expect(page.locator("[data-article-hero-preview] img")).toHaveAttribute("src", /assets\/images\/blog-terrace\.png/);
+  await expect(page.locator("[data-article-hero-preview] code").first()).toHaveText("assets/images/blog-terrace.png");
+  await expect(page.locator("[data-article-hero-preview] dl")).toHaveCount(0);
+  await expect(page.locator("[data-article-hero-preview]").getByText("Dit bestand staat nog niet geregistreerd in Media.")).toBeVisible();
+  await expect(page.locator(".studio-readiness-card").getByRole("link", { name: "Bekijk in Governance" })).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Archiveren" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Artikel archiveren?" })).toBeVisible();
+  await page.getByRole("button", { name: "Archiveren" }).last().click();
+  await expect(page.locator("[data-article-action-feedback]").getByText("Gearchiveerd in bewerkversie")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Terug naar concept" })).toBeVisible();
+  await expectCleanStudioPage(page, errors);
+});
+
 test("Studio brochurebeheer ondersteunt de handmatige bewerkflow", async ({ page }) => {
   const errors = collectConsoleErrors(page);
 
@@ -428,6 +452,7 @@ test("Studio contentbeheerflows tonen bewerkstatus, validatie en export per modu
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/kennisbank\/rc1f-artikel$/);
   await expect(page.getByText("Dit staat nog niet op de publieke website. De punten hieronder tonen wat nog ontbreekt.")).toBeVisible();
+  await expect(page.getByText("Afbeeldingsbestand nog niet beschikbaar in de projectmap.")).toBeVisible();
   await page.getByRole("link", { name: "Terug naar kennisbank" }).click();
   await expect(page.locator("[data-article-item]", { hasText: "RC1F artikel" }).first()).toBeVisible();
   await expect(page.getByText("Wijzigingen nog niet geexporteerd")).toBeVisible();

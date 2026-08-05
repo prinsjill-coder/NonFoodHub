@@ -1,7 +1,40 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
-import { renderArticleDetail } from "./detail.js";
+import { getArticles } from "../../../../shared/article-model.js";
+import { getMediaAssets } from "../../../../shared/media-model.js";
+import { renderArticleDetail, setupArticleWorkflowActions } from "./detail.js";
 import { renderArticleForm, setupArticleForm } from "./form.js";
 import { renderArticlesList, setupArticleList } from "./list.js";
+
+function isImageProjectPath(path) {
+  return /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(String(path || ""));
+}
+
+function knownPreviewPaths(articleSession, mediaSession) {
+  const articlePaths = getArticles(articleSession.getSourceData())
+    .map((article) => article.heroImage)
+    .filter(Boolean);
+  const mediaPaths = getMediaAssets(mediaSession.getSourceData())
+    .filter((asset) => ["image", "logo", "thumbnail"].includes(asset.type))
+    .map((asset) => asset.file)
+    .filter(Boolean);
+
+  return new Set([...articlePaths, ...mediaPaths].filter(isImageProjectPath));
+}
+
+function heroImagePreviewForArticle(article, articleSession, mediaSession) {
+  const path = article.heroImage || "";
+  const localFile = mediaSession.findLocalProjectFile?.(path);
+
+  if (localFile?.url) {
+    return { canPreview: true, url: localFile.url, alt: `${article.title} headerafbeelding` };
+  }
+
+  return {
+    canPreview: knownPreviewPaths(articleSession, mediaSession).has(path),
+    url: path ? `../${path}` : "",
+    alt: `${article.title} headerafbeelding`
+  };
+}
 
 export function renderKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession) {
   const articleData = articleSession.getWorkingData();
@@ -40,7 +73,14 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
     return renderArticleForm({ articleData, supplierData, brochureData, article, mode: "edit" });
   }
 
-  return renderArticleDetail({ article, articleData, supplierData, brochureData, mediaData });
+  return renderArticleDetail({
+    article,
+    articleData,
+    supplierData,
+    brochureData,
+    mediaData,
+    heroImagePreview: heroImagePreviewForArticle(article, articleSession, mediaSession)
+  });
 }
 
 export function setupKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession, options = {}) {
@@ -67,5 +107,19 @@ export function setupKnowledgeRoute(route, articleSession, supplierSession, broc
       mediaSession,
       formDirtyGuard: options.formDirtyGuard
     });
+  }
+
+  if (route.id === "articleDetail") {
+    const article = articleSession.findBySlug(route.params?.slug);
+    if (article) {
+      setupArticleWorkflowActions({
+        articleSession,
+        supplierSession,
+        brochureSession,
+        mediaSession,
+        article,
+        rerender: options.rerender
+      });
+    }
   }
 }

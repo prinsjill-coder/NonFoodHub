@@ -284,6 +284,7 @@ export async function runContentReadinessChecks() {
     assert.match(cardHtml, /Eerst afronden/);
     assert.match(cardHtml, /Bekijk in Governance/);
     assert.match(cardHtml, /href="#\/governance"/);
+    assert.equal((cardHtml.match(/Bekijk in Governance/g) || []).length, 1);
     assert.match(cardHtml, /Publieke website/);
   });
 

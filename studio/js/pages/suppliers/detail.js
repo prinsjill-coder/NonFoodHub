@@ -5,6 +5,7 @@ import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
+import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../../components/workflow-panel.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
 import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
@@ -118,18 +119,14 @@ function validationForStatus({ supplier, status, supplierData }) {
 }
 
 function renderStatusAction({ label, targetStatus, disabled = false, reason = "", variant = "secondary" }) {
-  return `
-    ${renderButton({
-      label,
-      variant,
-      disabled,
-      attributes: {
-        "data-supplier-status-action": targetStatus,
-        "data-disabled-reason": reason
-      }
-    })}
-    ${disabled && reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
-  `;
+  return renderWorkflowStatusAction({
+    label,
+    targetStatus,
+    disabled,
+    reason,
+    variant,
+    actionAttribute: "data-supplier-status-action"
+  });
 }
 
 function renderSupplierWorkflowActions({ supplier, supplierData }) {
@@ -178,25 +175,11 @@ function renderSupplierWorkflowActions({ supplier, supplierData }) {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
   }
 
-  return `
-    <section class="studio-section">
-      <article class="studio-card studio-workflow-action-card">
-        <div class="studio-card-head">
-          <div>
-            <h2>Klaarzetten voor website</h2>
-            <p class="studio-muted">
-              Deze acties wijzigen alleen de bewerkversie. De website verandert pas na export, Website bijwerken, controle, commit en push.
-            </p>
-          </div>
-          ${renderStatusBadge(supplier.status, getSupplierStatusLabel(supplier.status))}
-        </div>
-        <div class="studio-actions">${actions.join("")}</div>
-        <p class="studio-meta">
-          Publiceren betekent hier: status klaarzetten op Gepubliceerd. Het is geen automatische livegang.
-        </p>
-      </article>
-    </section>
-  `;
+  return renderWorkflowActionCard({
+    status: supplier.status,
+    statusLabel: getSupplierStatusLabel(supplier.status),
+    actions
+  });
 }
 
 function renderFeedbackForSupplier(supplier) {

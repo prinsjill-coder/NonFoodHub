@@ -28,13 +28,16 @@ function renderReason(reason, index) {
         <span class="studio-readiness-priority">${escapeHtml(normalized.priorityLabel)}</span>
         <span>${escapeHtml(normalized.message)}</span>
       </div>
-      ${
-        normalized.governanceRoute
-          ? `<a class="studio-inline-link studio-readiness-link" href="${escapeHtml(normalized.governanceRoute)}">Bekijk in Governance</a>`
-          : ""
-      }
     </li>
   `;
+}
+
+function firstGovernanceRoute(reasons) {
+  const reason = reasons
+    .map((item, index) => normalizeReason(item, index))
+    .find((item) => item.governanceRoute);
+
+  return reason?.governanceRoute || "";
 }
 
 function renderPublicationItem(item, index) {
@@ -123,12 +126,20 @@ export function renderReadinessCard(readiness) {
   const label = readiness?.label || "Nog enkele punten afronden";
   const score = Number(readiness?.score || 0);
   const reasons = Array.isArray(readiness?.reasons) ? readiness.reasons : [];
+  const governanceRoute = firstGovernanceRoute(reasons);
 
   return `
     <article class="studio-card studio-readiness-card">
       <div class="studio-card-head">
         <h2>Klaar voor de website?</h2>
-        ${renderStatusBadge(status, label)}
+        <div class="studio-actions">
+          ${
+            governanceRoute
+              ? `<a class="studio-inline-link studio-readiness-link" href="${escapeHtml(governanceRoute)}">Bekijk in Governance</a>`
+              : ""
+          }
+          ${renderStatusBadge(status, label)}
+        </div>
       </div>
       <p class="studio-readiness-score">Score ${score}/100</p>
       ${

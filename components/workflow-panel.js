@@ -1,3 +1,5 @@
+import { renderButton } from "./button.js";
+import { renderStatusBadge } from "./status-badge.js";
 import { escapeHtml } from "../shared/utils.js";
 
 const DEFAULT_STEPS = [
@@ -50,6 +52,54 @@ export function renderWorkflowPanel({
         </div>
         <ol class="studio-workflow-steps">${stepItems}</ol>
         ${nextStep ? `<p class="studio-meta">${escapeHtml(nextStep)}</p>` : ""}
+      </article>
+    </section>
+  `;
+}
+
+export function renderWorkflowStatusAction({
+  label,
+  targetStatus,
+  actionAttribute,
+  disabled = false,
+  reason = "",
+  variant = "secondary"
+}) {
+  return `
+    ${renderButton({
+      label,
+      variant,
+      disabled,
+      attributes: {
+        [actionAttribute]: targetStatus,
+        "data-disabled-reason": reason
+      }
+    })}
+    ${disabled && reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
+  `;
+}
+
+export function renderWorkflowActionCard({
+  status,
+  statusLabel,
+  actions,
+  title = "Klaarzetten voor website",
+  description =
+    "Deze acties wijzigen alleen de bewerkversie. De website verandert pas na export, Website bijwerken, controle, commit en push.",
+  footer = "Publiceren betekent hier: status klaarzetten op Gepubliceerd. Het is geen automatische livegang."
+}) {
+  return `
+    <section class="studio-section">
+      <article class="studio-card studio-workflow-action-card">
+        <div class="studio-card-head">
+          <div>
+            <h2>${escapeHtml(title)}</h2>
+            <p class="studio-muted">${escapeHtml(description)}</p>
+          </div>
+          ${renderStatusBadge(status, statusLabel)}
+        </div>
+        <div class="studio-actions">${actions.join("")}</div>
+        <p class="studio-meta">${escapeHtml(footer)}</p>
       </article>
     </section>
   `;
