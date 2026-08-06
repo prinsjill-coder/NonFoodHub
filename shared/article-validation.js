@@ -1,4 +1,5 @@
 import { isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
+import { isValidUpdatedAt } from "./content-dates.js";
 import { getBrochures } from "./brochure-model.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -17,12 +18,6 @@ function isRelativeProjectPath(value) {
     !value.toLowerCase().startsWith("file:") &&
     !/^[a-zA-Z]:[\\/]/.test(value)
   );
-}
-
-function validDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function stringsFromForm(formData, name) {
@@ -142,8 +137,8 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     errors.brochureIds = `Onbekende brochure: ${unknownBrochure}.`;
   }
 
-  if (!validDate(article.updatedAt)) {
-    errors.updatedAt = "Gebruik een geldige datum in formaat YYYY-MM-DD.";
+  if (!isValidUpdatedAt(article.updatedAt)) {
+    errors.updatedAt = "Gebruik een geldige ISO-datum of timestamp.";
   }
 
   if (!Number.isInteger(article.sortOrder) || article.sortOrder < 0) {

@@ -69,6 +69,7 @@ export async function runBrochureChecks() {
     assert.equal(brochures.storage.message, BROCHURE_STORAGE_NOTICE);
 
     const runtimeText = [
+      readText("components/project-file-picker.js"),
       readText("studio/js/pages/brochures/form.js"),
       readText("studio/js/pages/brochures/list.js")
     ].join("\n");

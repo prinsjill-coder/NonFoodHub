@@ -9,6 +9,7 @@ import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../../components/workflow-panel.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
+import { markContentUpdated } from "../../../../shared/content-dates.js";
 import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import { canDeleteContentStatus, getSupplierDeleteBlocker } from "../../../../shared/delete-guards.js";
@@ -23,7 +24,7 @@ function mediaPath(path) {
   return path ? `../${path}` : "";
 }
 
-function renderMediaPreview(label, path, alt) {
+function renderMediaPreview(label, path, alt, availability = {}) {
   if (!path) {
     const message = label === "Logo" ? "Nog geen logo gekoppeld." : "Nog geen headerafbeelding gekoppeld.";
     const example = label === "Logo" ? "Voorbeeld: assets/images/logos/amefa.svg" : "Voorbeeld: assets/images/supplier-amefa.jpg";
@@ -36,10 +37,22 @@ function renderMediaPreview(label, path, alt) {
     `;
   }
 
+  if (!availability.canOpen) {
+    return `
+      <article class="studio-card studio-media-reference">
+        <h3>${escapeHtml(label)}</h3>
+        <p class="studio-muted">Projectbestand nog plaatsen in de projectmap.</p>
+        <p class="studio-meta">${escapeHtml(path)}</p>
+      </article>
+    `;
+  }
+
+  const src = availability.url || mediaPath(path);
+
   return `
     <article class="studio-card studio-media-reference">
       <h3>${escapeHtml(label)}</h3>
-      <img src="${escapeHtml(mediaPath(path))}" alt="${escapeHtml(alt)}" loading="lazy">
+      <img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy">
       <p class="studio-meta">${escapeHtml(path)}</p>
     </article>
   `;
@@ -201,7 +214,7 @@ function renderFeedbackForSupplier(supplier) {
   return supplierActionFeedback.html;
 }
 
-export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, publicData = {}, supplier }) {
+export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, publicData = {}, supplier, fileAvailability = {} }) {
   const relatedBrochures = findSupplierBrochures(supplier, brochureData);
   const relatedArticles = findSupplierArticles(supplier, articleData);
   const readinessReport = getContentReadinessReport({
@@ -268,8 +281,8 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
-        ${renderMediaPreview("Logo", supplier.logo, `${supplier.name} logo`)}
-        ${renderMediaPreview("Afbeelding", supplier.image, `${supplier.name} afbeelding`)}
+        ${renderMediaPreview("Logo", supplier.logo, `${supplier.name} logo`, fileAvailability[supplier.logo] || {})}
+        ${renderMediaPreview("Afbeelding", supplier.image, `${supplier.name} afbeelding`, fileAvailability[supplier.image] || {})}
       </div>
     </section>
 
@@ -358,7 +371,7 @@ export function setupSupplierWorkflowActions({ supplierSession, brochureData = {
     });
     if (!confirmed) return;
 
-    await supplierSession.applySupplier({ ...supplier, status: "archived" }, supplier.slug);
+    await supplierSession.applySupplier(markContentUpdated({ ...supplier, status: "archived" }), supplier.slug);
     setActionFeedback(supplier.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -370,7 +383,7 @@ export function setupSupplierWorkflowActions({ supplierSession, brochureData = {
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      await supplierSession.applySupplier({ ...supplier, status: targetStatus }, supplier.slug);
+      await supplierSession.applySupplier(markContentUpdated({ ...supplier, status: targetStatus }), supplier.slug);
       const label = getSupplierStatusLabel(targetStatus);
       setActionFeedback(supplier.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();

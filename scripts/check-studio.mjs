@@ -9,6 +9,15 @@ import {
   isContentStatus,
   sortContentStatuses
 } from "../shared/content-status.js";
+import {
+  compareUpdatedAt,
+  createUpdatedAtTimestamp,
+  isValidUpdatedAt,
+  markContentUpdated,
+  updatedAtDateInputValue,
+  updatedAtSortValue
+} from "../shared/content-dates.js";
+import { fileExtension, formatFileSize, projectFileNameFromChoice } from "../shared/project-files.js";
 import { routeFromHash } from "../shared/routes.js";
 import { STUDIO_CONFIG } from "../shared/config.js";
 import { createArticleSession } from "../studio/js/state/article-session.js";
@@ -19,7 +28,13 @@ import { createSupplierSession } from "../studio/js/state/supplier-session.js";
 import { renderValidationSummary } from "../components/validation-summary.js";
 import { clearFieldErrors, focusFirstInvalidField, setFieldErrors } from "../studio/js/shared/form-errors.js";
 import { downloadTextFile, readJsonFile, validateFileSelection } from "../studio/js/shared/import-export-file.js";
-import { createSearchText, normalizeSearchText } from "../studio/js/shared/list-search.js";
+import {
+  booleanFilterValue,
+  createFilterTokens,
+  createSearchText,
+  filterToken,
+  normalizeSearchText
+} from "../studio/js/shared/list-search.js";
 import { renderRouteNotFound } from "../studio/js/pages/dashboard.js";
 import { renderSuppliersList } from "../studio/js/pages/suppliers/list.js";
 import { renderSuppliersRoute } from "../studio/js/pages/suppliers/index.js";
@@ -86,8 +101,22 @@ function assertWorkflowPanel(html) {
 function assertListSearch(html, scope) {
   assert.match(html, new RegExp(`data-${scope}-search`));
   assert.match(html, new RegExp(`data-${scope}-search-clear`));
+  assert.match(html, new RegExp(`data-${scope}-filter`));
+  assert.match(html, new RegExp(`data-${scope}-sort`));
+  assert.match(html, new RegExp(`data-${scope}-filter-summary`));
+  assert.match(html, new RegExp(`data-${scope}-filter-summary-items`));
+  assert.match(html, new RegExp(`data-${scope}-clear-filters`));
+  assert.match(html, new RegExp(`data-${scope}-empty-clear`));
   assert.match(html, /data-studio-list-search/);
+  assert.match(html, /data-list-id=/);
   assert.match(html, /data-search=/);
+  assert.match(html, /data-sort-name=/);
+  assert.match(html, /data-sort-updated-at=/);
+  assert.match(html, /data-sort-status=/);
+  assert.match(html, /data-filter-workflow=/);
+  assert.match(html, /Actieve filters/);
+  assert.match(html, /Sorteren/);
+  assert.match(html, /Filters wissen/);
   assert.match(html, /Geen .*gevonden met deze zoekterm of filters\./);
 }
 
@@ -217,6 +246,7 @@ async function runStudioChecks() {
     await import("../shared/media-file-validation.js");
     await import("../shared/media-normalizer.js");
     await import("../shared/media-validation.js");
+    await import("../shared/project-files.js");
     await import("../shared/public-content.js");
     await import("../shared/public-articles.js");
     await import("../shared/public-brochures.js");
@@ -226,6 +256,7 @@ async function runStudioChecks() {
     await import("../studio/js/shared/form-errors.js");
     await import("../studio/js/shared/import-export-file.js");
     await import("../studio/js/shared/not-found.js");
+    await import("../studio/js/shared/project-file-choice.js");
     await import("../studio/js/shared/route-metadata.js");
     await import("../studio/js/router.js");
     await import("../studio/js/route-focus.js");
@@ -266,6 +297,42 @@ async function runStudioChecks() {
   await runCheck("zoeknormalisatie negeert hoofdletters en accenten", () => {
     assert.equal(normalizeSearchText("  Étagère & HÔTEL  "), "etagere & hotel");
     assert.equal(createSearchText("Café", ["Terras", "Buiten"]), "cafe terras buiten");
+  });
+
+  await runCheck("filtertokens en ja-nee waarden zijn stabiel", () => {
+    assert.equal(filterToken("Buffet & Presentatie"), "buffet & presentatie");
+    assert.equal(createFilterTokens("Bestek", ["Buffet & presentatie", "Servies"]), "bestek|buffet & presentatie|servies");
+    assert.equal(booleanFilterValue(true), "yes");
+    assert.equal(booleanFilterValue(false), "no");
+  });
+
+  await runCheck("wijzigingsdatums ondersteunen ISO, timestamp en voorspelbare fallback", () => {
+    const fixed = new Date("2026-08-06T12:34:56.789Z");
+    const later = "2026-08-06T12:00:00.000Z";
+    const earlier = "2026-08-05T12:00:00.000Z";
+
+    assert.equal(createUpdatedAtTimestamp(fixed), "2026-08-06T12:34:56.789Z");
+    assert.equal(isValidUpdatedAt("2026-08-06"), true);
+    assert.equal(isValidUpdatedAt(later), true);
+    assert.equal(isValidUpdatedAt(String(Date.parse(later))), true);
+    assert.equal(isValidUpdatedAt("06-08-2026"), false);
+    assert.equal(updatedAtSortValue(""), Number.NEGATIVE_INFINITY);
+    assert.ok(compareUpdatedAt(later, earlier, "desc") < 0);
+    assert.ok(compareUpdatedAt(later, earlier, "asc") > 0);
+    assert.equal(updatedAtDateInputValue(later), "2026-08-06");
+    assert.deepEqual(markContentUpdated({ id: "x" }, fixed), {
+      id: "x",
+      updatedAt: "2026-08-06T12:34:56.789Z"
+    });
+  });
+
+  await runCheck("projectbestandsnamen worden centraal veilig afgeleid", () => {
+    const file = { name: "Churchill Catalogus 2027 ÉU.pdf", size: 1536 };
+    assert.equal(projectFileNameFromChoice(file, ".pdf", "bestand"), "churchill-catalogus-2027-eu.pdf");
+    assert.equal(projectFileNameFromChoice({ name: "Cover zomer.jpeg" }, ".jpg", "bestand"), "cover-zomer.jpeg");
+    assert.equal(projectFileNameFromChoice({ name: "" }, ".jpg", "bestand"), "bestand.jpg");
+    assert.equal(fileExtension("cover.JPG", "Onbekend"), ".jpg");
+    assert.equal(formatFileSize(file.size), "1.5 KB");
   });
 
   await runCheck("formulierfouthelpers beheren tekst, aria-invalid en focus", () => {
@@ -421,6 +488,40 @@ async function runStudioChecks() {
     delete globalThis.document;
   });
 
+  await runCheck("bewerkacties bewaren updatedAt centraal voor alle Studio-modules", () => {
+    const fixed = new Date("2026-08-06T12:34:56.789Z");
+    const expected = createUpdatedAtTimestamp(fixed);
+
+    const supplierSession = createSupplierSession(suppliers);
+    const supplier = supplierSession.findBySlug("amefa");
+    supplierSession.applySupplier(markContentUpdated({ ...supplier, description: `${supplier.description} Controle.` }, fixed), supplier.slug);
+    assert.equal(supplierSession.findBySlug("amefa").updatedAt, expected);
+    assert.equal(supplierSession.prepareExport().data.items.find((item) => item.slug === "amefa").updatedAt, expected);
+
+    const brochureSession = createBrochureSession(brochures, suppliers);
+    const brochure = brochureSession.findBySlug("amefa-for-professionals-2026");
+    brochureSession.applyBrochure(markContentUpdated({ ...brochure, description: `${brochure.description} Controle.` }, fixed), brochure.slug);
+    assert.equal(brochureSession.findBySlug(brochure.slug).updatedAt, expected);
+    assert.equal(brochureSession.prepareExport().data.items.find((item) => item.slug === brochure.slug).updatedAt, expected);
+
+    const articleSession = createArticleSession(articles, suppliers, brochures, media);
+    const article = articleSession.findBySlug("professioneel-tafelconcept-hospitality");
+    articleSession.applyArticle(markContentUpdated({ ...article, summary: `${article.summary} Controle.` }, fixed), article.slug);
+    assert.equal(articleSession.findBySlug(article.slug).updatedAt, expected);
+    assert.equal(articleSession.prepareExport().data.items.find((item) => item.slug === article.slug).updatedAt, expected);
+
+    const mediaSession = createMediaSession(media);
+    const asset = mediaSession.findById("media-brochures-overview");
+    mediaSession.applyMediaAsset(markContentUpdated({ ...asset, caption: `${asset.caption} Controle.` }, fixed), asset.id);
+    assert.equal(mediaSession.findById(asset.id).updatedAt, expected);
+
+    const librarySession = createLibrarySession(library, { suppliers, brochures, articles, media });
+    const item = librarySession.findBySlug("churchill-combined-brochure-2026");
+    librarySession.applyLibraryItem(markContentUpdated({ ...item, summary: `${item.summary} Controle.` }, fixed), item.slug);
+    assert.equal(librarySession.findBySlug(item.slug).updatedAt, expected);
+    assert.equal(librarySession.prepareExport().data.items.find((entry) => entry.slug === item.slug).updatedAt, expected);
+  });
+
   await runCheck("leveranciersroutes renderen lijst, detail, nieuw en bewerken", () => {
     const supplierSession = createSupplierSession(suppliers);
     const brochureSession = createBrochureSession(brochures, suppliers);
@@ -451,6 +552,10 @@ async function runStudioChecks() {
     assert.match(detailHtml, /href="#\/brochures\/amefa-for-professionals-2026"/);
     assert.match(detailHtml, /href="#\/kennisbank\/professioneel-tafelconcept-hospitality"/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Amefa bewerken/);
+    assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /data-project-file-picker/);
+    assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Logo kiezen/);
+    assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Headerafbeelding kiezen/);
+    assert.match(renderRoute(routeFromHash("#/leveranciers/amefa/bewerken"), state), /Verwacht projectpad logo/);
     assert.match(renderRoute(routeFromHash("#/leveranciers/nieuw"), state), /Nieuwe leverancier/);
   });
 

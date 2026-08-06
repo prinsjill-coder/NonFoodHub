@@ -1,4 +1,5 @@
 import { CONTENT_STATUSES, CONTENT_STATUS_LABELS, getContentStatusLabel } from "./content-status.js";
+import { createUpdatedAtTimestamp } from "./content-dates.js";
 
 export const BROCHURE_STATUSES = [...CONTENT_STATUSES];
 
@@ -83,10 +84,6 @@ function uniqueValue(base, existingValues) {
   return candidate;
 }
 
-function todayValue(date = new Date()) {
-  return date.toISOString().slice(0, 10);
-}
-
 export function createBrochureEditionDraft(brochure, existingBrochures = [], options = {}) {
   const source = brochure || createEmptyBrochure();
   const nextYear = options.year || nextYearValue(source.year, options.date || new Date());
@@ -106,7 +103,7 @@ export function createBrochureEditionDraft(brochure, existingBrochures = [], opt
     pdfSize: "",
     thumbnail: replaceYearInProjectPath(source.thumbnail, source.year, nextYear),
     status: "concept",
-    updatedAt: options.updatedAt || todayValue(options.date || new Date())
+    updatedAt: options.updatedAt || createUpdatedAtTimestamp(options.date || new Date())
   };
 }
 

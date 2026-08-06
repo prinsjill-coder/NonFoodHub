@@ -636,7 +636,7 @@ textarea:focus-visible {
 
 .studio-toolbar {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) repeat(2, minmax(160px, 220px)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 14px;
   align-items: end;
   margin-top: 28px;
@@ -645,6 +645,10 @@ textarea:focus-visible {
   border-radius: var(--studio-radius);
   background: var(--studio-white);
   box-shadow: var(--studio-shadow);
+}
+
+.studio-toolbar-search {
+  grid-column: span 2;
 }
 
 .studio-toolbar label,
@@ -712,6 +716,48 @@ textarea:focus-visible {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.studio-filter-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius);
+  background: var(--studio-blue-soft);
+}
+
+.studio-filter-summary[hidden] {
+  display: none;
+}
+
+.studio-filter-summary strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--studio-ink);
+  font-size: 0.9rem;
+}
+
+.studio-filter-summary-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.studio-filter-summary-items span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid var(--studio-line);
+  border-radius: 999px;
+  color: var(--studio-blue-dark);
+  background: var(--studio-white);
+  font-size: 0.84rem;
+  font-weight: 720;
 }
 
 .studio-supplier-card {
@@ -1430,7 +1476,13 @@ textarea:focus-visible {
     justify-content: stretch;
   }
 
+  .studio-filter-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .studio-toolbar-actions .studio-button,
+  .studio-filter-summary .studio-button,
   .studio-form-actions .studio-button,
   .studio-dialog-actions .studio-button {
     width: 100%;

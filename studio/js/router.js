@@ -118,7 +118,7 @@ export function renderRoute(route, state) {
   }
 
   if (route.sectionId === "suppliers") {
-    return renderSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, state.publicData);
+    return renderSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, state.mediaSession, state.publicData);
   }
 
   if (route.sectionId === "brochures") {
@@ -153,7 +153,7 @@ export function setupRoute(route, state, options = {}) {
   }
 
   if (route.sectionId === "suppliers") {
-    setupSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, options);
+    setupSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, state.mediaSession, options);
   }
 
   if (route.sectionId === "brochures") {

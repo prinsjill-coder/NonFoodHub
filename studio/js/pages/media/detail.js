@@ -6,6 +6,7 @@ import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
+import { markContentUpdated } from "../../../../shared/content-dates.js";
 import { findMediaUsage } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import {
@@ -267,7 +268,7 @@ export function setupMediaWorkflowActions({ mediaSession, asset, rerender }) {
     const currentAsset = mediaSession.findById(asset.id) || asset;
     const checked = Boolean(event.currentTarget.checked);
     await mediaSession.applyMediaAsset(
-      { ...currentAsset, rightsStatus: checked ? "approved" : "needs-review" },
+      markContentUpdated({ ...currentAsset, rightsStatus: checked ? "approved" : "needs-review" }),
       currentAsset.id
     );
     setActionFeedback(
@@ -297,7 +298,7 @@ export function setupMediaWorkflowActions({ mediaSession, asset, rerender }) {
         return;
       }
 
-      await mediaSession.applyMediaAsset({ ...currentAsset, status: targetStatus }, currentAsset.id);
+      await mediaSession.applyMediaAsset(markContentUpdated({ ...currentAsset, status: targetStatus }), currentAsset.id);
       setActionFeedback(
         currentAsset.id,
         "Status aangepast in bewerkversie",

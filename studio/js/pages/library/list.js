@@ -18,7 +18,12 @@ import {
 import { getLibraryQualityReport } from "../../../../shared/library-quality.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
+import {
+  DEFAULT_SORT_OPTIONS,
+  createSearchText,
+  filterToken,
+  setupListControls
+} from "../../shared/list-search.js";
 
 function supplierNameById(supplierData) {
   return new Map(getSuppliers(supplierData).map((supplier) => [supplier.id, supplier.name]));
@@ -55,6 +60,7 @@ function renderLibraryCards(items, libraryData, suppliersById) {
         <article
           class="studio-card studio-library-card"
           data-library-item
+          data-list-id="${escapeHtml(item.id)}"
           data-search="${escapeHtml(createSearchText(
             item.title,
             item.slug,
@@ -66,6 +72,12 @@ function renderLibraryCards(items, libraryData, suppliersById) {
             item.thumbnailPath,
             item.url
           ))}"
+          data-sort-name="${escapeHtml(item.title)}"
+          data-sort-updated-at="${escapeHtml(item.updatedAt || "")}"
+          data-sort-status="${escapeHtml(item.status)}"
+          data-filter-workflow="${escapeHtml(item.status)}"
+          data-filter-type="${escapeHtml(item.type)}"
+          data-filter-category="${escapeHtml(filterToken(item.category))}"
           data-title="${escapeHtml(`${item.title} ${item.slug} ${item.summary}`.toLowerCase())}"
           data-status="${escapeHtml(item.status)}"
           data-type="${escapeHtml(item.type)}"
@@ -94,6 +106,7 @@ function renderLibraryTable(items, libraryData, suppliersById) {
     rows: items,
     rowAttributes: (item) => `
       data-library-item
+      data-list-id="${escapeHtml(item.id)}"
       data-search="${escapeHtml(createSearchText(
         item.title,
         item.slug,
@@ -105,6 +118,12 @@ function renderLibraryTable(items, libraryData, suppliersById) {
         item.thumbnailPath,
         item.url
       ))}"
+      data-sort-name="${escapeHtml(item.title)}"
+      data-sort-updated-at="${escapeHtml(item.updatedAt || "")}"
+      data-sort-status="${escapeHtml(item.status)}"
+      data-filter-workflow="${escapeHtml(item.status)}"
+      data-filter-type="${escapeHtml(item.type)}"
+      data-filter-category="${escapeHtml(filterToken(item.category))}"
       data-title="${escapeHtml(`${item.title} ${item.slug} ${item.summary}`.toLowerCase())}"
       data-status="${escapeHtml(item.status)}"
       data-type="${escapeHtml(item.type)}"
@@ -156,7 +175,7 @@ function typeOptions(libraryData) {
 function categoryOptions(libraryData) {
   return [
     { value: "all", label: "Alle categorieen" },
-    ...(libraryData.categories || []).map((category) => ({ value: category, label: category }))
+    ...(libraryData.categories || []).map((category) => ({ value: filterToken(category), label: category }))
   ];
 }
 
@@ -305,17 +324,19 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
       ariaLabel: "Bibliotheekfilters",
       searchPlaceholder: "Zoek op titel, URL-naam of samenvatting",
       filters: [
-        { name: "status", label: "Status", options: statusOptions(libraryData) },
-        { name: "type", label: "Type", options: typeOptions(libraryData) },
+        { name: "workflow", label: "Workflowstatus", options: statusOptions(libraryData) },
+        { name: "type", label: "Contenttype", options: typeOptions(libraryData) },
         { name: "category", label: "Categorie", options: categoryOptions(libraryData) }
       ],
+      sortOptions: DEFAULT_SORT_OPTIONS,
       actions
     })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-library-card-list>${renderLibraryCards(items, libraryData, suppliersById)}</div>
       <div class="studio-list-empty" data-library-empty hidden>
-        Geen bibliotheekitems gevonden met deze zoekterm of filters.
+        <p data-library-empty-message>Geen bibliotheekitems gevonden met deze zoekterm of filters.</p>
+        ${renderButton({ label: "Filters wissen", variant: "secondary", attributes: { "data-library-empty-clear": true } })}
       </div>
     </section>
 
@@ -329,35 +350,14 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
 }
 
 export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
-  const search = document.querySelector("[data-library-search]");
-  const clearSearch = document.querySelector("[data-library-search-clear]");
-  const filters = Array.from(document.querySelectorAll("[data-library-filter]"));
-  const items = Array.from(document.querySelectorAll("[data-library-item]"));
-  const empty = document.querySelector("[data-library-empty]");
   const restoreButton = document.querySelector("[data-library-restore]");
 
-  function applyFilters() {
-    const query = search?.value || "";
-    const values = readFilterValues(filters, "library");
-    let visibleCount = 0;
-
-    items.forEach((item) => {
-      const hasSearchMatch = matchesSearch(item, query);
-      const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const matchesType = values.type === "all" || item.dataset.type === values.type;
-      const matchesCategory = values.category === "all" || item.dataset.category === values.category;
-      const visible = hasSearchMatch && matchesStatus && matchesType && matchesCategory;
-      item.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-
-    if (empty) {
-      empty.hidden = visibleCount > 0;
-    }
-  }
-
-  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
-  filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+  setupListControls({
+    scope: "library",
+    itemSelector: "[data-library-item]",
+    emptySelector: "[data-library-empty]",
+    emptyText: "Geen bibliotheekitems gevonden met de huidige zoekterm of filters."
+  });
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
@@ -378,6 +378,4 @@ export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
     }
     rerender();
   });
-
-  applyFilters();
 }

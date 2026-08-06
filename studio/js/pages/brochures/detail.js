@@ -15,6 +15,7 @@ import {
   getBrochures
 } from "../../../../shared/brochure-model.js";
 import { validateBrochure } from "../../../../shared/brochure-validation.js";
+import { createUpdatedAtTimestamp, markContentUpdated } from "../../../../shared/content-dates.js";
 import { findBrochureArticles } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
 import { canDeleteContentStatus, getBrochureDeleteBlocker } from "../../../../shared/delete-guards.js";
@@ -136,10 +137,6 @@ function renderArticleRelations(articles) {
         .join("")}
     </ul>
   `;
-}
-
-function todayValue() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function validationMessages(errors) {
@@ -525,7 +522,9 @@ export function setupBrochureWorkflowActions({ brochureSession, articleData = {}
     if (!confirmed) return;
 
     const workingData = brochureSession.getWorkingData();
-    const draft = createBrochureEditionDraft(brochure, getBrochures(workingData));
+    const draft = createBrochureEditionDraft(brochure, getBrochures(workingData), {
+      updatedAt: createUpdatedAtTimestamp()
+    });
     await brochureSession.applyBrochure(draft, "");
     window.location.hash = `#/brochures/${draft.slug}/bewerken`;
   });
@@ -541,7 +540,7 @@ export function setupBrochureWorkflowActions({ brochureSession, articleData = {}
     });
     if (!confirmed) return;
 
-    await brochureSession.applyBrochure({ ...brochure, status: "archived", updatedAt: todayValue() }, brochure.slug);
+    await brochureSession.applyBrochure(markContentUpdated({ ...brochure, status: "archived" }), brochure.slug);
     setActionFeedback(brochure.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -553,7 +552,7 @@ export function setupBrochureWorkflowActions({ brochureSession, articleData = {}
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      await brochureSession.applyBrochure({ ...brochure, status: targetStatus, updatedAt: todayValue() }, brochure.slug);
+      await brochureSession.applyBrochure(markContentUpdated({ ...brochure, status: targetStatus }), brochure.slug);
       const label = getBrochureStatusLabel(targetStatus);
       setActionFeedback(brochure.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();

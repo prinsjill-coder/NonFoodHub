@@ -1,5 +1,6 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
+import { renderProjectFileChoice } from "../../../../components/project-file-picker.js";
 import {
   renderCheckboxGroup,
   renderSelectField,
@@ -15,11 +16,14 @@ import {
   normalizeSlug
 } from "../../../../shared/brochure-model.js";
 import { brochureFromForm, hasValidationErrors, validateBrochure } from "../../../../shared/brochure-validation.js";
+import { markContentUpdated, updatedAtDateInputValue } from "../../../../shared/content-dates.js";
 import { canDeleteContentStatus, getBrochureDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { getMediaAssets, normalizeMediaId } from "../../../../shared/media-model.js";
+import { formatFileSize, projectFileNameFromChoice } from "../../../../shared/project-files.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { setupProjectFileChoices } from "../../shared/project-file-choice.js";
 
 function optionList(items, labelMap = {}) {
   return items.map((item) => ({ value: item, label: labelMap[item] || item }));
@@ -79,57 +83,6 @@ function renderSupplierCreateAction() {
       })}
       <p class="studio-meta">
         Beperking: na het toevoegen moet deze pagina opnieuw geladen worden voordat de nieuwe leverancier in de keuzelijst staat.
-      </p>
-    </div>
-  `;
-}
-
-function renderFileChoice({ id, label, accept, targetField, currentPath, expectedPath, help }) {
-  const hasCurrentPath = Boolean(currentPath);
-  const choiceText = hasCurrentPath ? "Geen nieuw lokaal bestand gekozen" : "Geen lokaal bestand gekozen in dit formulier";
-  const stateText = hasCurrentPath ? "Bestaand projectbestand blijft gekoppeld" : "Wachten op keuze";
-
-  return `
-    <div
-      class="studio-field studio-file-picker"
-      data-brochure-file-picker
-      data-target-field="${escapeHtml(targetField)}"
-      data-current-path="${escapeHtml(currentPath)}"
-      data-expected-path="${escapeHtml(expectedPath)}"
-    >
-      <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-      <input id="${escapeHtml(id)}" type="file" accept="${escapeHtml(accept)}" data-brochure-file-choice>
-      <p class="studio-field-help">${escapeHtml(help)}</p>
-      <dl class="studio-file-choice-summary" data-file-choice-summary aria-live="polite">
-        <div>
-          <dt>Gekozen lokaal bestand</dt>
-          <dd data-file-choice-name>${escapeHtml(choiceText)}</dd>
-        </div>
-        <div>
-          <dt>Gekoppeld projectbestand</dt>
-          <dd class="${hasCurrentPath ? "studio-meta" : "studio-muted"}" data-file-current-path>${escapeHtml(currentPath || "Nog geen projectbestand gekoppeld")}</dd>
-        </div>
-        <div>
-          <dt>Bestandstype</dt>
-          <dd data-file-choice-type>Niet gekozen</dd>
-        </div>
-        <div>
-          <dt>Bestandsgrootte</dt>
-          <dd data-file-choice-size>Niet gekozen</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd data-file-choice-state>${escapeHtml(stateText)}</dd>
-        </div>
-        <div>
-          <dt>Verwachte projectbestandsnaam</dt>
-          <dd data-file-choice-expected>${escapeHtml(expectedPath || currentPath || "Nog niet bekend")}</dd>
-        </div>
-      </dl>
-      <p class="studio-field-help">
-        ${hasCurrentPath
-          ? "Laat dit leeg als je het bestaande projectbestand wilt behouden. Kies alleen een nieuw lokaal bestand als je de koppeling wilt vervangen."
-          : "Studio neemt de gekozen bestandsnaam over en normaliseert deze naar een veilige projectbestandsnaam. Plaats het bestand daarna zelf onder die naam in de projectmap."}
       </p>
     </div>
   `;
@@ -242,7 +195,7 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
             name: "updatedAt",
             label: "Bijgewerkt op",
             type: "date",
-            value: brochure.updatedAt,
+            value: updatedAtDateInputValue(brochure.updatedAt),
             required: true
           })}
         </div>
@@ -272,7 +225,7 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
           Kies alleen een lokaal bestand wanneer je een projectbestand wilt toevoegen of vervangen. De browser kopieert niets naar de projectmap.
         </p>
         <div class="studio-form-grid">
-          ${renderFileChoice({
+          ${renderProjectFileChoice({
             id: "studio-field-pdf-choice",
             label: "PDF kiezen",
             accept: "application/pdf,.pdf",
@@ -280,9 +233,11 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
             currentPath: brochure.pdfFile,
             expectedPath: brochure.pdfFile || expectedPdfPath(brochure),
             help:
-              "Selecteer het PDF-bestand vanaf je computer als je een nieuwe PDF wilt koppelen. Laat dit leeg bij een gewone tekstwijziging."
+              "Selecteer het PDF-bestand vanaf je computer als je een nieuwe PDF wilt koppelen. Laat dit leeg bij een gewone tekstwijziging.",
+            attributes: { "data-brochure-file-picker": true },
+            inputAttributes: { "data-brochure-file-choice": true }
           })}
-          ${renderFileChoice({
+          ${renderProjectFileChoice({
             id: "studio-field-thumbnail-choice",
             label: "Afbeelding kiezen",
             accept: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
@@ -290,7 +245,9 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
             currentPath: brochure.thumbnail,
             expectedPath: brochure.thumbnail || expectedImagePath(brochure),
             help:
-              "Selecteer de brochureafbeelding vanaf je computer als je een nieuwe afbeelding wilt koppelen. Laat dit leeg bij een gewone tekstwijziging."
+              "Selecteer de brochureafbeelding vanaf je computer als je een nieuwe afbeelding wilt koppelen. Laat dit leeg bij een gewone tekstwijziging.",
+            attributes: { "data-brochure-file-picker": true },
+            inputAttributes: { "data-brochure-file-choice": true }
           })}
           ${renderTextField({
             name: "pdfFile",
@@ -363,7 +320,7 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
 
   setupErrorLinkFocus(feedback, form);
 
-  setupBrochureFileChoices(form, { mediaSession });
+  setupProjectFileChoices(form, { mediaSession, expectedPathForChoice });
 
   form.querySelector("[data-brochure-form-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
@@ -416,7 +373,7 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
     event.preventDefault();
     clearFieldErrors(form);
 
-    const brochure = brochureFromForm(form);
+    const brochure = markContentUpdated(brochureFromForm(form));
     const errors = validateBrochure(brochure, brochureData.items || [], supplierData, brochureData, {
       originalSlug: form.dataset.originalSlug || "",
       originalId: form.dataset.originalId || ""
@@ -494,13 +451,13 @@ async function registerBrochureMedia({ brochure, mediaSession }) {
     const hasRegistration = existingAssets.some((asset) => asset.file === spec.path);
     if (hasRegistration) continue;
 
-    const asset = mediaAssetForBrochureFile({
+    const asset = markContentUpdated(mediaAssetForBrochureFile({
       brochure,
       path: spec.path,
       kind: spec.kind,
       sortOrder: nextMediaSortOrder(mediaData),
       existingAssets
-    });
+    }));
     await mediaSession.applyMediaAsset(asset, "");
     created.push(asset);
   }
@@ -508,90 +465,10 @@ async function registerBrochureMedia({ brochure, mediaSession }) {
   return created;
 }
 
-function formatFileSize(size) {
-  if (!Number.isFinite(size) || size <= 0) return "Onbekend";
-  const units = ["B", "KB", "MB", "GB"];
-  let value = size;
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-}
-
-function fileExtension(name, fallback) {
-  const match = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
-  return match ? `.${match[1]}` : fallback;
-}
-
-function projectFileNameFromChoice(file, fallbackExtension) {
-  const originalName = String(file?.name || "");
-  const extension = fileExtension(originalName, fallbackExtension).toLowerCase();
-  const baseName = originalName.replace(/\.[^.]+$/, "");
-  const safeName = normalizeSlug(baseName) || "brochure-bestand";
-  return `${safeName}${extension}`;
-}
-
 function expectedPathForChoice(_form, targetField, file) {
   if (targetField === "pdfFile") {
-    return `assets/downloads/brochures/${projectFileNameFromChoice(file, ".pdf")}`;
+    return `assets/downloads/brochures/${projectFileNameFromChoice(file, ".pdf", "brochure-bestand")}`;
   }
 
-  return `assets/images/brochures/${projectFileNameFromChoice(file, ".jpg")}`;
-}
-
-function setSummaryText(picker, selector, value) {
-  const element = picker.querySelector(selector);
-  if (element) element.textContent = value;
-}
-
-function syncGeneratedPath(targetInput, expectedPath) {
-  if (!targetInput || !expectedPath) return;
-  targetInput.value = expectedPath;
-  targetInput.dataset.generatedAssetPath = expectedPath;
-  targetInput.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-function setupBrochureFileChoices(form, { mediaSession } = {}) {
-  form.querySelectorAll("[data-brochure-file-picker]").forEach((picker) => {
-    const input = picker.querySelector("[data-brochure-file-choice]");
-    const targetField = picker.dataset.targetField || "";
-    const targetInput = form.elements[targetField];
-
-    input?.addEventListener("change", () => {
-      const file = input.files?.[0];
-      const expectedPath = file ? expectedPathForChoice(form, targetField, file) : picker.dataset.expectedPath || "";
-
-      if (!file) {
-        const currentPath = picker.dataset.currentPath || "";
-        setSummaryText(
-          picker,
-          "[data-file-choice-name]",
-          currentPath ? "Geen nieuw lokaal bestand gekozen" : "Geen lokaal bestand gekozen in dit formulier"
-        );
-        setSummaryText(picker, "[data-file-choice-type]", "Niet gekozen");
-        setSummaryText(picker, "[data-file-choice-size]", "Niet gekozen");
-        setSummaryText(
-          picker,
-          "[data-file-choice-state]",
-          currentPath ? "Bestaand projectbestand blijft gekoppeld" : "Wachten op keuze"
-        );
-        setSummaryText(picker, "[data-file-choice-expected]", expectedPath || targetInput?.value || "Nog niet bekend");
-        return;
-      }
-
-      setSummaryText(picker, "[data-file-choice-name]", file.name);
-      setSummaryText(picker, "[data-file-choice-type]", file.type || fileExtension(file.name, "Onbekend"));
-      setSummaryText(picker, "[data-file-choice-size]", formatFileSize(file.size));
-      setSummaryText(picker, "[data-file-choice-state]", "Gekozen lokaal bestand gecontroleerd; nog niet geplaatst in de projectmap");
-      setSummaryText(picker, "[data-file-choice-expected]", expectedPath);
-      setSummaryText(picker, "[data-file-current-path]", expectedPath);
-      picker.dataset.currentPath = expectedPath;
-      syncGeneratedPath(targetInput, expectedPath);
-      mediaSession?.registerLocalProjectFile(expectedPath, file);
-    });
-  });
+  return `assets/images/brochures/${projectFileNameFromChoice(file, ".jpg", "brochure-bestand")}`;
 }

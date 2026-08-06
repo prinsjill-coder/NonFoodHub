@@ -19,6 +19,7 @@ export const SUPPLIER_KEYS = [
   "relatedArticleIds",
   "featured",
   "sortOrder",
+  "updatedAt",
   "status"
 ];
 
@@ -79,6 +80,7 @@ export function normalizeSupplierForExport(supplier) {
     relatedArticleIds: uniqueSortedStrings(supplier?.relatedArticleIds),
     featured: Boolean(supplier?.featured),
     sortOrder: Number.isInteger(Number(supplier?.sortOrder)) ? Number(supplier.sortOrder) : 0,
+    updatedAt: asString(supplier?.updatedAt),
     status: normalizeContentStatus(supplier?.status)
   };
 }

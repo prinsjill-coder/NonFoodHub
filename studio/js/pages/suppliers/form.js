@@ -1,5 +1,6 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
+import { renderProjectFileChoice } from "../../../../components/project-file-picker.js";
 import {
   renderCheckboxField,
   renderCheckboxGroup,
@@ -9,11 +10,15 @@ import {
 } from "../../../../components/form-field.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { markContentUpdated } from "../../../../shared/content-dates.js";
 import { canDeleteContentStatus, getSupplierDeleteBlocker } from "../../../../shared/delete-guards.js";
+import { getMediaAssets, normalizeMediaId } from "../../../../shared/media-model.js";
+import { formatFileSize, projectFileNameFromChoice } from "../../../../shared/project-files.js";
 import { createEmptySupplier, normalizeSlug } from "../../../../shared/supplier-model.js";
 import { hasValidationErrors, supplierFromForm, validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { setupProjectFileChoices } from "../../shared/project-file-choice.js";
 
 function optionList(items, labelMap = {}) {
   return items.map((item) => ({ value: item, label: labelMap[item] || item }));
@@ -46,6 +51,16 @@ function renderDeleteFormAction({ supplier, brochureData = {}, articleData = {} 
     })}
     ${reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
   `;
+}
+
+function expectedLogoPath(supplier) {
+  const slug = normalizeSlug(supplier.slug || supplier.name || "nieuwe-leverancier");
+  return slug ? `assets/images/logos/${slug}.jpg` : "";
+}
+
+function expectedHeaderImagePath(supplier) {
+  const slug = normalizeSlug(supplier.slug || supplier.name || "nieuwe-leverancier");
+  return slug ? `assets/images/suppliers/${slug}.jpg` : "";
 }
 
 export function renderSupplierForm({ supplierData, brochureData = {}, articleData = {}, supplier = createEmptySupplier(), mode }) {
@@ -154,21 +169,54 @@ export function renderSupplierForm({ supplierData, brochureData = {}, articleDat
       </section>
 
       <section class="studio-form-section">
-        <h2>Mediareferenties</h2>
+        <h2>Bestanden en media</h2>
+        <p class="studio-muted">
+          Kies alleen een lokaal bestand wanneer je een logo of headerafbeelding wilt toevoegen of vervangen. De browser kopieert niets naar de projectmap.
+        </p>
         <div class="studio-form-grid">
+          ${renderProjectFileChoice({
+            id: "studio-field-logo-choice",
+            label: "Logo kiezen",
+            accept: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+            targetField: "logo",
+            currentPath: supplier.logo,
+            expectedPath: supplier.logo || expectedLogoPath(supplier),
+            help:
+              "Selecteer het logobestand vanaf je computer als je een nieuw logo wilt koppelen. Laat dit leeg bij een gewone tekstwijziging.",
+            attributes: { "data-supplier-file-picker": true, "data-supplier-media-kind": "logo" },
+            inputAttributes: { "data-supplier-file-choice": true }
+          })}
+          ${renderProjectFileChoice({
+            id: "studio-field-image-choice",
+            label: "Headerafbeelding kiezen",
+            accept: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+            targetField: "image",
+            currentPath: supplier.image,
+            expectedPath: supplier.image || expectedHeaderImagePath(supplier),
+            help:
+              "Selecteer de headerafbeelding vanaf je computer als je een nieuw beeld wilt koppelen. Laat dit leeg bij een gewone tekstwijziging.",
+            attributes: { "data-supplier-file-picker": true, "data-supplier-media-kind": "image" },
+            inputAttributes: { "data-supplier-file-choice": true }
+          })}
           ${renderTextField({
             name: "logo",
-            label: "Bestand van het logo",
+            label: "Verwacht projectpad logo",
             value: supplier.logo,
-            help: "Vul het bestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/logos/amefa.svg."
+            help: "Dit is het projectbestand dat na Website bijwerken moet bestaan. Voorbeeld: assets/images/logos/amefa.svg. Sla hier geen lokaal Windows-pad op."
           })}
           ${renderTextField({
             name: "image",
-            label: "Bestand van de headerafbeelding",
+            label: "Verwacht projectpad headerafbeelding",
             value: supplier.image,
-            help: "Vul het beeldbestand in vanaf de projectmap. Gebruik bijvoorbeeld: assets/images/supplier-amefa.jpg. Uploaden gebeurt nog niet."
+            help: "Dit is het projectbestand dat na Website bijwerken moet bestaan. Voorbeeld: assets/images/suppliers/amefa.jpg. Gebruik geen lokaal computerpad."
           })}
         </div>
+        ${renderNotice({
+          title: "Lokaal gekozen bestand versus projectbestand",
+          message:
+            "Stap 1: kies lokaal een bestand. Stap 2: Studio neemt de bestandsnaam over en normaliseert deze. Stap 3: plaats het bestand zelf onder die projectbestandsnaam in de projectmap. Stap 4: bij opslaan maakt Studio de basisregistratie in Media aan als die nog ontbreekt.",
+          tone: "info"
+        })}
       </section>
 
       <section class="studio-form-section">
@@ -203,7 +251,7 @@ export function renderSupplierForm({ supplierData, brochureData = {}, articleDat
   `;
 }
 
-export function setupSupplierForm({ supplierSession, brochureSession, articleSession, formDirtyGuard, rerender }) {
+export function setupSupplierForm({ supplierSession, brochureSession, mediaSession, articleSession, formDirtyGuard, rerender }) {
   const form = document.querySelector("[data-supplier-form]");
   if (!form) return;
 
@@ -216,6 +264,7 @@ export function setupSupplierForm({ supplierSession, brochureSession, articleSes
   const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
   setupErrorLinkFocus(feedback, form);
+  setupProjectFileChoices(form, { mediaSession, expectedPathForChoice });
 
   form.querySelector("[data-supplier-form-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
@@ -269,7 +318,7 @@ export function setupSupplierForm({ supplierSession, brochureSession, articleSes
     event.preventDefault();
     clearFieldErrors(form);
 
-    const supplier = supplierFromForm(form);
+    const supplier = markContentUpdated(supplierFromForm(form));
     const errors = validateSupplier(supplier, supplierData.items || [], {
       originalSlug: form.dataset.originalSlug || ""
     });
@@ -282,13 +331,114 @@ export function setupSupplierForm({ supplierSession, brochureSession, articleSes
     }
 
     await supplierSession.applySupplier(supplier, form.dataset.originalSlug || "");
+    const createdMedia = await registerSupplierMedia({ supplier, mediaSession });
     dirtyRegistration?.markClean();
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
-      message:
-        "De leverancier is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
+      message: [
+        "De leverancier is opgeslagen in de bewerkversie. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
+        createdMedia.length
+          ? `${createdMedia.length} ontbrekende Media-basisregistratie${createdMedia.length === 1 ? " is" : "s zijn"} aangemaakt in de bewerkversie.`
+          : "De gekoppelde bestanden hadden al een Media-basisregistratie of er is nog geen bestand gekoppeld."
+      ].join(" "),
       tone: "success"
     });
     window.location.hash = `#/leveranciers/${supplier.slug}`;
   });
+}
+
+function expectedPathForChoice(_form, targetField, file) {
+  if (targetField === "logo") {
+    return `assets/images/logos/${projectFileNameFromChoice(file, ".jpg", "leverancierslogo")}`;
+  }
+
+  return `assets/images/suppliers/${projectFileNameFromChoice(file, ".jpg", "leveranciersbeeld")}`;
+}
+
+function nextMediaSortOrder(mediaData) {
+  return getMediaAssets(mediaData).reduce((highest, asset) => Math.max(highest, Number(asset.sortOrder) || 0), 0) + 10;
+}
+
+function localFileSizeForPath(mediaSession, path) {
+  const localFile = mediaSession?.findLocalProjectFile?.(path);
+  return formatFileSize(localFile?.size);
+}
+
+function mediaAssetForSupplierFile({ supplier, path, kind, sortOrder, existingAssets, mediaSession }) {
+  const isLogo = kind === "logo";
+  const baseId = normalizeMediaId(`media-${supplier.slug}-${isLogo ? "logo" : "headerafbeelding"}`);
+  const existingIds = new Set(existingAssets.map((asset) => asset.id));
+  let id = baseId;
+  let suffix = 2;
+
+  while (existingIds.has(id)) {
+    id = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
+
+  return {
+    id,
+    title: `${supplier.name} ${isLogo ? "logo" : "headerafbeelding"}`,
+    file: path,
+    type: isLogo ? "logo" : "image",
+    alt: "",
+    caption: "Automatisch geregistreerd vanuit leveranciersbeheer. Controleer metadata in Media.",
+    width: "",
+    height: "",
+    fileSize: localFileSizeForPath(mediaSession, path),
+    usageType: isLogo ? "supplier-logo" : "supplier-image",
+    rightsStatus: "needs-review",
+    status: "concept",
+    sortOrder
+  };
+}
+
+function mergeGeneratedMediaDefaults(existingAsset, generatedAsset) {
+  return {
+    ...existingAsset,
+    title: existingAsset.title || generatedAsset.title,
+    type: existingAsset.type || generatedAsset.type,
+    caption: existingAsset.caption || generatedAsset.caption,
+    fileSize: existingAsset.fileSize && existingAsset.fileSize !== "Onbekend" ? existingAsset.fileSize : generatedAsset.fileSize,
+    usageType: existingAsset.usageType || generatedAsset.usageType
+  };
+}
+
+async function registerSupplierMedia({ supplier, mediaSession }) {
+  if (!mediaSession) return [];
+
+  const specs = [
+    { path: supplier.logo, kind: "logo" },
+    { path: supplier.image, kind: "image" }
+  ].filter((spec) => spec.path);
+  const changed = [];
+
+  for (const spec of specs) {
+    const mediaData = mediaSession.getWorkingData();
+    const existingAssets = getMediaAssets(mediaData);
+    const generatedAsset = mediaAssetForSupplierFile({
+      supplier,
+      path: spec.path,
+      kind: spec.kind,
+      sortOrder: nextMediaSortOrder(mediaData),
+      existingAssets,
+      mediaSession
+    });
+    const existingAsset = existingAssets.find((asset) => asset.file === spec.path);
+
+    if (existingAsset) {
+      const updatedAsset = mergeGeneratedMediaDefaults(existingAsset, generatedAsset);
+      if (JSON.stringify(updatedAsset) !== JSON.stringify(existingAsset)) {
+        await mediaSession.applyMediaAsset(markContentUpdated(updatedAsset), existingAsset.id);
+        changed.push(updatedAsset);
+      }
+      continue;
+    }
+
+    const asset = markContentUpdated(generatedAsset);
+    await mediaSession.applyMediaAsset(asset, "");
+    changed.push(asset);
+  }
+
+  return changed;
 }

@@ -16,10 +16,19 @@ import {
   sortArticles
 } from "../../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../../shared/article-quality.js";
-import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
-import { getSuppliers } from "../../../../shared/supplier-model.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
+import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
+import {
+  DEFAULT_SORT_OPTIONS,
+  WEBSITE_STATUS_FILTER_OPTIONS,
+  YES_NO_FILTER_OPTIONS,
+  booleanFilterValue,
+  createFilterTokens,
+  createSearchText,
+  filterToken,
+  setupListControls
+} from "../../shared/list-search.js";
 import { setupArticleExport } from "./export.js";
 import { setupArticleImport } from "./import.js";
 
@@ -66,6 +75,35 @@ function readyArticleCount(articles, publicData) {
   return articles.filter((article) => renderedArticleStatus(article, publicData) === "ready").length;
 }
 
+function renderArticleListAttributes(article, suppliersById, publicData = {}) {
+  const suppliers = supplierNames(article, suppliersById);
+  const status = renderedArticleStatus(article, publicData);
+  return `
+    data-article-item
+    data-list-id="${escapeHtml(article.id)}"
+    data-search="${escapeHtml(createSearchText(
+      article.title,
+      article.slug,
+      article.summary,
+      article.body,
+      article.categories,
+      suppliers
+    ))}"
+    data-sort-name="${escapeHtml(article.title)}"
+    data-sort-updated-at="${escapeHtml(article.updatedAt || "")}"
+    data-sort-status="${escapeHtml(article.status)}"
+    data-filter-workflow="${escapeHtml(article.status)}"
+    data-filter-website="${escapeHtml(isPublishedOnWebsite("articles", article, publicData) ? "live" : "not_live")}"
+    data-filter-supplier="${escapeHtml(createFilterTokens(article.supplierIds))}"
+    data-filter-category="${escapeHtml(createFilterTokens(article.categories))}"
+    data-filter-hashero="${escapeHtml(booleanFilterValue(Boolean(article.heroImage)))}"
+    data-filter-hasbrochurerelation="${escapeHtml(booleanFilterValue(Array.isArray(article.brochureIds) && article.brochureIds.length > 0))}"
+    data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
+    data-status="${escapeHtml(status)}"
+    data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
+  `;
+}
+
 function renderArticleCards(articles, suppliersById, publicData = {}) {
   return articles
     .map((article) => {
@@ -74,18 +112,7 @@ function renderArticleCards(articles, suppliersById, publicData = {}) {
       return `
         <article
           class="studio-card studio-article-card"
-          data-article-item
-          data-search="${escapeHtml(createSearchText(
-            article.title,
-            article.slug,
-            article.summary,
-            article.body,
-            article.categories,
-            suppliers
-          ))}"
-          data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
-          data-status="${escapeHtml(status)}"
-          data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
+          ${renderArticleListAttributes(article, suppliersById, publicData)}
         >
           <div class="studio-card-head">
             <div>
@@ -108,20 +135,7 @@ function renderArticleTable(articles, suppliersById, publicData = {}) {
   return renderDataTable({
     label: "Kennisbankartikelen",
     rows: articles,
-    rowAttributes: (article) => `
-      data-article-item
-      data-search="${escapeHtml(createSearchText(
-        article.title,
-        article.slug,
-        article.summary,
-        article.body,
-        article.categories,
-        supplierNames(article, suppliersById)
-      ))}"
-      data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
-      data-status="${escapeHtml(renderedArticleStatus(article, publicData))}"
-      data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
-    `,
+    rowAttributes: (article) => renderArticleListAttributes(article, suppliersById, publicData),
     columns: [
       {
         label: "Artikel",
@@ -164,7 +178,14 @@ function statusOptions(articleData) {
 function categoryOptions(articleData) {
   return [
     { value: "all", label: "Alle categorieen" },
-    ...(articleData.categories || []).map((category) => ({ value: category.toLowerCase(), label: category }))
+    ...(articleData.categories || []).map((category) => ({ value: filterToken(category), label: category }))
+  ];
+}
+
+function supplierOptions(supplierData) {
+  return [
+    { value: "all", label: "Alle leveranciers" },
+    ...sortSuppliers(getSuppliers(supplierData)).map((supplier) => ({ value: supplier.id, label: supplier.name }))
   ];
 }
 
@@ -345,16 +366,22 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       ariaLabel: "Kennisbankfilters",
       searchPlaceholder: "Zoek op titel, URL-naam of samenvatting",
       filters: [
-        { name: "status", label: "Status", options: statusOptions(articleData) },
-        { name: "category", label: "Categorie", options: categoryOptions(articleData) }
+        { name: "workflow", label: "Workflowstatus", options: statusOptions(articleData) },
+        { name: "website", label: "Websitestatus", options: WEBSITE_STATUS_FILTER_OPTIONS },
+        { name: "supplier", label: "Leverancier", options: supplierOptions(supplierData) },
+        { name: "category", label: "Categorie", options: categoryOptions(articleData) },
+        { name: "hashero", label: "Heeft headerafbeelding", options: YES_NO_FILTER_OPTIONS },
+        { name: "hasbrochurerelation", label: "Heeft brochurekoppeling", options: YES_NO_FILTER_OPTIONS }
       ],
+      sortOptions: DEFAULT_SORT_OPTIONS,
       actions
     })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-article-card-list>${renderArticleCards(articles, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-article-empty hidden>
-        Geen kennisbankartikelen gevonden met deze zoekterm of filters.
+        <p data-article-empty-message>Geen kennisbankartikelen gevonden met deze zoekterm of filters.</p>
+        ${renderButton({ label: "Filters wissen", variant: "secondary", attributes: { "data-article-empty-clear": true } })}
       </div>
     </section>
 
@@ -368,37 +395,16 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
 }
 
 export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender, restoreDraft }) {
-  const search = document.querySelector("[data-article-search]");
-  const clearSearch = document.querySelector("[data-article-search-clear]");
-  const filters = Array.from(document.querySelectorAll("[data-article-filter]"));
-  const items = Array.from(document.querySelectorAll("[data-article-item]"));
-  const empty = document.querySelector("[data-article-empty]");
   const restoreButton = document.querySelector("[data-article-restore]");
 
   setupArticleImport({ articleSession, supplierSession, brochureSession, mediaSession, rerender });
   setupArticleExport({ articleSession, rerender });
-
-  function applyFilters() {
-    const query = search?.value || "";
-    const values = readFilterValues(filters, "article");
-    let visibleCount = 0;
-
-    items.forEach((item) => {
-      const hasSearchMatch = matchesSearch(item, query);
-      const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const matchesCategory = values.category === "all" || (item.dataset.categories || "").includes(values.category);
-      const visible = hasSearchMatch && matchesStatus && matchesCategory;
-      item.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-
-    if (empty) {
-      empty.hidden = visibleCount > 0;
-    }
-  }
-
-  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
-  filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+  setupListControls({
+    scope: "article",
+    itemSelector: "[data-article-item]",
+    emptySelector: "[data-article-empty]",
+    emptyText: "Geen kennisbankartikelen gevonden met de huidige zoekterm of filters."
+  });
   restoreButton?.addEventListener("click", async () => {
     if (articleSession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({
@@ -419,6 +425,4 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
     }
     rerender();
   });
-
-  applyFilters();
 }

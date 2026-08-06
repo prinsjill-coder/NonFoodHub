@@ -10,6 +10,7 @@ import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../.
 import { getArticles, getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { validateArticle } from "../../../../shared/article-validation.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
+import { markContentUpdated } from "../../../../shared/content-dates.js";
 import {
   findArticleBrochures,
   findArticleSuppliers,
@@ -403,7 +404,7 @@ export function setupArticleWorkflowActions({
     });
     if (!confirmed) return;
 
-    await articleSession.applyArticle({ ...article, status: "archived" }, article.slug);
+    await articleSession.applyArticle(markContentUpdated({ ...article, status: "archived" }), article.slug);
     setActionFeedback(article.slug, "Gearchiveerd in bewerkversie", nextStepsMessage("Archiveren"));
     rerender?.();
   });
@@ -436,7 +437,7 @@ export function setupArticleWorkflowActions({
       const confirmed = await confirmStatusChange(targetStatus);
       if (!confirmed) return;
 
-      await articleSession.applyArticle({ ...currentArticle, status: targetStatus }, currentArticle.slug);
+      await articleSession.applyArticle(markContentUpdated({ ...currentArticle, status: targetStatus }), currentArticle.slug);
       const label = getArticleStatusLabel(targetStatus);
       setActionFeedback(currentArticle.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();

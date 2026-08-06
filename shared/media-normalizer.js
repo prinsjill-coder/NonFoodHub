@@ -30,6 +30,7 @@ export const MEDIA_ASSET_KEYS = [
   "usageType",
   "rightsStatus",
   "status",
+  "updatedAt",
   "sortOrder"
 ];
 
@@ -87,6 +88,7 @@ export function normalizeMediaAssetForSession(asset) {
     usageType: asString(asset?.usageType),
     rightsStatus: asString(asset?.rightsStatus),
     status: normalizeContentStatus(asset?.status),
+    updatedAt: asString(asset?.updatedAt),
     sortOrder: Number.isInteger(Number(asset?.sortOrder)) ? Number(asset.sortOrder) : 0
   };
 }

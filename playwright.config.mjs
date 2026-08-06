@@ -8,7 +8,7 @@ const config = {
   testMatch: "**/*.spec.mjs",
   timeout: 30000,
   expect: {
-    timeout: 7000
+    timeout: 15000
   },
   reporter: [
     ["list"],

@@ -111,6 +111,12 @@ async function visibleItemCount(page, selector) {
   return page.locator(selector).evaluateAll((items) => items.filter((item) => !item.hidden).length);
 }
 
+async function visibleItemTexts(page, selector) {
+  return page
+    .locator(selector)
+    .evaluateAll((items) => items.filter((item) => !item.hidden).map((item) => item.textContent.trim()));
+}
+
 const studioRoutes = [
   { path: "/studio/index.html#/dashboard", heading: "Dashboard" },
   { path: "/studio/index.html#/governance", heading: "Governance" },
@@ -181,6 +187,7 @@ test("Studio zoekt realtime in alle contentoverzichten", async ({ page }) => {
   for (const searchCase of cases) {
     await page.goto(searchCase.path);
     const topbarSearch = page.locator("[data-studio-search]");
+    await expect(page.locator(searchCase.itemSelector).first()).toBeVisible();
     const totalCount = await visibleItemCount(page, searchCase.itemSelector);
 
     await expect(topbarSearch).toBeEnabled();
@@ -195,11 +202,211 @@ test("Studio zoekt realtime in alle contentoverzichten", async ({ page }) => {
     await topbarSearch.fill("geen-resultaat-voor-deze-zoektest");
     await expect(page.locator(searchCase.emptySelector)).toBeVisible();
 
-    await page.getByRole("button", { name: "Wissen" }).click();
+    await page.getByRole("button", { name: "Wissen", exact: true }).click();
     await expect(topbarSearch).toHaveValue("");
     await expect(page.locator(searchCase.emptySelector)).toBeHidden();
     expect(await visibleItemCount(page, searchCase.itemSelector)).toBe(totalCount);
   }
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio combineert zoeken, slimme filters, sortering en reset", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/studio/index.html#/leveranciers");
+  const supplierCards = "[data-supplier-card-list] [data-supplier-item]";
+  await expect(page.locator(supplierCards).first()).toBeVisible();
+  const supplierTotal = await visibleItemCount(page, supplierCards);
+  expect(supplierTotal).toBeGreaterThanOrEqual(2);
+
+  await page.locator("[data-supplier-sort]").selectOption("name-desc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items[0])).toContain("Churchill");
+  await page.locator("[data-supplier-sort]").selectOption("name-asc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items[0])).toContain("Amefa");
+
+  await page.locator("[data-studio-search]").fill("Churchill");
+  await page.locator('[data-supplier-filter="workflow"]').selectOption("published");
+  await page.locator('[data-supplier-filter="website"]').selectOption("live");
+  await page.locator('[data-supplier-filter="category"]').selectOption("servies");
+  await page.locator('[data-supplier-filter="hasbrochure"]').selectOption("yes");
+  await expect(page.locator("[data-supplier-filter-summary]")).toBeVisible();
+  await expect(page.locator("[data-supplier-filter-summary]")).toContainText("Zoeken: Churchill");
+  await expect(page.locator("[data-supplier-filter-summary]")).toContainText(["Workflow", "status: Gepubliceerd"].join(""));
+  await expect(page.locator("[data-supplier-filter-summary]")).toContainText("Categorie: Servies");
+  expect(await visibleItemCount(page, supplierCards)).toBe(1);
+  await expect(page.locator(supplierCards).filter({ hasText: "Churchill" }).first()).toBeVisible();
+
+  await page.locator('[data-supplier-filter="hasarticle"]').selectOption("no");
+  await expect(page.locator("[data-supplier-empty]")).toBeVisible();
+  await expect(page.locator("[data-supplier-empty]")).toContainText("Geen leveranciers");
+  await page.locator("[data-supplier-empty-clear]").click();
+  await expect(page.locator("[data-studio-search]")).toHaveValue("");
+  await expect(page.locator('[data-supplier-filter="workflow"]')).toHaveValue("all");
+  await expect(page.locator("[data-supplier-sort]")).toHaveValue("name-asc");
+  await expect(page.locator("[data-supplier-filter-summary]")).toBeHidden();
+  await expect(page.locator("[data-supplier-empty]")).toBeHidden();
+  expect(await visibleItemCount(page, supplierCards)).toBe(supplierTotal);
+
+  await page.goto("/studio/index.html#/brochures");
+  const brochureCards = "[data-brochure-card-list] [data-brochure-item]";
+  await page.locator("[data-studio-search]").fill("Churchill");
+  await page.locator('[data-brochure-filter="supplier"]').selectOption("supplier-churchill");
+  await page.locator('[data-brochure-filter="category"]').selectOption("servies");
+  await page.locator('[data-brochure-filter="haspdf"]').selectOption("yes");
+  await expect(page.locator("[data-brochure-filter-summary]")).toContainText("Leverancier: Churchill");
+  await expect(page.locator("[data-brochure-filter-summary]")).toContainText("Categorie: Servies");
+  expect(await visibleItemCount(page, brochureCards)).toBe(1);
+  await expect(page.locator(brochureCards).filter({ hasText: "Churchill Combined Brochure 2026" }).first()).toBeVisible();
+  await page.locator("[data-brochure-clear-filters]").click();
+  await expect(page.locator("[data-brochure-filter-summary]")).toBeHidden();
+
+  await page.goto("/studio/index.html#/kennisbank");
+  const articleCards = "[data-article-card-list] [data-article-item]";
+  await page.locator("[data-studio-search]").fill("hospitality");
+  await page.locator('[data-article-filter="supplier"]').selectOption("supplier-amefa");
+  await page.locator('[data-article-filter="category"]').selectOption("buffet & presentatie");
+  await page.locator('[data-article-filter="hashero"]').selectOption("yes");
+  await page.locator('[data-article-filter="hasbrochurerelation"]').selectOption("yes");
+  await expect(page.locator("[data-article-filter-summary]")).toContainText("Leverancier: Amefa");
+  expect(await visibleItemCount(page, articleCards)).toBe(1);
+  await expect(page.locator(articleCards).filter({ hasText: "Professioneel tafelconcept" }).first()).toBeVisible();
+
+  await page.goto("/studio/index.html#/media");
+  const mediaCards = "[data-media-card-list] [data-media-item]";
+  await page.locator("[data-studio-search]").fill("Amefa");
+  await page.locator('[data-media-filter="filetype"]').selectOption("logo");
+  await page.locator('[data-media-filter="rights"]').selectOption("needs-review");
+  await page.locator('[data-media-filter="usedbysupplier"]').selectOption("yes");
+  await page.locator('[data-media-filter="missingfile"]').selectOption("no");
+  await expect(page.locator("[data-media-filter-summary]")).toContainText("Bestandstype: Logo");
+  expect(await visibleItemCount(page, mediaCards)).toBe(1);
+  await expect(page.locator(mediaCards).filter({ hasText: "Amefa leveranciersbeeld" }).first()).toBeVisible();
+
+  await page.goto("/studio/index.html#/bibliotheek");
+  const libraryCards = "[data-library-card-list] [data-library-item]";
+  await page.locator("[data-studio-search]").fill("Churchill");
+  await page.locator('[data-library-filter="workflow"]').selectOption("concept");
+  await page.locator('[data-library-filter="type"]').selectOption("catalogus");
+  await page.locator('[data-library-filter="category"]').selectOption("leveranciers");
+  await expect(page.locator("[data-library-filter-summary]")).toContainText("Contenttype: Catalogus");
+  expect(await visibleItemCount(page, libraryCards)).toBe(1);
+  await expect(page.locator(libraryCards).filter({ hasText: "Churchill Combined Brochure 2026" }).first()).toBeVisible();
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio sorteert bewaarde wijzigingen op laatst gewijzigd en behoudt dit na refresh", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  const supplierCards = "[data-supplier-card-list] [data-supplier-item]";
+  const amefaCard = `${supplierCards}[data-list-id="supplier-amefa"]`;
+
+  await page.goto("/studio/index.html#/leveranciers/amefa/bewerken");
+  await expect(page.getByRole("heading", { name: "Amefa bewerken", level: 1 })).toBeVisible();
+  await page.locator("#studio-field-description").fill(
+    "Amefa ondersteunt professionele tafelpresentatie met bestek, buffetoplossingen en hospitalitycollecties voor de sorteercontrole."
+  );
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/amefa$/);
+
+  await page.goto("/studio/index.html#/leveranciers");
+  await expect(page.locator(supplierCards).first()).toBeVisible();
+  await expect(page.locator(amefaCard)).toHaveAttribute("data-sort-updated-at", /T/);
+  const updatedAt = await page.locator(amefaCard).getAttribute("data-sort-updated-at");
+
+  await page.locator("[data-supplier-sort]").selectOption("updated-desc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items[0])).toContain("Amefa");
+
+  await page.locator("[data-supplier-sort]").selectOption("updated-asc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items.at(-1))).toContain("Amefa");
+
+  await page.reload();
+  await expect(page.locator(supplierCards).first()).toBeVisible();
+  await expect(page.locator(amefaCard)).toHaveAttribute("data-sort-updated-at", updatedAt);
+
+  await page.locator("[data-supplier-sort]").selectOption("updated-desc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items[0])).toContain("Amefa");
+
+  await page.locator("[data-supplier-sort]").selectOption("updated-asc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items.at(-1))).toContain("Amefa");
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio laat leveranciersmedia kiezen en registreert Media-koppelingen", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  const supplierCards = "[data-supplier-card-list] [data-supplier-item]";
+  const amefaCard = `${supplierCards}[data-list-id="supplier-amefa"]`;
+  const logoPath = "assets/images/logos/leverancier-logo-def.png";
+  const imagePath = "assets/images/suppliers/header-beeld-zomer.jpeg";
+
+  await page.goto("/studio/index.html#/leveranciers/amefa/bewerken");
+  await expect(page.getByRole("heading", { name: "Amefa bewerken", level: 1 })).toBeVisible();
+  const originalLogo = await page.locator("#studio-field-logo").inputValue();
+  const originalImage = await page.locator("#studio-field-image").inputValue();
+
+  await page.locator("#studio-field-description").fill(
+    "Amefa ondersteunt professionele tafelpresentatie met bestek en buffetoplossingen zonder het bestaande beeld te vervangen."
+  );
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/amefa$/);
+
+  await page.goto("/studio/index.html#/leveranciers/amefa/bewerken");
+  await expect(page.locator("#studio-field-logo")).toHaveValue(originalLogo);
+  await expect(page.locator("#studio-field-image")).toHaveValue(originalImage);
+
+  await page
+    .locator("#studio-field-logo-choice")
+    .setInputFiles(filePayload("Leverancier Logo DEF.PNG", "image/png", "logo"));
+  await expect(page.locator('[data-target-field="logo"] [data-file-choice-name]')).toHaveText("Leverancier Logo DEF.PNG");
+  await expect(page.locator('[data-target-field="logo"] [data-file-choice-type]')).toHaveText("image/png");
+  await expect(page.locator('[data-target-field="logo"] [data-file-choice-size]')).toHaveText("4 B");
+  await expect(page.locator('[data-target-field="logo"] [data-file-choice-expected]')).toHaveText(logoPath);
+  await expect(page.locator("#studio-field-logo")).toHaveValue(logoPath);
+
+  await page
+    .locator("#studio-field-image-choice")
+    .setInputFiles(filePayload("Header beeld zomer.jpeg", "image/jpeg", "header"));
+  await expect(page.locator('[data-target-field="image"] [data-file-choice-name]')).toHaveText("Header beeld zomer.jpeg");
+  await expect(page.locator('[data-target-field="image"] [data-file-choice-type]')).toHaveText("image/jpeg");
+  await expect(page.locator('[data-target-field="image"] [data-file-choice-size]')).toHaveText("6 B");
+  await expect(page.locator('[data-target-field="image"] [data-file-choice-expected]')).toHaveText(imagePath);
+  await expect(page.locator("#studio-field-image")).toHaveValue(imagePath);
+
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/amefa$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Amefa", level: 1 })).toBeVisible();
+
+  await page.goto("/studio/index.html#/leveranciers/amefa/bewerken");
+  await expect(page.locator("#studio-field-logo")).toHaveValue(logoPath);
+  await expect(page.locator("#studio-field-image")).toHaveValue(imagePath);
+
+  await page.goto("/studio/index.html#/media/media-amefa-logo");
+  await expect(page.getByRole("heading", { name: "Amefa logo", level: 1 })).toBeVisible();
+  await expect(page.getByRole("code").filter({ hasText: logoPath })).toBeVisible();
+  const logoSupplierUsage = page
+    .locator(".studio-card")
+    .filter({ has: page.getByRole("heading", { name: "Leveranciers", level: 3 }) });
+  await expect(logoSupplierUsage.getByRole("link", { name: "Amefa" })).toBeVisible();
+
+  await page.goto("/studio/index.html#/media/media-amefa-headerafbeelding");
+  await expect(page.getByRole("heading", { name: "Amefa headerafbeelding", level: 1 })).toBeVisible();
+  await expect(page.getByRole("code").filter({ hasText: imagePath })).toBeVisible();
+  const imageSupplierUsage = page
+    .locator(".studio-card")
+    .filter({ has: page.getByRole("heading", { name: "Leveranciers", level: 3 }) });
+  await expect(imageSupplierUsage.getByRole("link", { name: "Amefa" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Amefa headerafbeelding", level: 1 })).toBeVisible();
+  await expect(imageSupplierUsage.getByRole("link", { name: "Amefa" })).toBeVisible();
+
+  await page.goto("/studio/index.html#/leveranciers");
+  await expect(page.locator(amefaCard)).toHaveAttribute("data-sort-updated-at", /T/);
+  await page.locator("[data-supplier-sort]").selectOption("updated-desc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items[0])).toContain("Amefa");
+  await page.locator("[data-supplier-sort]").selectOption("updated-asc");
+  await expect.poll(() => visibleItemTexts(page, supplierCards).then((items) => items.at(-1))).toContain("Amefa");
 
   await expectCleanStudioPage(page, errors);
 });

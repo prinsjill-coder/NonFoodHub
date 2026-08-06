@@ -14,6 +14,7 @@ import {
   normalizeSlug
 } from "../../../../shared/article-model.js";
 import { getBrochures, sortBrochures } from "../../../../shared/brochure-model.js";
+import { markContentUpdated, updatedAtDateInputValue } from "../../../../shared/content-dates.js";
 import { canDeleteContentStatus, getArticleDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { articleFromForm, hasValidationErrors, validateArticle } from "../../../../shared/article-validation.js";
@@ -220,7 +221,7 @@ export function renderArticleForm({
             name: "updatedAt",
             label: "Bijgewerkt op",
             type: "date",
-            value: article.updatedAt,
+            value: updatedAtDateInputValue(article.updatedAt),
             required: true
           })}
           ${renderTextField({
@@ -446,7 +447,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
     event.preventDefault();
     clearFieldErrors(form);
 
-    const article = articleFromForm(form);
+    const article = markContentUpdated(articleFromForm(form));
     const result = validateArticle(article, articleData.items || [], supplierData, brochureData, articleData, mediaData, {
       originalSlug: form.dataset.originalSlug || "",
       originalId: form.dataset.originalId || ""

@@ -8,6 +8,7 @@ import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
+import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
 import {
   getSupplierCounts,
   getSupplierStatusLabel,
@@ -15,9 +16,18 @@ import {
   getSuppliers,
   sortSuppliers
 } from "../../../../shared/supplier-model.js";
-import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
+import {
+  DEFAULT_SORT_OPTIONS,
+  WEBSITE_STATUS_FILTER_OPTIONS,
+  YES_NO_FILTER_OPTIONS,
+  booleanFilterValue,
+  createFilterTokens,
+  createSearchText,
+  filterToken,
+  setupListControls
+} from "../../shared/list-search.js";
 import { setupSupplierImportExport } from "./import-export.js";
 
 function renderSupplierActions(supplier) {
@@ -55,26 +65,54 @@ function readySupplierCount(suppliers, publicData) {
   return suppliers.filter((supplier) => renderedSupplierStatus(supplier, publicData) === "ready").length;
 }
 
-function renderSupplierCards(suppliers, publicData = {}) {
+function supplierListMetadata(supplier, { brochureData, articleData, publicData }) {
+  const hasBrochure = findSupplierBrochures(supplier, brochureData).length > 0;
+  const hasArticle = findSupplierArticles(supplier, articleData).length > 0;
+  return {
+    websiteStatus: isPublishedOnWebsite("suppliers", supplier, publicData) ? "live" : "not_live",
+    hasBrochure: booleanFilterValue(hasBrochure),
+    hasArticle: booleanFilterValue(hasArticle)
+  };
+}
+
+function renderSupplierListAttributes(supplier, { brochureData, articleData, publicData }) {
+  const status = renderedSupplierStatus(supplier, publicData);
+  const metadata = supplierListMetadata(supplier, { brochureData, articleData, publicData });
+  return `
+    data-supplier-item
+    data-list-id="${escapeHtml(supplier.id)}"
+    data-search="${escapeHtml(createSearchText(
+      supplier.name,
+      supplier.slug,
+      supplier.summary,
+      supplier.description,
+      supplier.categories,
+      getSupplierTypeLabel(supplier.type)
+    ))}"
+    data-sort-name="${escapeHtml(supplier.name)}"
+    data-sort-updated-at="${escapeHtml(supplier.updatedAt || "")}"
+    data-sort-status="${escapeHtml(supplier.status)}"
+    data-filter-workflow="${escapeHtml(supplier.status)}"
+    data-filter-website="${escapeHtml(metadata.websiteStatus)}"
+    data-filter-category="${escapeHtml(createFilterTokens(supplier.categories))}"
+    data-filter-hasbrochure="${escapeHtml(metadata.hasBrochure)}"
+    data-filter-hasarticle="${escapeHtml(metadata.hasArticle)}"
+    data-filter-type="${escapeHtml(supplier.type)}"
+    data-name="${escapeHtml(supplier.name.toLowerCase())}"
+    data-status="${escapeHtml(status)}"
+    data-type="${escapeHtml(supplier.type)}"
+    data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
+  `;
+}
+
+function renderSupplierCards(suppliers, publicData = {}, relationData = {}) {
   return suppliers
     .map((supplier) => {
       const status = renderedSupplierStatus(supplier, publicData);
       return `
       <article
         class="studio-card studio-supplier-card"
-          data-supplier-item
-          data-search="${escapeHtml(createSearchText(
-            supplier.name,
-            supplier.slug,
-            supplier.summary,
-            supplier.description,
-            supplier.categories,
-            getSupplierTypeLabel(supplier.type)
-          ))}"
-          data-name="${escapeHtml(supplier.name.toLowerCase())}"
-          data-status="${escapeHtml(status)}"
-          data-type="${escapeHtml(supplier.type)}"
-        data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
+        ${renderSupplierListAttributes(supplier, { ...relationData, publicData })}
       >
         <div class="studio-card-head">
           <div>
@@ -90,53 +128,6 @@ function renderSupplierCards(suppliers, publicData = {}) {
     `;
     })
     .join("");
-}
-
-function renderSupplierTable(suppliers, publicData = {}) {
-  return renderDataTable({
-    label: "Leveranciersoverzicht",
-    rows: suppliers,
-    rowAttributes: (supplier) => `
-      data-supplier-item
-      data-search="${escapeHtml(createSearchText(
-        supplier.name,
-        supplier.slug,
-        supplier.summary,
-        supplier.description,
-        supplier.categories,
-        getSupplierTypeLabel(supplier.type)
-      ))}"
-      data-name="${escapeHtml(supplier.name.toLowerCase())}"
-      data-status="${escapeHtml(renderedSupplierStatus(supplier, publicData))}"
-      data-type="${escapeHtml(supplier.type)}"
-      data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
-    `,
-    columns: [
-      {
-        label: "Naam",
-        render: (supplier) => `<strong>${escapeHtml(supplier.name)}</strong><br><span>${escapeHtml(supplier.slug)}</span>`
-      },
-      {
-        label: "Type",
-        render: (supplier) => escapeHtml(getSupplierTypeLabel(supplier.type))
-      },
-      {
-        label: "Categorieen",
-        render: (supplier) => escapeHtml((supplier.categories || []).join(", ") || "Geen categorieen")
-      },
-      {
-        label: "Status",
-        render: (supplier) => renderStatusBadge(
-          renderedSupplierStatus(supplier, publicData),
-          renderedSupplierStatusLabel(supplier, publicData)
-        )
-      },
-      {
-        label: "Acties",
-        render: renderSupplierActions
-      }
-    ]
-  });
 }
 
 function renderExportNotice(sessionSnapshot) {
@@ -160,7 +151,14 @@ function renderImportNotice(sessionSnapshot) {
   });
 }
 
-export function renderSuppliersList({ supplierData, publicData = {}, sessionSnapshot }) {
+function categoryOptions(supplierData) {
+  return [
+    { value: "all", label: "Alle categorieen" },
+    ...(supplierData.categories || []).map((category) => ({ value: filterToken(category), label: category }))
+  ];
+}
+
+export function renderSuppliersList({ supplierData, brochureData, articleData, publicData = {}, sessionSnapshot }) {
   const suppliers = sortSuppliers(getSuppliers(supplierData));
   const counts = getSupplierCounts(supplierData);
   const publishedCount = publicSupplierCount(suppliers, publicData);
@@ -173,6 +171,7 @@ export function renderSuppliersList({ supplierData, publicData = {}, sessionSnap
     { value: "all", label: "Alle statussen" },
     ...(supplierData.statuses || []).map((status) => ({ value: status, label: getSupplierStatusLabel(status) }))
   ];
+  const relationData = { brochureData, articleData };
 
   const actions = `
     ${renderButton({ label: "Nieuwe leverancier", href: "#/leveranciers/nieuw", variant: "primary" })}
@@ -244,16 +243,22 @@ export function renderSuppliersList({ supplierData, publicData = {}, sessionSnap
     ${renderFilterToolbar({
       searchPlaceholder: "Zoek op naam, URL-naam of categorie",
       filters: [
-        { name: "type", label: "Type", options: typeOptions },
-        { name: "status", label: "Status", options: statusOptions }
+        { name: "workflow", label: "Workflowstatus", options: statusOptions },
+        { name: "website", label: "Websitestatus", options: WEBSITE_STATUS_FILTER_OPTIONS },
+        { name: "category", label: "Categorie", options: categoryOptions(supplierData) },
+        { name: "hasbrochure", label: "Heeft brochure", options: YES_NO_FILTER_OPTIONS },
+        { name: "hasarticle", label: "Heeft kennisartikel", options: YES_NO_FILTER_OPTIONS },
+        { name: "type", label: "Type", options: typeOptions }
       ],
+      sortOptions: DEFAULT_SORT_OPTIONS,
       actions
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers, publicData)}</div>
+      <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers, publicData, relationData)}</div>
       <div class="studio-list-empty" data-supplier-empty hidden>
-        Geen leveranciers gevonden met deze zoekterm of filters.
+        <p data-supplier-empty-message>Geen leveranciers gevonden met deze zoekterm of filters.</p>
+        ${renderButton({ label: "Filters wissen", variant: "secondary", attributes: { "data-supplier-empty-clear": true } })}
       </div>
     </section>
 
@@ -261,39 +266,46 @@ export function renderSuppliersList({ supplierData, publicData = {}, sessionSnap
       <div class="studio-section-head">
         <h2>Tabelweergave</h2>
       </div>
-      ${renderSupplierTable(suppliers, publicData)}
+      ${renderDataTable({
+        label: "Leveranciersoverzicht",
+        rows: suppliers,
+        rowAttributes: (supplier) => renderSupplierListAttributes(supplier, { ...relationData, publicData }),
+        columns: [
+          {
+            label: "Naam",
+            render: (supplier) => `<strong>${escapeHtml(supplier.name)}</strong><br><span>${escapeHtml(supplier.slug)}</span>`
+          },
+          {
+            label: "Type",
+            render: (supplier) => escapeHtml(getSupplierTypeLabel(supplier.type))
+          },
+          {
+            label: "Categorieen",
+            render: (supplier) => escapeHtml((supplier.categories || []).join(", ") || "Geen categorieen")
+          },
+          {
+            label: "Status",
+            render: (supplier) => renderStatusBadge(
+              renderedSupplierStatus(supplier, publicData),
+              renderedSupplierStatusLabel(supplier, publicData)
+            )
+          },
+          {
+            label: "Acties",
+            render: renderSupplierActions
+          }
+        ]
+      })}
     </section>
   `;
 }
 
 export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
-  const search = document.querySelector("[data-supplier-search]");
-  const clearSearch = document.querySelector("[data-supplier-search-clear]");
-  const filters = Array.from(document.querySelectorAll("[data-supplier-filter]"));
-  const items = Array.from(document.querySelectorAll("[data-supplier-item]"));
-  const empty = document.querySelector("[data-supplier-empty]");
-
   setupSupplierImportExport({ supplierSession, rerender, restoreDraft });
-
-  function applyFilters() {
-    const query = search?.value || "";
-    const values = readFilterValues(filters, "supplier");
-    let visibleCount = 0;
-
-    items.forEach((item) => {
-      const hasSearchMatch = matchesSearch(item, query);
-      const matchesType = values.type === "all" || item.dataset.type === values.type;
-      const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const visible = hasSearchMatch && matchesType && matchesStatus;
-      item.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-
-    if (empty) {
-      empty.hidden = visibleCount > 0;
-    }
-  }
-
-  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
-  filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+  setupListControls({
+    scope: "supplier",
+    itemSelector: "[data-supplier-item]",
+    emptySelector: "[data-supplier-empty]",
+    emptyText: "Geen leveranciers gevonden met de huidige zoekterm of filters."
+  });
 }

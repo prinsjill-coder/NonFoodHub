@@ -12,6 +12,10 @@ export function renderMediaRoute(route, mediaSession, supplierSession, brochureS
   if (route.id === "media") {
     return renderMediaList({
       mediaData,
+      supplierData,
+      brochureData,
+      articleData,
+      mediaSession,
       sessionSnapshot: mediaSession.snapshot()
     });
   }

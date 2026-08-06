@@ -16,10 +16,19 @@ import {
   getBrochures,
   sortBrochures
 } from "../../../../shared/brochure-model.js";
-import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
+import {
+  DEFAULT_SORT_OPTIONS,
+  WEBSITE_STATUS_FILTER_OPTIONS,
+  YES_NO_FILTER_OPTIONS,
+  booleanFilterValue,
+  createFilterTokens,
+  createSearchText,
+  filterToken,
+  setupListControls
+} from "../../shared/list-search.js";
 import { setupBrochureImportExport } from "./import-export.js";
 
 function supplierNameById(supplierData) {
@@ -61,6 +70,38 @@ function readyBrochureCount(brochures, publicData) {
   return brochures.filter((brochure) => renderedBrochureStatus(brochure, publicData) === "ready").length;
 }
 
+function renderBrochureListAttributes(brochure, suppliersById, publicData = {}) {
+  const supplierName = suppliersById.get(brochure.supplierId) || "Onbekende leverancier";
+  const status = renderedBrochureStatus(brochure, publicData);
+  return `
+    data-brochure-item
+    data-list-id="${escapeHtml(brochure.id)}"
+    data-search="${escapeHtml(createSearchText(
+      brochure.title,
+      brochure.slug,
+      brochure.description,
+      supplierName,
+      brochure.categories,
+      brochure.year,
+      getBrochureLanguageLabel(brochure.language)
+    ))}"
+    data-sort-name="${escapeHtml(brochure.title)}"
+    data-sort-updated-at="${escapeHtml(brochure.updatedAt || "")}"
+    data-sort-status="${escapeHtml(brochure.status)}"
+    data-filter-workflow="${escapeHtml(brochure.status)}"
+    data-filter-website="${escapeHtml(isPublishedOnWebsite("brochures", brochure, publicData) ? "live" : "not_live")}"
+    data-filter-supplier="${escapeHtml(brochure.supplierId)}"
+    data-filter-category="${escapeHtml(createFilterTokens(brochure.categories))}"
+    data-filter-haspdf="${escapeHtml(booleanFilterValue(Boolean(brochure.pdfFile)))}"
+    data-filter-year="${escapeHtml(String(brochure.year || ""))}"
+    data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
+    data-status="${escapeHtml(status)}"
+    data-supplier="${escapeHtml(brochure.supplierId)}"
+    data-year="${escapeHtml(String(brochure.year || ""))}"
+    data-categories="${escapeHtml((brochure.categories || []).join(" ").toLowerCase())}"
+  `;
+}
+
 function renderBrochureCards(brochures, suppliersById, publicData = {}) {
   return brochures
     .map((brochure) => {
@@ -69,21 +110,7 @@ function renderBrochureCards(brochures, suppliersById, publicData = {}) {
       return `
         <article
           class="studio-card studio-brochure-card"
-          data-brochure-item
-          data-search="${escapeHtml(createSearchText(
-            brochure.title,
-            brochure.slug,
-            brochure.description,
-            supplierName,
-            brochure.categories,
-            brochure.year,
-            getBrochureLanguageLabel(brochure.language)
-          ))}"
-          data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
-          data-status="${escapeHtml(status)}"
-          data-supplier="${escapeHtml(brochure.supplierId)}"
-          data-year="${escapeHtml(String(brochure.year || ""))}"
-          data-categories="${escapeHtml((brochure.categories || []).join(" ").toLowerCase())}"
+          ${renderBrochureListAttributes(brochure, suppliersById, publicData)}
         >
           <div class="studio-card-head">
             <div>
@@ -106,23 +133,7 @@ function renderBrochureTable(brochures, suppliersById, publicData = {}) {
   return renderDataTable({
     label: "Brochureoverzicht",
     rows: brochures,
-    rowAttributes: (brochure) => `
-      data-brochure-item
-      data-search="${escapeHtml(createSearchText(
-        brochure.title,
-        brochure.slug,
-        brochure.description,
-        suppliersById.get(brochure.supplierId) || brochure.supplierId,
-        brochure.categories,
-        brochure.year,
-        getBrochureLanguageLabel(brochure.language)
-      ))}"
-      data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
-      data-status="${escapeHtml(renderedBrochureStatus(brochure, publicData))}"
-      data-supplier="${escapeHtml(brochure.supplierId)}"
-      data-year="${escapeHtml(String(brochure.year || ""))}"
-      data-categories="${escapeHtml((brochure.categories || []).join(" ").toLowerCase())}"
-    `,
+    rowAttributes: (brochure) => renderBrochureListAttributes(brochure, suppliersById, publicData),
     columns: [
       {
         label: "Titel",
@@ -187,6 +198,13 @@ function renderImportSummary(report) {
     message: `${report.sourceFileName || "Het geselecteerde bestand"} bevat ${report.itemCount} brochures. Controleer het validatierapport hieronder.`,
     tone: report.valid ? "info" : "warning"
   });
+}
+
+function categoryOptions(brochureData) {
+  return [
+    { value: "all", label: "Alle categorieen" },
+    ...(brochureData.categories || []).map((category) => ({ value: filterToken(category), label: category }))
+  ];
 }
 
 export function renderBrochuresList({ brochureData, supplierData, publicData = {}, sessionSnapshot }) {
@@ -297,17 +315,22 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
       ariaLabel: "Brochurefilters",
       searchPlaceholder: "Zoek op titel, URL-naam of categorie",
       filters: [
+        { name: "workflow", label: "Workflowstatus", options: statusOptions },
+        { name: "website", label: "Websitestatus", options: WEBSITE_STATUS_FILTER_OPTIONS },
         { name: "supplier", label: "Leverancier", options: supplierOptions },
-        { name: "status", label: "Status", options: statusOptions },
+        { name: "category", label: "Categorie", options: categoryOptions(brochureData) },
+        { name: "haspdf", label: "Heeft PDF", options: YES_NO_FILTER_OPTIONS },
         { name: "year", label: "Jaar", options: yearOptions }
       ],
+      sortOptions: DEFAULT_SORT_OPTIONS,
       actions
     })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-brochure-card-list>${renderBrochureCards(brochures, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-brochure-empty hidden>
-        Geen brochures gevonden met deze zoekterm of filters.
+        <p data-brochure-empty-message>Geen brochures gevonden met deze zoekterm of filters.</p>
+        ${renderButton({ label: "Filters wissen", variant: "secondary", attributes: { "data-brochure-empty-clear": true } })}
       </div>
     </section>
 
@@ -321,37 +344,15 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
 }
 
 export function setupBrochureList({ brochureSession, supplierSession, rerender, restoreDraft }) {
-  const search = document.querySelector("[data-brochure-search]");
-  const clearSearch = document.querySelector("[data-brochure-search-clear]");
-  const filters = Array.from(document.querySelectorAll("[data-brochure-filter]"));
-  const items = Array.from(document.querySelectorAll("[data-brochure-item]"));
-  const empty = document.querySelector("[data-brochure-empty]");
   const restoreButton = document.querySelector("[data-brochure-restore]");
 
   setupBrochureImportExport({ brochureSession, supplierSession, rerender });
-
-  function applyFilters() {
-    const query = search?.value || "";
-    const values = readFilterValues(filters, "brochure");
-    let visibleCount = 0;
-
-    items.forEach((item) => {
-      const hasSearchMatch = matchesSearch(item, query);
-      const matchesSupplier = values.supplier === "all" || item.dataset.supplier === values.supplier;
-      const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const matchesYear = values.year === "all" || item.dataset.year === values.year;
-      const visible = hasSearchMatch && matchesSupplier && matchesStatus && matchesYear;
-      item.hidden = !visible;
-      if (visible) visibleCount += 1;
-    });
-
-    if (empty) {
-      empty.hidden = visibleCount > 0;
-    }
-  }
-
-  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
-  filters.forEach((filter) => filter.addEventListener("change", applyFilters));
+  setupListControls({
+    scope: "brochure",
+    itemSelector: "[data-brochure-item]",
+    emptySelector: "[data-brochure-empty]",
+    emptyText: "Geen brochures gevonden met de huidige zoekterm of filters."
+  });
   restoreButton?.addEventListener("click", async () => {
     if (brochureSession.snapshot().dirty) {
       const confirmed = await confirmStudioAction({

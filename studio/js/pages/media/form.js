@@ -14,6 +14,7 @@ import {
   getMediaUsageTypeLabel,
   normalizeMediaId
 } from "../../../../shared/media-model.js";
+import { markContentUpdated } from "../../../../shared/content-dates.js";
 import { hasValidationErrors, mediaAssetFromForm, validateMediaAsset } from "../../../../shared/media-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
@@ -234,7 +235,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     event.preventDefault();
     clearFieldErrors(form);
 
-    const asset = mediaAssetFromForm(form);
+    const asset = markContentUpdated(mediaAssetFromForm(form));
     const errors = validateMediaAsset(asset, mediaData.items || [], {
       originalId: form.dataset.originalId || ""
     });

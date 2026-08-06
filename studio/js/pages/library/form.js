@@ -8,6 +8,7 @@ import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
 import { getArticles, sortArticles } from "../../../../shared/article-model.js";
 import { getBrochures, sortBrochures } from "../../../../shared/brochure-model.js";
+import { markContentUpdated, updatedAtDateInputValue } from "../../../../shared/content-dates.js";
 import {
   createEmptyLibraryItem,
   getLibraryStatusLabel,
@@ -167,7 +168,7 @@ export function renderLibraryForm({
             name: "updatedAt",
             label: "Bijgewerkt op",
             type: "date",
-            value: item.updatedAt,
+            value: updatedAtDateInputValue(item.updatedAt),
             required: true
           })}
           ${renderTextField({
@@ -294,7 +295,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     event.preventDefault();
     clearFieldErrors(form);
 
-    const item = libraryItemFromForm(form);
+    const item = markContentUpdated(libraryItemFromForm(form));
     const result = validateLibraryItem(
       item,
       libraryData.items || [],

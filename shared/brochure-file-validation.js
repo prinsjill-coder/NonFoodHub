@@ -3,6 +3,7 @@ import {
   isContentStatus,
   isReadyForPublicationStatus
 } from "./content-status.js";
+import { isValidUpdatedAt } from "./content-dates.js";
 import { normalizeSlug } from "./brochure-model.js";
 import { BROCHURE_FILE_KEYS, BROCHURE_KEYS } from "./brochure-normalizer.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -53,12 +54,6 @@ function languageIdsFromFile(brochureData) {
 
 function supplierIdsFromFile(supplierData) {
   return new Set(getSuppliers(supplierData).map((supplier) => supplier.id));
-}
-
-function validDate(value) {
-  if (!hasValue(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function validYear(value) {
@@ -113,8 +108,8 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
     errors.push(createIssue(`${path}.sortOrder`, "sortOrder moet een positief geheel getal of 0 zijn."));
   }
 
-  if (!validDate(brochure.updatedAt)) {
-    errors.push(createIssue(`${path}.updatedAt`, "updatedAt moet een geldige datum zijn in de vorm jjjj-mm-dd."));
+  if (!isValidUpdatedAt(brochure.updatedAt)) {
+    errors.push(createIssue(`${path}.updatedAt`, "updatedAt moet een geldige ISO-datum of timestamp zijn."));
   }
 
   if (!validYear(brochure.year)) {

@@ -3,13 +3,36 @@ import { renderSupplierDetail, setupSupplierWorkflowActions } from "./detail.js"
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
 import { renderSuppliersList, setupSupplierList } from "./list.js";
 
-export function renderSuppliersRoute(route, supplierSession, brochureSession, articleSession, publicData = {}) {
+function fileAvailabilityForPath(path, mediaSession) {
+  if (!path || !mediaSession) return { canOpen: false, source: "", url: "" };
+
+  const localFile = mediaSession.findLocalProjectFile?.(path);
+  if (localFile?.url) {
+    return { canOpen: true, source: "local", url: localFile.url };
+  }
+
+  if (mediaSession.sourceHasProjectFile?.(path)) {
+    return { canOpen: true, source: "project", url: "" };
+  }
+
+  return { canOpen: false, source: "", url: "" };
+}
+
+function fileAvailabilityForSupplier(supplier, mediaSession) {
+  return Object.fromEntries(
+    [supplier.logo, supplier.image]
+      .filter(Boolean)
+      .map((path) => [path, fileAvailabilityForPath(path, mediaSession)])
+  );
+}
+
+export function renderSuppliersRoute(route, supplierSession, brochureSession, articleSession, mediaSession, publicData = {}) {
   const supplierData = supplierSession.getWorkingData();
   const brochureData = brochureSession?.getWorkingData();
   const articleData = articleSession?.getWorkingData();
 
   if (route.id === "suppliers") {
-    return renderSuppliersList({ supplierData, publicData, sessionSnapshot: supplierSession.snapshot() });
+    return renderSuppliersList({ supplierData, brochureData, articleData, publicData, sessionSnapshot: supplierSession.snapshot() });
   }
 
   if (route.id === "supplierNew") {
@@ -33,10 +56,17 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
     return renderSupplierForm({ supplierData, brochureData, articleData, supplier, mode: "edit" });
   }
 
-  return renderSupplierDetail({ supplierData, brochureData, articleData, publicData, supplier });
+  return renderSupplierDetail({
+    supplierData,
+    brochureData,
+    articleData,
+    publicData,
+    supplier,
+    fileAvailability: fileAvailabilityForSupplier(supplier, mediaSession)
+  });
 }
 
-export function setupSuppliersRoute(route, supplierSession, brochureSession, articleSession, options = {}) {
+export function setupSuppliersRoute(route, supplierSession, brochureSession, articleSession, mediaSession, options = {}) {
   if (route.id === "suppliers") {
     setupSupplierList({ supplierSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
   }
@@ -46,6 +76,7 @@ export function setupSuppliersRoute(route, supplierSession, brochureSession, art
       route,
       supplierSession,
       brochureSession,
+      mediaSession,
       articleSession,
       formDirtyGuard: options.formDirtyGuard,
       rerender: options.rerender
