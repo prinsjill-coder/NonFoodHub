@@ -22,7 +22,7 @@ import { getMediaAssets, normalizeMediaId } from "../../../../shared/media-model
 import { formatFileSize, projectFileNameFromChoice } from "../../../../shared/project-files.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus, setupLiveValidation } from "../../shared/form-errors.js";
 import { setupProjectFileChoices } from "../../shared/project-file-choice.js";
 
 function optionList(items, labelMap = {}) {
@@ -321,6 +321,12 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
   setupErrorLinkFocus(feedback, form);
 
   setupProjectFileChoices(form, { mediaSession, expectedPathForChoice });
+  const liveValidation = setupLiveValidation(form, () =>
+    validateBrochure(brochureFromForm(form), brochureData.items || [], supplierData, brochureData, {
+      originalSlug: form.dataset.originalSlug || "",
+      originalId: form.dataset.originalId || ""
+    })
+  );
 
   form.querySelector("[data-brochure-form-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
@@ -361,11 +367,13 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
   slugInput.addEventListener("input", () => {
     slugTouched = true;
     slugInput.value = normalizeSlug(slugInput.value);
+    liveValidation.validateFields(["slug"]);
   });
 
   titleInput.addEventListener("input", () => {
     if (!slugTouched) {
       slugInput.value = normalizeSlug(titleInput.value);
+      liveValidation.validateFields(["title", "slug"]);
     }
   });
 
@@ -392,7 +400,7 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message: [
-        "De brochure is opgeslagen in de bewerkversie. Gebruik Gegevens exporteren; plaats PDF en afbeelding op de ingevulde bestandslocatie.",
+        "Opgeslagen in de bewerkversie. De publieke website is nog niet bijgewerkt. Gebruik Gegevens exporteren en daarna Website bijwerken; plaats PDF en afbeelding op de ingevulde bestandslocatie.",
         createdMedia.length
           ? `${createdMedia.length} ontbrekende Media-basisregistratie${createdMedia.length === 1 ? " is" : "s zijn"} aangemaakt in de bewerkversie.`
           : "De gekoppelde bestanden hadden al een Media-basisregistratie of er is nog geen bestand gekoppeld."

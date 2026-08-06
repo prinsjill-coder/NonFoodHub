@@ -671,9 +671,14 @@ textarea:focus-visible {
   align-items: center;
 }
 
-.studio-required-label {
+.studio-required-label,
+.studio-optional-label {
   color: var(--studio-muted);
   font-weight: 650;
+}
+
+.studio-optional-label {
+  font-weight: 560;
 }
 
 .studio-toolbar input,
@@ -1191,6 +1196,7 @@ textarea:focus-visible {
 .studio-field textarea[aria-invalid="true"],
 .studio-check-pill input[aria-invalid="true"] + span {
   border-color: var(--studio-error);
+  background: rgba(154, 52, 18, 0.04);
   box-shadow: 0 0 0 2px rgba(154, 52, 18, 0.12);
 }
 

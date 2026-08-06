@@ -17,7 +17,7 @@ import { formatFileSize, projectFileNameFromChoice } from "../../../../shared/pr
 import { createEmptySupplier, normalizeSlug } from "../../../../shared/supplier-model.js";
 import { hasValidationErrors, supplierFromForm, validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus, setupLiveValidation } from "../../shared/form-errors.js";
 import { setupProjectFileChoices } from "../../shared/project-file-choice.js";
 
 function optionList(items, labelMap = {}) {
@@ -265,6 +265,11 @@ export function setupSupplierForm({ supplierSession, brochureSession, mediaSessi
 
   setupErrorLinkFocus(feedback, form);
   setupProjectFileChoices(form, { mediaSession, expectedPathForChoice });
+  const liveValidation = setupLiveValidation(form, () =>
+    validateSupplier(supplierFromForm(form), supplierData.items || [], {
+      originalSlug: form.dataset.originalSlug || ""
+    })
+  );
 
   form.querySelector("[data-supplier-form-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
@@ -306,11 +311,13 @@ export function setupSupplierForm({ supplierSession, brochureSession, mediaSessi
   slugInput.addEventListener("input", () => {
     slugTouched = true;
     slugInput.value = normalizeSlug(slugInput.value);
+    liveValidation.validateFields(["slug"]);
   });
 
   nameInput.addEventListener("input", () => {
     if (!slugTouched) {
       slugInput.value = normalizeSlug(nameInput.value);
+      liveValidation.validateFields(["name", "slug"]);
     }
   });
 
@@ -336,7 +343,7 @@ export function setupSupplierForm({ supplierSession, brochureSession, mediaSessi
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message: [
-        "De leverancier is opgeslagen in de bewerkversie. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
+        "Opgeslagen in de bewerkversie. De publieke website is nog niet bijgewerkt. Gebruik Gegevens exporteren en daarna Website bijwerken.",
         createdMedia.length
           ? `${createdMedia.length} ontbrekende Media-basisregistratie${createdMedia.length === 1 ? " is" : "s zijn"} aangemaakt in de bewerkversie.`
           : "De gekoppelde bestanden hadden al een Media-basisregistratie of er is nog geen bestand gekoppeld."

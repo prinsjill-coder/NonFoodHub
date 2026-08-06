@@ -18,7 +18,7 @@ import {
 import { hasValidationErrors, libraryItemFromForm, validateLibraryItem } from "../../../../shared/library-validation.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus, setupLiveValidation } from "../../shared/form-errors.js";
 
 function optionList(values, labelGetter = (value) => value) {
   return (values || []).map((value) => ({
@@ -52,7 +52,7 @@ function renderRelationCheckboxGroup({ name, label, values = [], options = [], h
 
   return `
     <fieldset class="studio-fieldset" data-field="${escapeHtml(name)}">
-      <legend>${escapeHtml(label)}</legend>
+      <legend>${escapeHtml(label)} <span class="studio-optional-label">(optioneel)</span></legend>
       ${helpHtml}
       <div class="studio-check-grid">${items}</div>
       <p class="studio-field-error" data-field-error="${escapeHtml(name)}" aria-live="polite"></p>
@@ -273,6 +273,21 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
   const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
   setupErrorLinkFocus(feedback, form);
+  const liveValidation = setupLiveValidation(form, () =>
+    validateLibraryItem(
+      libraryItemFromForm(form),
+      libraryData.items || [],
+      supplierData,
+      brochureData,
+      articleData,
+      libraryData,
+      mediaData,
+      {
+        originalSlug: form.dataset.originalSlug || "",
+        originalId: form.dataset.originalId || ""
+      }
+    )
+  );
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;
@@ -280,6 +295,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     if (!idInput.value) {
       idInput.value = `library-${slugInput.value}`.replace(/-+$/g, "");
     }
+    liveValidation.validateFields(["slug", "id"]);
   });
 
   titleInput.addEventListener("input", () => {
@@ -289,6 +305,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     if (!form.dataset.originalId) {
       idInput.value = `library-${normalizeSlug(titleInput.value)}`.replace(/-+$/g, "");
     }
+    liveValidation.validateFields(["title", "slug", "id"]);
   });
 
   form.addEventListener("submit", async (event) => {
@@ -322,7 +339,7 @@ export function setupLibraryForm({ librarySession, supplierSession, brochureSess
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message:
-        "Het bibliotheekitem is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
+        "Opgeslagen in de bewerkversie. De publieke website is nog niet bijgewerkt. Gebruik Gegevens exporteren en daarna Website bijwerken.",
       tone: "success"
     });
     window.location.hash = `#/bibliotheek/${item.slug}`;

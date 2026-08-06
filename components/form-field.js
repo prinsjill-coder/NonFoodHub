@@ -18,9 +18,10 @@ function describedByIds({ fieldId, help }) {
   return [help ? `${fieldId}-help` : "", `${fieldId}-error`].filter(Boolean).join(" ");
 }
 
-function renderRequired(required) {
-  if (!required) return "";
-  return ` <span class="studio-required-label">(verplicht)</span>`;
+function renderRequirement(required) {
+  return required
+    ? ` <span class="studio-required-label">(verplicht)</span>`
+    : ` <span class="studio-optional-label">(optioneel)</span>`;
 }
 
 function renderHelp(help, fieldId) {
@@ -36,7 +37,7 @@ export function renderTextField({ name, label, value = "", type = "text", requir
   const descriptionIds = describedByIds({ fieldId, help });
   return `
     <div class="studio-field" data-field="${escapeHtml(name)}">
-      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequirement(required)}</label>
       <input
         id="${escapeHtml(fieldId)}"
         name="${escapeHtml(name)}"
@@ -57,7 +58,7 @@ export function renderTextAreaField({ name, label, value = "", required = false,
   const descriptionIds = describedByIds({ fieldId, help });
   return `
     <div class="studio-field" data-field="${escapeHtml(name)}">
-      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequirement(required)}</label>
       <textarea
         id="${escapeHtml(fieldId)}"
         name="${escapeHtml(name)}"
@@ -84,7 +85,7 @@ export function renderSelectField({ name, label, value = "", options = [], requi
 
   return `
     <div class="studio-field" data-field="${escapeHtml(name)}">
-      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequired(required)}</label>
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequirement(required)}</label>
       <select
         id="${escapeHtml(fieldId)}"
         name="${escapeHtml(name)}"
@@ -109,7 +110,7 @@ export function renderCheckboxField({ name, label, checked = false, help = "", i
         aria-describedby="${escapeHtml(descriptionIds)}"
         ${checked ? "checked" : ""}
       >
-      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}</label>
+      <label for="${escapeHtml(fieldId)}">${escapeHtml(label)}${renderRequirement(false)}</label>
       ${renderHelp(help, fieldId)}
       ${renderError(name, fieldId)}
     </div>
@@ -134,7 +135,7 @@ export function renderCheckboxGroup({ name, label, values = [], options = [], he
 
   return `
     <fieldset id="${escapeHtml(fieldId)}" class="studio-fieldset" data-field="${escapeHtml(name)}" aria-describedby="${escapeHtml(descriptionIds)}">
-      <legend>${escapeHtml(label)}${renderRequired(required)}</legend>
+      <legend>${escapeHtml(label)}${renderRequirement(required)}</legend>
       ${renderHelp(help, fieldId)}
       <div class="studio-check-grid">${items}</div>
       ${renderError(name, fieldId)}

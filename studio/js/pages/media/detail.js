@@ -13,7 +13,8 @@ import {
   getMediaAssets,
   getMediaStatusLabel,
   getMediaTypeLabel,
-  getMediaUsageTypeLabel
+  getMediaUsageTypeLabel,
+  isImageLikeMedia
 } from "../../../../shared/media-model.js";
 import { validateMediaAsset } from "../../../../shared/media-validation.js";
 import { getSupplierStatusLabel, getSuppliers } from "../../../../shared/supplier-model.js";
@@ -42,6 +43,59 @@ function renderUsageList(items, { emptyText, hrefForItem, labelForItem, statusFo
 
 function renderRightsCheckLabel(asset) {
   return asset.rightsStatus === "approved" ? "Beeldrechten gecontroleerd" : "Nog controleren";
+}
+
+function studioRelativeAssetUrl(path) {
+  if (!path || typeof window === "undefined" || !/^https?:$/.test(window.location.protocol)) return "";
+  const pageUrl = window.location.href.split("#")[0];
+  return new URL(`../${path}`, pageUrl).href;
+}
+
+function renderMediaFilePreview(asset, availability = {}) {
+  if (!asset.file) {
+    return `
+      <div class="studio-media-reference">
+        <p class="studio-muted">Nog geen projectbestand gekoppeld.</p>
+        <p class="studio-meta">Vul een bestand in vanaf de projectmap, bijvoorbeeld assets/images/media/beeld.jpg.</p>
+      </div>
+    `;
+  }
+
+  if (!isImageLikeMedia(asset)) {
+    return `
+      <div class="studio-media-reference">
+        <p class="studio-muted">Preview is alleen beschikbaar voor afbeeldingen.</p>
+        <p><code>${escapeHtml(asset.file)}</code></p>
+      </div>
+    `;
+  }
+
+  if (!availability.canOpen) {
+    return `
+      <div class="studio-media-reference">
+        <p class="studio-muted">Projectbestand nog plaatsen in de projectmap.</p>
+        <p><code>${escapeHtml(asset.file)}</code></p>
+      </div>
+    `;
+  }
+
+  const src = availability.url || studioRelativeAssetUrl(asset.file);
+
+  if (!src) {
+    return `
+      <div class="studio-media-reference">
+        <p class="studio-muted">Preview is beschikbaar zodra Studio via de lokale server draait.</p>
+        <p><code>${escapeHtml(asset.file)}</code></p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="studio-media-reference">
+      <img src="${escapeHtml(src)}" alt="${escapeHtml(asset.alt || asset.title)}" loading="lazy">
+      <p class="studio-meta">${escapeHtml(asset.file)}</p>
+    </div>
+  `;
 }
 
 function suppliersUsingBrochureMedia(usage, supplierData = {}) {
@@ -148,7 +202,7 @@ function renderFeedbackForMedia(asset) {
   return mediaActionFeedback.html;
 }
 
-export function renderMediaDetail({ mediaData, supplierData = {}, brochureData = {}, articleData = {}, asset }) {
+export function renderMediaDetail({ mediaData, supplierData = {}, brochureData = {}, articleData = {}, asset, fileAvailability = {} }) {
   const usage = findMediaUsage(asset, supplierData, brochureData, articleData);
   const relatedSuppliers = [...usage.suppliers, ...suppliersUsingBrochureMedia(usage, supplierData)];
   const readinessReport = getContentReadinessReport({
@@ -211,7 +265,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
       </div>
       <article class="studio-card">
         <p class="studio-muted">Ingevuld bestand</p>
-        <p><code>${escapeHtml(asset.file)}</code></p>
+        ${renderMediaFilePreview(asset, fileAvailability)}
         <p class="studio-meta">Bestandscontrole gebeurt via checks en handmatige QA, niet via upload in Studio.</p>
       </article>
     </section>

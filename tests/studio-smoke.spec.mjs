@@ -588,12 +588,23 @@ test("Studio brochurebeheer ondersteunt de handmatige bewerkflow", async ({ page
 
   await page.goto("/studio/index.html#/brochures/nieuw");
   await expect(page.getByRole("heading", { name: "Nieuwe brochure", level: 1 })).toBeVisible();
+  await expect(page.getByLabel("Titel (verplicht)", { exact: true })).toBeVisible();
+  await expect(page.getByText("Beschrijving (optioneel)", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Nieuwe leverancier toevoegen" })).toHaveAttribute("target", "_blank");
   await expect(page.locator("#studio-field-pdf-choice")).toHaveAttribute("accept", /pdf/);
   await expect(page.locator("#studio-field-thumbnail-choice")).toHaveAttribute("accept", /image\/jpeg/);
 
+  await page.getByLabel(/Titel/).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator('[data-field-error="title"]')).toHaveText("Vul een brochuretitel in.");
   await page.getByLabel(/Titel/).fill("RC1E praktijkbrochure");
+  await expect(page.locator('[data-field-error="title"]')).toHaveText("");
   await expect(page.locator("[data-form-dirty-notice]")).toBeVisible();
+  await page.getByRole("link", { name: "Annuleren" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Formulier verlaten?" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("alertdialog", { name: "Formulier verlaten?" })).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/brochures\/nieuw$/);
   await page.getByRole("link", { name: "Annuleren" }).click();
   await expect(page.getByRole("alertdialog", { name: "Formulier verlaten?" })).toBeVisible();
   await page.getByRole("button", { name: "Blijven bewerken" }).click();
@@ -751,6 +762,8 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await expect(demoImageAsset).toBeVisible();
   await demoImageAsset.getByRole("link", { name: /bekijken/i }).click();
   await expect(page.getByRole("heading", { name: "Klaarzetten voor website", level: 2 })).toBeVisible();
+  await expect(page.locator(".studio-media-reference img").first()).toHaveAttribute("src", /^blob:/);
+  await expect(page.locator(".studio-media-reference img").first()).toHaveAttribute("alt", "RC1H bestandsbrochure thumbnail");
   await expect(page.getByRole("button", { name: "Gereed voor publicatie" })).toBeDisabled();
   await expect(page.getByText("Afbeeldingsassets die gereed zijn voor publicatie hebben alt-tekst nodig.")).toBeVisible();
   await page.getByRole("link", { name: "Bewerken" }).click();

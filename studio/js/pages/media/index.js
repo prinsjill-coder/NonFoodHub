@@ -1,4 +1,5 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
+import { projectFileAvailabilityForPath } from "../../shared/project-file-availability.js";
 import { renderMediaDetail, setupMediaWorkflowActions } from "./detail.js";
 import { renderMediaForm, setupMediaForm } from "./form.js";
 import { renderMediaList, setupMediaList } from "./list.js";
@@ -41,7 +42,14 @@ export function renderMediaRoute(route, mediaSession, supplierSession, brochureS
     return renderMediaForm({ mediaData, asset, mode: "edit" });
   }
 
-  return renderMediaDetail({ mediaData, supplierData, brochureData, articleData, asset });
+  return renderMediaDetail({
+    mediaData,
+    supplierData,
+    brochureData,
+    articleData,
+    asset,
+    fileAvailability: projectFileAvailabilityForPath(asset.file, mediaSession)
+  });
 }
 
 export function setupMediaRoute(route, mediaSession, options = {}) {

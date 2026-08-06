@@ -1,29 +1,11 @@
 import { renderNotFoundState } from "../../shared/not-found.js";
+import { projectFileAvailabilityMap } from "../../shared/project-file-availability.js";
 import { renderBrochureDetail, setupBrochureFileStatus, setupBrochureWorkflowActions } from "./detail.js";
 import { renderBrochureForm, setupBrochureForm } from "./form.js";
 import { renderBrochuresList, setupBrochureList } from "./list.js";
 
-function fileAvailabilityForPath(path, mediaSession) {
-  if (!path || !mediaSession) return { canOpen: false, source: "", url: "" };
-
-  const localFile = mediaSession.findLocalProjectFile?.(path);
-  if (localFile?.url) {
-    return { canOpen: true, source: "local", url: localFile.url };
-  }
-
-  if (mediaSession.sourceHasProjectFile?.(path)) {
-    return { canOpen: true, source: "project", url: "" };
-  }
-
-  return { canOpen: false, source: "", url: "" };
-}
-
 function fileAvailabilityForBrochure(brochure, mediaSession) {
-  return Object.fromEntries(
-    [brochure.pdfFile, brochure.thumbnail]
-      .filter(Boolean)
-      .map((path) => [path, fileAvailabilityForPath(path, mediaSession)])
-  );
+  return projectFileAvailabilityMap([brochure.pdfFile, brochure.thumbnail], mediaSession);
 }
 
 export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession, publicData = {}) {

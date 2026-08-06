@@ -19,7 +19,7 @@ import { canDeleteContentStatus, getArticleDeleteBlocker } from "../../../../sha
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { articleFromForm, hasValidationErrors, validateArticle } from "../../../../shared/article-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus, setupLiveValidation } from "../../shared/form-errors.js";
 
 function optionList(items, labelGetter) {
   return (items || []).map((item) => ({
@@ -64,7 +64,7 @@ function renderRelationCheckboxGroup({ name, label, values = [], options = [], h
 
   return `
     <fieldset class="studio-fieldset" data-field="${escapeHtml(name)}">
-      <legend>${escapeHtml(label)}</legend>
+      <legend>${escapeHtml(label)} <span class="studio-optional-label">(optioneel)</span></legend>
       ${helpHtml}
       <div class="studio-check-grid">${items}</div>
       <p class="studio-field-error" data-field-error="${escapeHtml(name)}" aria-live="polite"></p>
@@ -395,6 +395,12 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
 
   setupErrorLinkFocus(feedback, form);
   setupHeroImageChoice(form);
+  const liveValidation = setupLiveValidation(form, () =>
+    validateArticle(articleFromForm(form), articleData.items || [], supplierData, brochureData, articleData, mediaData, {
+      originalSlug: form.dataset.originalSlug || "",
+      originalId: form.dataset.originalId || ""
+    })
+  );
 
   form.querySelector("[data-article-form-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
@@ -435,11 +441,13 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
   slugInput.addEventListener("input", () => {
     slugTouched = true;
     slugInput.value = normalizeSlug(slugInput.value);
+    liveValidation.validateFields(["slug"]);
   });
 
   titleInput.addEventListener("input", () => {
     if (!slugTouched) {
       slugInput.value = normalizeSlug(titleInput.value);
+      liveValidation.validateFields(["title", "slug"]);
     }
   });
 
@@ -465,7 +473,7 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message:
-        "Het artikel is tijdelijk opgeslagen. Gebruik Gegevens exporteren om de wijziging handmatig over te dragen.",
+        "Opgeslagen in de bewerkversie. De publieke website is nog niet bijgewerkt. Gebruik Gegevens exporteren en daarna Website bijwerken.",
       tone: "success"
     });
     window.location.hash = `#/kennisbank/${article.slug}`;

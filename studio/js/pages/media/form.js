@@ -17,7 +17,7 @@ import {
 import { markContentUpdated } from "../../../../shared/content-dates.js";
 import { hasValidationErrors, mediaAssetFromForm, validateMediaAsset } from "../../../../shared/media-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
-import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus } from "../../shared/form-errors.js";
+import { clearFieldErrors, renderFormValidationErrors, setupErrorLinkFocus, setupLiveValidation } from "../../shared/form-errors.js";
 
 function optionsFromList(items, labelGetter) {
   return (items || []).map((item) => ({
@@ -219,15 +219,22 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
 
   setupErrorLinkFocus(feedback, form);
   setupRightsStatusCheck(form);
+  const liveValidation = setupLiveValidation(form, () =>
+    validateMediaAsset(mediaAssetFromForm(form), mediaData.items || [], {
+      originalId: form.dataset.originalId || ""
+    })
+  );
 
   idInput.addEventListener("input", () => {
     idTouched = true;
     idInput.value = normalizeMediaId(idInput.value);
+    liveValidation.validateFields(["id"]);
   });
 
   titleInput.addEventListener("input", () => {
     if (!idTouched) {
       idInput.value = `media-${normalizeMediaId(titleInput.value)}`.replace(/-+$/g, "");
+      liveValidation.validateFields(["title", "id"]);
     }
   });
 
@@ -252,7 +259,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message:
-        "Het media-asset is toegepast in de bewerkversie. Uploads, bestandsplaatsing en automatisch Website bijwerken zijn niet actief.",
+        "Opgeslagen in de bewerkversie. Uploads, bestandsplaatsing en automatisch Website bijwerken zijn niet actief.",
       tone: "success"
     });
     window.location.hash = `#/media/${asset.id}`;
