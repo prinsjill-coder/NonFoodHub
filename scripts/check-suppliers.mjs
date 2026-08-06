@@ -5,7 +5,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { CONTENT_STATUSES, CONTENT_STATUS_LABELS } from "../shared/content-status.js";
 import { validateSupplierFile } from "../shared/supplier-file-validation.js";
-import { SUPPLIERS_EXPORT_FILENAME } from "../shared/supplier-normalizer.js";
+import {
+  SUPPLIERS_EXPORT_FILENAME,
+  normalizeSupplierFileForSession
+} from "../shared/supplier-normalizer.js";
 import { validateSupplier } from "../shared/supplier-validation.js";
 import {
   MAX_SUPPLIER_IMPORT_BYTES,
@@ -67,6 +70,26 @@ export async function runSupplierChecks() {
     };
     const errors = validateSupplier(supplier, suppliers.items, { originalSlug: supplier.slug });
     assert.equal(errors.status, "Kies een geldige status.");
+  });
+
+  await runCheck("legacy supplierstatussen migreren naar het RC2-statusmodel", () => {
+    const data = clone(suppliers);
+    data.statuses = ["concept", "review", "published", "hidden"];
+    firstSupplier(data).status = "review";
+    secondSupplier(data).status = "hidden";
+
+    const rawReport = validateSupplierFile(data);
+    assert.equal(rawReport.valid, false);
+    assert.ok(rawReport.errors.some((error) => error.path === "statuses" && error.message.includes("ready")));
+
+    const normalized = normalizeSupplierFileForSession(data);
+    assert.deepEqual(normalized.statuses, CONTENT_STATUSES);
+    assert.equal(firstSupplier(normalized).status, "concept");
+    assert.equal(secondSupplier(normalized).status, "archived");
+
+    const session = createSupplierSession(data);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.deepEqual(session.getWorkingData().statuses, CONTENT_STATUSES);
   });
 
   await runCheck("dubbele id wordt geblokkeerd", () => {

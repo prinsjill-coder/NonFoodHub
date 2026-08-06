@@ -64,6 +64,26 @@ export async function runMediaChecks() {
     assert.deepEqual(media.rightsStatuses.map((item) => item.id), MEDIA_RIGHTS_STATUSES);
   });
 
+  await runCheck("legacy mediastatussen migreren naar het RC2-statusmodel", () => {
+    const data = clone(media);
+    data.statuses = ["concept", "review", "published", "hidden"];
+    firstAsset(data).status = "review";
+    secondAsset(data).status = "hidden";
+
+    const rawReport = validateMediaFile(data);
+    assert.equal(rawReport.valid, false);
+    assert.ok(rawReport.errors.some((error) => error.path === "statuses" && error.message.includes("ready")));
+
+    const normalized = normalizeMediaFileForSession(data);
+    assert.deepEqual(normalized.statuses, CONTENT_STATUSES);
+    assert.equal(firstAsset(normalized).status, "concept");
+    assert.equal(secondAsset(normalized).status, "archived");
+
+    const session = createMediaSession(data);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.deepEqual(session.getWorkingData().statuses, CONTENT_STATUSES);
+  });
+
   await runCheck("geregistreerde mediapaden bestaan lokaal binnen het project", () => {
     getMediaAssets(media).forEach((asset) => {
       assert.equal(asset.file.startsWith("/"), false, `${asset.id} heeft een absoluut pad.`);

@@ -125,6 +125,26 @@ export async function runBrochureChecks() {
     assert.equal(missingSupplier.supplierId, "Kies een bestaande leverancier.");
   });
 
+  await runCheck("legacy brochurestatussen migreren naar het RC2-statusmodel", () => {
+    const data = clone(brochures);
+    data.statuses = ["concept", "review", "published", "hidden"];
+    firstBrochure(data).status = "review";
+    secondBrochure(data).status = "hidden";
+
+    const rawReport = validateBrochureFile(data, suppliers);
+    assert.equal(rawReport.valid, false);
+    assert.ok(rawReport.errors.some((error) => error.path === "statuses" && error.message.includes("ready")));
+
+    const normalized = normalizeBrochureFileForSession(data);
+    assert.deepEqual(normalized.statuses, CONTENT_STATUSES);
+    assert.equal(firstBrochure(normalized).status, "concept");
+    assert.equal(secondBrochure(normalized).status, "archived");
+
+    const session = createBrochureSession(data, suppliers);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.deepEqual(session.getWorkingData().statuses, CONTENT_STATUSES);
+  });
+
   await runCheck("dubbele id wordt geblokkeerd", () => {
     const data = clone(brochures);
     secondBrochure(data).id = firstBrochure(data).id;

@@ -83,6 +83,20 @@ export function normalizeSupplierForExport(supplier) {
   };
 }
 
+export function normalizeSupplierFileForSession(supplierData) {
+  const sourceData = supplierData && typeof supplierData === "object" ? deepClone(supplierData) : {};
+  const items = sortSuppliers(Array.isArray(sourceData.items) ? sourceData.items : []).map((supplier) => ({
+    ...supplier,
+    status: normalizeContentStatus(supplier?.status)
+  }));
+
+  return {
+    ...sourceData,
+    statuses: CONTENT_STATUSES,
+    items
+  };
+}
+
 export function normalizeSupplierFileForExport(supplierData) {
   const items = sortSuppliers(Array.isArray(supplierData?.items) ? supplierData.items : []).map(normalizeSupplierForExport);
 

@@ -1,7 +1,10 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { validateBrochureFile } from "../../../../shared/brochure-file-validation.js";
 import { getBrochures } from "../../../../shared/brochure-model.js";
-import { BROCHURES_EXPORT_FILENAME } from "../../../../shared/brochure-normalizer.js";
+import {
+  BROCHURES_EXPORT_FILENAME,
+  normalizeBrochureFileForSession
+} from "../../../../shared/brochure-normalizer.js";
 import {
   createBusyGuard,
   downloadTextFile,
@@ -135,11 +138,12 @@ function readErrorReport(error, fileName) {
 }
 
 function createValidatedImportReport(parsed, supplierData, fileName) {
+  const normalizedData = normalizeBrochureFileForSession(parsed);
   return {
-    ...validateBrochureFile(parsed, supplierData),
+    ...validateBrochureFile(normalizedData, supplierData),
     action: "import",
     sourceFileName: fileName,
-    itemCount: getBrochures(parsed).length
+    itemCount: getBrochures(normalizedData).length
   };
 }
 
@@ -175,7 +179,8 @@ async function handleImportFile({ file, brochureSession, supplierSession, rerend
     return;
   }
 
-  const report = createValidatedImportReport(parsed, supplierSession.getWorkingData(), file.name);
+  const normalizedData = normalizeBrochureFileForSession(parsed);
+  const report = createValidatedImportReport(normalizedData, supplierSession.getWorkingData(), file.name);
   brochureSession.setValidationReport(report);
   rerenderAndFocusReport(rerender);
 
@@ -185,7 +190,7 @@ async function handleImportFile({ file, brochureSession, supplierSession, rerend
     return;
   }
 
-  await brochureSession.importSource(parsed, file.name, report);
+  await brochureSession.importSource(normalizedData, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 

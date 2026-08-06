@@ -1,4 +1,8 @@
-import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
+import {
+  contentStatusListIssues,
+  isContentStatus,
+  isReadyForPublicationStatus
+} from "./content-status.js";
 import { SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
 import { SUPPLIER_FILE_KEYS, SUPPLIER_KEYS } from "./supplier-normalizer.js";
 
@@ -75,7 +79,7 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
     errors.push(createIssue(`${path}.type`, "type is ongeldig."));
   }
 
-  const status = normalizeContentStatus(supplier.status);
+  const status = String(supplier.status || "").trim();
 
   if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
@@ -152,10 +156,8 @@ export function validateSupplierFile(supplierData) {
   }
 
   if (validateArray(supplierData.statuses, "statuses", errors)) {
-    CONTENT_STATUSES.forEach((status) => {
-      if (!supplierData.statuses.includes(status)) {
-        errors.push(createIssue("statuses", `Status ${status} ontbreekt.`));
-      }
+    contentStatusListIssues(supplierData.statuses).forEach((message) => {
+      errors.push(createIssue("statuses", message));
     });
   }
 

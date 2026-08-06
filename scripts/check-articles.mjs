@@ -76,6 +76,26 @@ export async function runArticleChecks() {
     assert.ok(articles.items.length >= 2);
   });
 
+  await runCheck("legacy artikelstatussen migreren naar het RC2-statusmodel", () => {
+    const data = clone(articles);
+    data.statuses = ["concept", "review", "published", "hidden"];
+    firstArticle(data).status = "review";
+    secondArticle(data).status = "hidden";
+
+    const rawReport = validateArticleFile(data, suppliers, brochures, media);
+    assert.equal(rawReport.valid, false);
+    assert.ok(rawReport.errors.some((error) => error.path === "statuses" && error.message.includes("ready")));
+
+    const normalized = normalizeArticleFileForSession(data);
+    assert.deepEqual(normalized.statuses, CONTENT_STATUSES);
+    assert.equal(firstArticle(normalized).status, "concept");
+    assert.equal(secondArticle(normalized).status, "archived");
+
+    const session = createArticleSession(data, suppliers, brochures, media);
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.deepEqual(session.getWorkingData().statuses, CONTENT_STATUSES);
+  });
+
   await runCheck("categorieconfiguratie bevat alle verplichte kennisbankcategorieen", () => {
     REQUIRED_ARTICLE_CATEGORIES.forEach((category) => {
       assert.ok(ARTICLE_CATEGORIES.includes(category), `Categorie ${category} ontbreekt in artikelconfiguratie.`);

@@ -18,6 +18,34 @@ export function isContentStatus(status) {
   return CONTENT_STATUSES.includes(status);
 }
 
+export function contentStatusListIssues(statuses) {
+  const issues = [];
+
+  CONTENT_STATUSES.forEach((status) => {
+    if (!statuses.includes(status)) {
+      issues.push(`Status ${status} ontbreekt.`);
+    }
+  });
+
+  statuses.forEach((status) => {
+    if (CONTENT_STATUSES.includes(status)) return;
+
+    const migratedStatus = LEGACY_CONTENT_STATUS_MIGRATIONS[status];
+    if (migratedStatus) {
+      issues.push(`Status ${status} is niet meer actief; gebruik ${migratedStatus}.`);
+      return;
+    }
+
+    issues.push(`Status ${status} is niet toegestaan.`);
+  });
+
+  if (issues.length === 0 && JSON.stringify(statuses) !== JSON.stringify(CONTENT_STATUSES)) {
+    issues.push(`Statussen moeten exact deze volgorde volgen: ${CONTENT_STATUSES.join(", ")}.`);
+  }
+
+  return issues;
+}
+
 export function normalizeContentStatus(status) {
   const value = String(status || "").trim();
   return LEGACY_CONTENT_STATUS_MIGRATIONS[value] || value;

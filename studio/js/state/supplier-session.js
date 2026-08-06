@@ -4,6 +4,7 @@ import {
   SUPPLIERS_EXPORT_FILENAME,
   deepClone,
   normalizeSupplierFileForExport,
+  normalizeSupplierFileForSession,
   stableStringify,
   stringifySupplierExport
 } from "../../../shared/supplier-normalizer.js";
@@ -21,8 +22,8 @@ function createInitialReport(data) {
 }
 
 export function createSupplierSession(initialData, options = {}) {
-  let sourceData = deepClone(options.sourceData || initialData);
-  let workingData = deepClone(options.workingData || sourceData);
+  let sourceData = normalizeSupplierFileForSession(options.sourceData || initialData);
+  let workingData = normalizeSupplierFileForSession(options.workingData || sourceData);
   let sourceHash = createHash(sourceData);
   let sourceFileName = options.sourceFileName || "data/suppliers.json";
   let sourceType = options.sourceType || "bundled";
@@ -62,14 +63,15 @@ export function createSupplierSession(initialData, options = {}) {
     lastValidationReport = deepClone(report);
   }
 
-  function importSource(nextData, fileName, report = validateSupplierFile(nextData)) {
-    sourceData = deepClone(nextData);
-    workingData = deepClone(nextData);
+  function importSource(nextData, fileName, report = null) {
+    const normalizedData = normalizeSupplierFileForSession(nextData);
+    sourceData = deepClone(normalizedData);
+    workingData = deepClone(normalizedData);
     sourceHash = createHash(sourceData);
     sourceFileName = fileName || "geimporteerd suppliers.json";
     sourceType = "imported";
     lastValidationReport = deepClone({
-      ...report,
+      ...(report || validateSupplierFile(normalizedData)),
       action: "import",
       sourceFileName
     });
@@ -100,6 +102,7 @@ export function createSupplierSession(initialData, options = {}) {
     }
 
     workingData.items = sortSuppliers(suppliers);
+    workingData = normalizeSupplierFileForSession(workingData);
     lastValidationReport = deepClone({
       ...validateSupplierFile(workingData),
       action: "session",
@@ -110,6 +113,7 @@ export function createSupplierSession(initialData, options = {}) {
   function deleteSupplier(slug) {
     const suppliers = getSuppliers(workingData);
     workingData.items = sortSuppliers(suppliers.filter((supplier) => supplier.slug !== slug));
+    workingData = normalizeSupplierFileForSession(workingData);
     lastValidationReport = deepClone({
       ...validateSupplierFile(workingData),
       action: "session",

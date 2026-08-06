@@ -1,4 +1,8 @@
-import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
+import {
+  contentStatusListIssues,
+  isContentStatus,
+  isReadyForPublicationStatus
+} from "./content-status.js";
 import { getBrochures } from "./brochure-model.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -108,7 +112,7 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
   }
 
   reportUnknownKeys(article, ARTICLE_KEYS, path, warnings);
-  const status = normalizeContentStatus(article.status);
+  const status = String(article.status || "").trim();
   const requiresPublicationFields = isReadyForPublicationStatus(status);
 
   if (!hasValue(article.id)) {
@@ -196,10 +200,8 @@ export function validateArticleFile(articleData, supplierData = {}, brochureData
   }
 
   if (validateArray(articleData.statuses, "statuses", errors)) {
-    CONTENT_STATUSES.forEach((status) => {
-      if (!articleData.statuses.includes(status)) {
-        errors.push(createIssue("statuses", `Status ${status} ontbreekt.`));
-      }
+    contentStatusListIssues(articleData.statuses).forEach((message) => {
+      errors.push(createIssue("statuses", message));
     });
   }
 

@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { CONTENT_STATUSES, normalizeContentStatus } from "./content-status.js";
 import { LIBRARY_CATEGORIES, LIBRARY_TYPES, sortLibraryItems } from "./library-model.js";
 
 export const LIBRARY_EXPORT_FILENAME = "library.json";
@@ -80,7 +80,7 @@ export function normalizeLibraryItemForSession(item) {
     id: asString(item?.id),
     title: asString(item?.title),
     slug: asString(item?.slug),
-    status: asString(item?.status),
+    status: normalizeContentStatus(item?.status),
     type: asString(item?.type),
     category: asString(item?.category),
     summary: asString(item?.summary),
@@ -107,7 +107,7 @@ export function normalizeLibraryFileForSession(libraryData) {
       writeEnabled: false,
       message: LIBRARY_STORAGE_NOTICE
     },
-    statuses: Array.isArray(libraryData?.statuses) && libraryData.statuses.length ? libraryData.statuses : CONTENT_STATUSES,
+    statuses: CONTENT_STATUSES,
     types: Array.isArray(libraryData?.types) && libraryData.types.length ? uniqueStrings(libraryData.types) : LIBRARY_TYPES,
     categories: Array.isArray(libraryData?.categories) && libraryData.categories.length
       ? uniqueStrings(libraryData.categories)

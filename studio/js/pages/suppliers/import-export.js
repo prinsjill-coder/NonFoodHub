@@ -1,6 +1,9 @@
 import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { validateSupplierFile } from "../../../../shared/supplier-file-validation.js";
-import { SUPPLIERS_EXPORT_FILENAME } from "../../../../shared/supplier-normalizer.js";
+import {
+  SUPPLIERS_EXPORT_FILENAME,
+  normalizeSupplierFileForSession
+} from "../../../../shared/supplier-normalizer.js";
 import {
   createBusyGuard,
   downloadTextFile,
@@ -173,8 +176,9 @@ async function handleImportFile({ file, supplierSession, rerender }) {
     return;
   }
 
+  const normalizedData = normalizeSupplierFileForSession(parsed);
   const report = {
-    ...validateSupplierFile(parsed),
+    ...validateSupplierFile(normalizedData),
     action: "import",
     sourceFileName: file.name
   };
@@ -184,7 +188,7 @@ async function handleImportFile({ file, supplierSession, rerender }) {
     return;
   }
 
-  await supplierSession.importSource(parsed, file.name, report);
+  await supplierSession.importSource(normalizedData, file.name, report);
   rerenderAndFocusReport(rerender);
 }
 

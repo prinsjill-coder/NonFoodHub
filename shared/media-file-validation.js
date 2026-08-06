@@ -1,4 +1,8 @@
-import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
+import {
+  contentStatusListIssues,
+  isContentStatus,
+  isReadyForPublicationStatus
+} from "./content-status.js";
 import { getMediaAssets, isImageLikeMedia } from "./media-model.js";
 import { MEDIA_ASSET_KEYS, MEDIA_FILE_KEYS } from "./media-normalizer.js";
 
@@ -133,7 +137,7 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
     errors.push(createIssue(`${path}.rightsStatus`, "rightsStatus staat niet in de top-level rightsStatuses-lijst."));
   }
 
-  const status = normalizeContentStatus(asset.status);
+  const status = String(asset.status || "").trim();
 
   if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
@@ -181,10 +185,8 @@ export function validateMediaFile(mediaData) {
   }
 
   if (validateArray(mediaData.statuses, "statuses", errors)) {
-    CONTENT_STATUSES.forEach((status) => {
-      if (!mediaData.statuses.includes(status)) {
-        errors.push(createIssue("statuses", `Status ${status} ontbreekt.`));
-      }
+    contentStatusListIssues(mediaData.statuses).forEach((message) => {
+      errors.push(createIssue("statuses", message));
     });
   }
 

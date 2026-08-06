@@ -1,6 +1,10 @@
 import { getLibraryItems } from "./library-model.js";
 import { validateLibraryFile } from "./library-file-validation.js";
-import { normalizeLibraryItemForSession, stableStringify } from "./library-normalizer.js";
+import {
+  normalizeLibraryFileForSession,
+  normalizeLibraryItemForSession,
+  stableStringify
+} from "./library-normalizer.js";
 
 function normalizedItemHash(item) {
   return stableStringify(normalizeLibraryItemForSession(item));
@@ -43,14 +47,15 @@ export function validateLibraryImportData(
   sourceFileName = "onbekend bestand",
   currentData = {}
 ) {
-  const report = validateLibraryFile(libraryData, supplierData, brochureData, articleData, mediaData);
-  const comparison = compareLibraryItems(libraryData, currentData);
+  const normalizedData = normalizeLibraryFileForSession(libraryData);
+  const report = validateLibraryFile(normalizedData, supplierData, brochureData, articleData, mediaData);
+  const comparison = compareLibraryItems(normalizedData, currentData);
 
   return {
     ...report,
     ...comparison,
     action: "import",
     sourceFileName,
-    itemCount: getLibraryItems(libraryData).length
+    itemCount: getLibraryItems(normalizedData).length
   };
 }

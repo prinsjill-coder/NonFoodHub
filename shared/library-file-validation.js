@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { contentStatusListIssues } from "./content-status.js";
 import { getLibraryItems, normalizeSlug } from "./library-model.js";
 import { LIBRARY_CATEGORIES, LIBRARY_TYPES } from "./library-model.js";
 import { LIBRARY_FILE_KEYS, LIBRARY_ITEM_KEYS } from "./library-normalizer.js";
@@ -75,8 +75,10 @@ export function validateLibraryFile(libraryData, supplierData = {}, brochureData
 
   if (!Array.isArray(libraryData.statuses)) {
     errors.push(createIssue("statuses", "statuses moet een lijst zijn."));
-  } else if (JSON.stringify(libraryData.statuses) !== JSON.stringify(CONTENT_STATUSES)) {
-    errors.push(createIssue("statuses", "Bibliotheekstatussen moeten de centrale contentstatussen volgen."));
+  } else {
+    contentStatusListIssues(libraryData.statuses).forEach((message) => {
+      errors.push(createIssue("statuses", message));
+    });
   }
 
   const configuredTypes = optionIds(libraryData.types);

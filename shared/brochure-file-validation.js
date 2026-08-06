@@ -1,4 +1,8 @@
-import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
+import {
+  contentStatusListIssues,
+  isContentStatus,
+  isReadyForPublicationStatus
+} from "./content-status.js";
 import { normalizeSlug } from "./brochure-model.js";
 import { BROCHURE_FILE_KEYS, BROCHURE_KEYS } from "./brochure-normalizer.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -92,7 +96,7 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
     errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
-  const status = normalizeContentStatus(brochure.status);
+  const status = String(brochure.status || "").trim();
 
   if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
@@ -167,10 +171,8 @@ export function validateBrochureFile(brochureData, supplierData) {
   }
 
   if (validateArray(brochureData.statuses, "statuses", errors)) {
-    CONTENT_STATUSES.forEach((status) => {
-      if (!brochureData.statuses.includes(status)) {
-        errors.push(createIssue("statuses", `Status ${status} ontbreekt.`));
-      }
+    contentStatusListIssues(brochureData.statuses).forEach((message) => {
+      errors.push(createIssue("statuses", message));
     });
   }
 

@@ -90,6 +90,26 @@ export async function runLibraryChecks() {
     });
   });
 
+  await runCheck("legacy bibliotheekstatussen migreren naar het RC2-statusmodel", () => {
+    const data = clone(library);
+    data.statuses = ["concept", "review", "published", "hidden"];
+    firstItem(data).status = "review";
+    secondItem(data).status = "hidden";
+
+    const rawReport = validate(data, suppliers, brochures, articles, media);
+    assert.equal(rawReport.valid, false);
+    assert.ok(rawReport.errors.some((error) => error.path === "statuses" && error.message.includes("ready")));
+
+    const normalized = normalizeLibraryFileForSession(data);
+    assert.deepEqual(normalized.statuses, CONTENT_STATUSES);
+    assert.equal(firstItem(normalized).status, "concept");
+    assert.equal(secondItem(normalized).status, "archived");
+
+    const session = createLibrarySession(data, { suppliers, brochures, articles, media });
+    assert.equal(session.snapshot().lastValidationReport.valid, true);
+    assert.deepEqual(session.getWorkingData().statuses, CONTENT_STATUSES);
+  });
+
   await runCheck("demo-items zijn aanwezig en gekoppeld aan bestaande modules", () => {
     const items = getLibraryItems(library);
     assert.ok(items.length >= 2);
