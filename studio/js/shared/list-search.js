@@ -1,4 +1,5 @@
 import { updatedAtSortValue } from "../../../shared/content-dates.js";
+import { consumeListStateHandoff } from "./list-state-handoff.js";
 
 const DIACRITIC_MARKS = /[\u0300-\u036f]/g;
 const STATUS_SORT_ORDER = {
@@ -221,6 +222,30 @@ function resetControls({ search, filters, sort, defaultSort }) {
   }
 }
 
+function selectValueIfAvailable(select, value) {
+  if (!select || value === undefined || value === null || value === "") return;
+  const optionExists = Array.from(select.options || []).some((option) => option.value === value);
+  if (optionExists) {
+    select.value = value;
+  }
+}
+
+function applyHandoffState({ scope, search, filters, sort }) {
+  const state = consumeListStateHandoff(scope);
+  if (!state) return;
+
+  if (search && typeof state.search === "string") {
+    search.value = state.search;
+  }
+
+  filters.forEach((filter) => {
+    const filterName = filter.dataset.filterName;
+    selectValueIfAvailable(filter, state.filters?.[filterName]);
+  });
+
+  selectValueIfAvailable(sort, state.sort);
+}
+
 export function setupSearchInput({ search, clearButton, onChange }) {
   if (!search) return;
 
@@ -274,6 +299,8 @@ export function setupListControls({
       filter.dataset.filterLabel = filter.closest("label")?.querySelector("span")?.textContent?.trim() || "Filter";
     }
   });
+
+  applyHandoffState({ scope, search, filters, sort });
 
   function applyControls() {
     const state = currentState({ search, filters, sort, defaultSort });

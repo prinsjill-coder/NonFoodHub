@@ -313,6 +313,37 @@ textarea:focus-visible {
   padding: 20px;
 }
 
+.studio-clickable-card {
+  display: block;
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.studio-clickable-card {
+  font: inherit;
+}
+
+.studio-clickable-card:hover {
+  border-color: var(--studio-blue);
+  background: var(--studio-blue-soft);
+}
+
+.studio-clickable-card:focus-visible {
+  outline: 3px solid rgba(17, 90, 163, 0.3);
+  outline-offset: 3px;
+}
+
+.studio-card-action-hint {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--studio-blue);
+  font-size: 0.88rem;
+  font-weight: 780;
+}
+
 .studio-card-head {
   display: flex;
   align-items: start;

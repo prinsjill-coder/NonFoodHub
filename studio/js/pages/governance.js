@@ -5,6 +5,7 @@ import { renderStatusBadge } from "../../../components/status-badge.js";
 import { getContentGovernanceReport } from "../../../shared/content-governance.js";
 import { CONTENT_READINESS_LABELS, getContentReadinessReport } from "../../../shared/content-readiness.js";
 import { escapeHtml } from "../../../shared/utils.js";
+import { renderListStateHandoffAttributes } from "../shared/list-state-handoff.js";
 
 const SEVERITY_FILTERS = [
   { value: "all", label: "Alle issues" },
@@ -12,17 +13,73 @@ const SEVERITY_FILTERS = [
   { value: "error", label: "Alleen fouten" }
 ];
 
-function renderOverviewMetric({ label, value, note, state = "foundation" }) {
-  return `
-    <article class="studio-card studio-metric-card">
-      <div class="studio-card-head">
-        <h3>${escapeHtml(label)}</h3>
-        ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
-      </div>
-      <p class="studio-metric-value">${Number(value || 0)}</p>
-      <p class="studio-muted">${escapeHtml(note)}</p>
-    </article>
+const MODULE_NAVIGATION = {
+  suppliers: { href: "#/leveranciers", scope: "supplier" },
+  brochures: { href: "#/brochures", scope: "brochure" },
+  articles: { href: "#/kennisbank", scope: "article" },
+  media: { href: "#/media", scope: "media" },
+  library: { href: "#/bibliotheek", scope: "library" }
+};
+
+function moduleNavigation(moduleId, state = {}) {
+  const target = MODULE_NAVIGATION[moduleId];
+  if (!target) return null;
+
+  return {
+    href: target.href,
+    handoff: {
+      scope: target.scope,
+      search: state.search || "",
+      filters: state.filters || {},
+      sort: state.sort || ""
+    }
+  };
+}
+
+function handoffAttributes(navigation) {
+  return navigation?.handoff ? renderListStateHandoffAttributes(navigation.handoff) : "";
+}
+
+function renderOverviewMetric({ label, value, note, state = "foundation", navigation = null, governanceFilter = null }) {
+  const body = `
+    <div class="studio-card-head">
+      <h3>${escapeHtml(label)}</h3>
+      ${renderStatusBadge(state, CONTENT_READINESS_LABELS[state])}
+    </div>
+    <p class="studio-metric-value">${Number(value || 0)}</p>
+    <p class="studio-muted">${escapeHtml(note)}</p>
+    ${navigation?.href || governanceFilter ? `<span class="studio-card-action-hint">Openen</span>` : ""}
   `;
+
+  if (navigation?.href) {
+    return `
+      <a
+        class="studio-card studio-metric-card studio-clickable-card"
+        href="${escapeHtml(navigation.href)}"
+        aria-label="${escapeHtml(`${label} openen`)}"
+        ${handoffAttributes(navigation)}
+      >
+        ${body}
+      </a>
+    `;
+  }
+
+  if (governanceFilter) {
+    return `
+      <button
+        class="studio-card studio-metric-card studio-clickable-card"
+        type="button"
+        data-governance-summary-action
+        data-governance-summary-severity="${escapeHtml(governanceFilter.severity || "all")}"
+        data-governance-summary-module="${escapeHtml(governanceFilter.module || "all")}"
+        aria-label="${escapeHtml(`${label} tonen in het issue-overzicht`)}"
+      >
+        ${body}
+      </button>
+    `;
+  }
+
+  return `<article class="studio-card studio-metric-card">${body}</article>`;
 }
 
 function renderStatusDistribution(module) {
@@ -177,8 +234,16 @@ function renderIssueGroup(group) {
   return `
     <section class="studio-issue-group" data-governance-issue-group data-module="${escapeHtml(group.module.id)}">
       <div class="studio-issue-group-head">
-        <h3>${escapeHtml(group.module.label)}</h3>
-        <span class="studio-muted" data-governance-group-count>${escapeHtml(issueCountLabel(group.issues.length))}</span>
+        <div>
+          <h3>${escapeHtml(group.module.label)}</h3>
+          <span class="studio-muted" data-governance-group-count>${escapeHtml(issueCountLabel(group.issues.length))}</span>
+        </div>
+        ${renderButton({
+          label: "Module openen",
+          href: group.module.route,
+          variant: "secondary",
+          ariaLabel: `${group.module.label} openen vanuit governance`
+        })}
       </div>
       <div class="studio-issue-list">
         ${group.issues.map(renderIssueRow).join("")}
@@ -231,25 +296,29 @@ function renderModuleCard(module, readinessModule) {
           label: "Items",
           value: readiness.total,
           note: "Geregistreerde items.",
-          state: "foundation"
+          state: "foundation",
+          navigation: moduleNavigation(module.id)
         })}
         ${renderOverviewMetric({
           label: "Klaar",
           value: readiness.ready,
           note: "Geen belangrijke governance-issues.",
-          state: readiness.ready ? "ready" : "foundation"
+          state: readiness.ready ? "ready" : "foundation",
+          navigation: moduleNavigation(module.id)
         })}
         ${renderOverviewMetric({
           label: "Nog afronden",
           value: readiness.review,
           note: "Bruikbaar, maar nog enkele punten afronden.",
-          state: readiness.review ? "review" : "foundation"
+          state: readiness.review ? "review" : "foundation",
+          navigation: moduleNavigation(module.id)
         })}
         ${renderOverviewMetric({
           label: "Nog niet gereed",
           value: readiness.needs_attention,
           note: "Belangrijke informatie ontbreekt.",
-          state: readiness.needs_attention ? "needs_attention" : "foundation"
+          state: readiness.needs_attention ? "needs_attention" : "foundation",
+          navigation: moduleNavigation(module.id)
         })}
       </div>
 
@@ -290,19 +359,22 @@ function renderReadinessSummary(totals) {
           label: "Klaar",
           value: totals.ready,
           note: "Items zonder belangrijke governance-issues.",
-          state: totals.ready ? "ready" : "foundation"
+          state: totals.ready ? "ready" : "foundation",
+          governanceFilter: { severity: "all", module: "all" }
         })}
         ${renderOverviewMetric({
           label: "Nog afronden",
           value: totals.review,
           note: "Items die bruikbaar zijn, maar nog enkele punten vragen.",
-          state: totals.review ? "review" : "foundation"
+          state: totals.review ? "review" : "foundation",
+          governanceFilter: { severity: "warning", module: "all" }
         })}
         ${renderOverviewMetric({
           label: "Nog niet gereed",
           value: totals.needs_attention,
           note: "Items waar belangrijke informatie ontbreekt.",
-          state: totals.needs_attention ? "needs_attention" : "foundation"
+          state: totals.needs_attention ? "needs_attention" : "foundation",
+          governanceFilter: { severity: "error", module: "all" }
         })}
       </div>
     </section>
@@ -329,19 +401,22 @@ function renderPublicationSummary(publication = {}) {
           label: "Gereed voor publicatie",
           value: publication.ready,
           note: "Items die live staan zonder extra websitefeedback.",
-          state: publication.ready ? "ready" : "foundation"
+          state: publication.ready ? "ready" : "foundation",
+          governanceFilter: { severity: "all", module: "all" }
         })}
         ${renderOverviewMetric({
           label: "Nog afronden",
           value: publication.review,
           note: "Zichtbare items waar relaties, context of PDF-acties extra aandacht vragen.",
-          state: publication.review ? "review" : "foundation"
+          state: publication.review ? "review" : "foundation",
+          governanceFilter: { severity: "warning", module: "all" }
         })}
         ${renderOverviewMetric({
           label: "Niet publiek",
           value: publication.not_public,
           note: "Items die niet zichtbaar zijn op de website, meestal door status of ontbrekende relatie.",
-          state: publication.not_public ? "review" : "foundation"
+          state: publication.not_public ? "review" : "foundation",
+          governanceFilter: { severity: "all", module: "all" }
         })}
         ${renderOverviewMetric({
           label: "Geen websiteweergave",
@@ -421,22 +496,25 @@ export function renderGovernancePage({ supplierData, brochureData, mediaData, ar
         </div>
         <div class="studio-grid studio-grid-4">
           ${renderOverviewMetric({
-            label: "Issues",
-            value: report.totals.issueCount,
-            note: "Concrete aandachtspunten met een doelroute.",
-            state: report.totals.issueCount ? "review" : "foundation"
+          label: "Issues",
+          value: report.totals.issueCount,
+          note: "Concrete aandachtspunten met een doelroute.",
+            state: report.totals.issueCount ? "review" : "foundation",
+            governanceFilter: { severity: "all", module: "all" }
           })}
           ${renderOverviewMetric({
             label: "Fouten",
             value: report.totals.issueErrors,
             note: "Blokkerende issues uit bestaande validators.",
-            state: report.totals.issueErrors ? "error" : "foundation"
+            state: report.totals.issueErrors ? "error" : "foundation",
+            governanceFilter: { severity: "error", module: "all" }
           })}
           ${renderOverviewMetric({
             label: "Waarschuwingen",
             value: report.totals.issueWarnings,
             note: "Niet-blokkerende issues uit bestaande checks.",
-            state: report.totals.issueWarnings ? "warning" : "foundation"
+            state: report.totals.issueWarnings ? "warning" : "foundation",
+            governanceFilter: { severity: "warning", module: "all" }
           })}
           ${renderOverviewMetric({
             label: "Modules met aandacht",
@@ -486,6 +564,7 @@ export function setupGovernancePage(root = document) {
   const activeSeverity = page.querySelector("[data-governance-active-severity]");
   const activeModule = page.querySelector("[data-governance-active-module]");
   const moduleSelect = form.elements.module;
+  const summaryActions = [...page.querySelectorAll("[data-governance-summary-action]")];
 
   function applyFilters() {
     const severity = form.elements.severity?.value || "all";
@@ -520,5 +599,18 @@ export function setupGovernancePage(root = document) {
   }
 
   form.addEventListener("change", applyFilters);
+  summaryActions.forEach((button) => {
+    button.addEventListener("click", () => {
+      const severity = button.dataset.governanceSummarySeverity || "all";
+      const moduleId = button.dataset.governanceSummaryModule || "all";
+      const severityControl = form.querySelector(`input[name="severity"][value="${severity}"]`);
+
+      if (severityControl) severityControl.checked = true;
+      if (moduleSelect) moduleSelect.value = moduleId;
+
+      applyFilters();
+      page.querySelector("[data-governance-issue-groups]")?.scrollIntoView({ block: "start", behavior: "auto" });
+    });
+  });
   applyFilters();
 }

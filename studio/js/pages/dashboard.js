@@ -1,5 +1,5 @@
 import { renderButton } from "../../../components/button.js";
-import { renderMetricCard, renderPanelCard } from "../../../components/card.js";
+import { renderPanelCard } from "../../../components/card.js";
 import { renderEmptyState } from "../../../components/empty-state.js";
 import { renderPageHeader } from "../../../components/page-header.js";
 import { renderStatusBadge } from "../../../components/status-badge.js";
@@ -14,9 +14,90 @@ import { getLibraryQualityReport } from "../../../shared/library-quality.js";
 import { getMediaCounts } from "../../../shared/media-model.js";
 import { getSupplierCounts } from "../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../shared/utils.js";
+import { renderListStateHandoffAttributes } from "../shared/list-state-handoff.js";
 import { renderNotFoundState } from "../shared/not-found.js";
 
 const PUBLIC_DEMO_MODULE_IDS = ["articles", "suppliers", "brochures"];
+const MODULE_NAVIGATION = {
+  suppliers: { href: "#/leveranciers", scope: "supplier" },
+  brochures: { href: "#/brochures", scope: "brochure" },
+  articles: { href: "#/kennisbank", scope: "article" },
+  media: { href: "#/media", scope: "media" },
+  library: { href: "#/bibliotheek", scope: "library" }
+};
+
+function moduleNavigation(moduleId, state = {}) {
+  const target = MODULE_NAVIGATION[moduleId];
+  if (!target) return null;
+
+  return {
+    href: target.href,
+    handoff: {
+      scope: target.scope,
+      search: state.search || "",
+      filters: state.filters || {},
+      sort: state.sort || ""
+    }
+  };
+}
+
+function metricNavigation(metricId) {
+  if (metricId === "governanceAttention") return { href: "#/governance" };
+  if (metricId === "suppliers") return moduleNavigation("suppliers");
+  if (metricId === "brochures") return moduleNavigation("brochures");
+  if (metricId === "media") return moduleNavigation("media");
+  if (metricId === "articles") return moduleNavigation("articles");
+  if (metricId === "library") return moduleNavigation("library");
+  if (metricId === "articlePublished") return moduleNavigation("articles", { filters: { website: "live" } });
+  if (metricId === "articleWarnings") return moduleNavigation("articles");
+  if (metricId === "articleMissingMedia") return moduleNavigation("articles");
+  if (metricId === "articlesWithoutSupplier") return moduleNavigation("articles");
+  if (metricId === "suppliersWithoutBrochures") return moduleNavigation("suppliers", { filters: { hasbrochure: "no" } });
+  if (metricId === "mediaWithoutUsage") {
+    return moduleNavigation("media", {
+      filters: {
+        usedbysupplier: "no",
+        usedbybrochure: "no",
+        usedbyarticle: "no"
+      }
+    });
+  }
+  if (metricId === "libraryPublished") return moduleNavigation("library", { filters: { workflow: "published" } });
+  if (metricId === "libraryWarnings") return moduleNavigation("library");
+  if (metricId === "libraryMissingFiles") return moduleNavigation("library");
+  return null;
+}
+
+function handoffAttributes(navigation) {
+  return navigation?.handoff ? renderListStateHandoffAttributes(navigation.handoff) : "";
+}
+
+function renderActionableMetricCard({ label, value, note, state = "foundation", badgeLabel = "" }, navigation) {
+  const body = `
+    <div class="studio-card-head">
+      <h3>${escapeHtml(label)}</h3>
+      ${renderStatusBadge(state, badgeLabel || CONTENT_READINESS_LABELS[state])}
+    </div>
+    <p class="studio-metric-value">${Number(value || 0)}</p>
+    <p class="studio-muted">${escapeHtml(note)}</p>
+    ${navigation?.href ? `<span class="studio-card-action-hint">Openen</span>` : ""}
+  `;
+
+  if (!navigation?.href) {
+    return `<article class="studio-card studio-metric-card">${body}</article>`;
+  }
+
+  return `
+    <a
+      class="studio-card studio-metric-card studio-clickable-card"
+      href="${escapeHtml(navigation.href)}"
+      aria-label="${escapeHtml(`${label} openen`)}"
+      ${handoffAttributes(navigation)}
+    >
+      ${body}
+    </a>
+  `;
+}
 
 function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
   const supplierCounts = getSupplierCounts(supplierData);
@@ -194,17 +275,8 @@ function renderQuickAction(action) {
   `;
 }
 
-function renderDashboardMetric({ label, value, note, state = "foundation", badgeLabel = "" }) {
-  return `
-    <article class="studio-card studio-metric-card">
-      <div class="studio-card-head">
-        <h3>${escapeHtml(label)}</h3>
-        ${renderStatusBadge(state, badgeLabel || CONTENT_READINESS_LABELS[state])}
-      </div>
-      <p class="studio-metric-value">${Number(value || 0)}</p>
-      <p class="studio-muted">${escapeHtml(note)}</p>
-    </article>
-  `;
+function renderDashboardMetric(metric) {
+  return renderActionableMetricCard(metric, metric.navigation || null);
 }
 
 function publicDashboardState(readinessReport) {
@@ -287,28 +359,32 @@ function renderDemoReadinessSummary(readinessReport) {
           value: totals.publication.visible,
           note: "Items die via gecontroleerde content op de website verschijnen.",
           state: totals.publication.visible ? "ready" : "foundation",
-          badgeLabel: totals.publication.visible ? "Live" : "Leeg"
+          badgeLabel: totals.publication.visible ? "Live" : "Leeg",
+          navigation: { href: "#/governance" }
         })}
         ${renderDashboardMetric({
           label: "Gereed voor publicatie",
           value: totals.publication.ready,
           note: "Live items zonder extra websitefeedback.",
           state: totals.publication.ready ? "ready" : "foundation",
-          badgeLabel: "Klaar"
+          badgeLabel: "Klaar",
+          navigation: { href: "#/governance" }
         })}
         ${renderDashboardMetric({
           label: "Nog afronden",
           value: totals.publication.review,
           note: "Live items waar relatie, context of PDF-actie nog controle vraagt.",
           state: totals.publication.review ? "review" : "foundation",
-          badgeLabel: "Aandacht"
+          badgeLabel: "Aandacht",
+          navigation: { href: "#/governance" }
         })}
         ${renderDashboardMetric({
           label: "Nog niet gereed",
           value: totals.needs_attention,
           note: "Contentitems waar belangrijke informatie ontbreekt volgens bestaande signalen.",
           state: totals.needs_attention ? "needs_attention" : "foundation",
-          badgeLabel: "Aandacht"
+          badgeLabel: "Aandacht",
+          navigation: { href: "#/governance" }
         })}
       </div>
       <div class="studio-grid studio-grid-2">
@@ -320,7 +396,9 @@ function renderDemoReadinessSummary(readinessReport) {
 }
 
 export function renderDashboard(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData) {
-  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData).map(renderMetricCard).join("");
+  const metrics = hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, articleData, libraryData)
+    .map((metric) => renderActionableMetricCard(metric, metricNavigation(metric.id)))
+    .join("");
   const panels = dashboardData.panels.map(renderPanelCard).join("");
   const quickActions = dashboardData.quickActions.map(renderQuickAction).join("");
   const readinessReport = getContentReadinessReport({

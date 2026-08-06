@@ -117,6 +117,19 @@ async function visibleItemTexts(page, selector) {
     .evaluateAll((items) => items.filter((item) => !item.hidden).map((item) => item.textContent.trim()));
 }
 
+async function makeRouteScrollableAndScroll(page, top = 700) {
+  await page.evaluate((scrollTop) => {
+    if (!document.querySelector("[data-test-scroll-spacer]")) {
+      const spacer = document.createElement("div");
+      spacer.dataset.testScrollSpacer = "true";
+      spacer.style.height = "1800px";
+      spacer.style.pointerEvents = "none";
+      document.body.append(spacer);
+    }
+    window.scrollTo(0, scrollTop);
+  }, top);
+}
+
 const studioRoutes = [
   { path: "/studio/index.html#/dashboard", heading: "Dashboard" },
   { path: "/studio/index.html#/governance", heading: "Governance" },
@@ -292,6 +305,69 @@ test("Studio combineert zoeken, slimme filters, sortering en reset", async ({ pa
   await expect(page.locator("[data-library-filter-summary]")).toContainText("Contenttype: Catalogus");
   expect(await visibleItemCount(page, libraryCards)).toBe(1);
   await expect(page.locator(libraryCards).filter({ hasText: "Churchill Combined Brochure 2026" }).first()).toBeVisible();
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio dashboard en governance navigeren met scroll-reset en filterhandoff", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+
+  await page.goto("/studio/index.html#/dashboard");
+  await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
+  await makeRouteScrollableAndScroll(page);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    window.location.hash = "#/leveranciers/amefa";
+  });
+  await expect(page.getByRole("heading", { name: "Amefa", level: 1 })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+  await makeRouteScrollableAndScroll(page);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await page.getByRole("link", { name: "Brochure bekijken" }).first().click();
+  await expect(page).toHaveURL(/#\/brochures\//);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+  await makeRouteScrollableAndScroll(page);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /Amefa for Professionals|Churchill Combined Brochure/, level: 1 })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+  await page.goto("/studio/index.html#/dashboard");
+  await page.locator('a.studio-clickable-card[aria-label="Media-assets openen"]').click();
+  await expect(page).toHaveURL(/#\/media$/);
+  await expect(page.getByRole("heading", { name: "Media", level: 1 })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+  await page.goto("/studio/index.html#/dashboard");
+  await page.locator('a.studio-clickable-card[aria-label="Leveranciers zonder brochures openen"]').focus();
+  await expect(page.locator('a.studio-clickable-card[aria-label="Leveranciers zonder brochures openen"]')).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#\/leveranciers$/);
+  await expect(page.locator('[data-supplier-filter="hasbrochure"]')).toHaveValue("no");
+  await expect(page.locator("[data-supplier-filter-summary]")).toContainText("Heeft brochure: Nee");
+  await page.locator("[data-supplier-clear-filters]").click();
+  await expect(page.locator('[data-supplier-filter="hasbrochure"]')).toHaveValue("all");
+  await expect(page.locator("[data-supplier-filter-summary]")).toBeHidden();
+
+  await page.evaluate(() => window.scrollTo(0, 600));
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(50);
+  await page.locator('[data-supplier-filter="website"]').selectOption("live");
+  await expect(page.locator("[data-supplier-filter-summary]")).toContainText("Websitestatus: Live");
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(50);
+
+  await page.goto("/studio/index.html#/governance");
+  await page.getByRole("button", { name: "Fouten tonen in het issue-overzicht" }).click();
+  await expect(page.locator("[data-governance-active-severity]")).toHaveText("Alleen fouten");
+  await page.getByRole("button", { name: "Issues tonen in het issue-overzicht" }).click();
+  await expect(page.locator("[data-governance-active-severity]")).toHaveText("Alle issues");
+  const issueLink = page.locator("[data-governance-issue]").first().getByRole("link", { name: /openen/i });
+  const targetHref = await issueLink.getAttribute("href");
+  expect(targetHref).toMatch(/^#\//);
+  await issueLink.click();
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toBe(targetHref);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
   await expectCleanStudioPage(page, errors);
 });

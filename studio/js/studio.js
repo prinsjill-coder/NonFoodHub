@@ -4,7 +4,9 @@ import { getAuthPlaceholder } from "./auth.js";
 import { createFormDirtyGuard } from "./form-dirty-guard.js";
 import { renderLayout } from "./layout.js";
 import { focusRouteContent, applyRouteTitle } from "./route-focus.js";
+import { disableRouteScrollRestoration, scrollRouteToTop } from "./route-scroll.js";
 import { getCurrentRoute, getRouteTitle, renderRoute, setupRoute } from "./router.js";
+import { applyListStateHandoffFromLink, setupListStateHandoff } from "./shared/list-state-handoff.js";
 import { setupStudioSearchBridge } from "./shared/list-search.js";
 import { createArticleSession } from "./state/article-session.js";
 import { createBrochureSession } from "./state/brochure-session.js";
@@ -211,6 +213,10 @@ function renderStudio(state, options = {}) {
   if (options.focus !== false) {
     focusRouteContent(document);
   }
+
+  if (options.scrollToTop) {
+    scrollRouteToTop();
+  }
 }
 
 function setupHashLinkGuard(state) {
@@ -232,6 +238,7 @@ function setupHashLinkGuard(state) {
 
     if (!confirmed) return;
 
+    applyListStateHandoffFromLink(link);
     state.formDirtyGuard.markClean();
     state.formDirtyGuard.allowNextHashNavigation();
     window.location.hash = targetHash;
@@ -240,12 +247,14 @@ function setupHashLinkGuard(state) {
 
 async function initStudio() {
   try {
+    disableRouteScrollRestoration();
     const state = await loadStudioData();
     let currentHash = window.location.hash || "#/dashboard";
 
-    renderStudio(state);
+    renderStudio(state, { scrollToTop: true });
     state.formDirtyGuard.setLastStableHash(currentHash);
     setupHashLinkGuard(state);
+    setupListStateHandoff(document);
 
     window.addEventListener("hashchange", async () => {
       const targetHash = window.location.hash || "#/dashboard";
@@ -257,7 +266,7 @@ async function initStudio() {
       if (state.formDirtyGuard.consumeAllowedHashNavigation()) {
         currentHash = targetHash;
         state.formDirtyGuard.setLastStableHash(currentHash);
-        renderStudio(state);
+        renderStudio(state, { scrollToTop: true });
         return;
       }
 
@@ -279,7 +288,7 @@ async function initStudio() {
 
       currentHash = targetHash;
       state.formDirtyGuard.setLastStableHash(currentHash);
-      renderStudio(state);
+      renderStudio(state, { scrollToTop: true });
     });
     window.addEventListener("beforeunload", (event) => {
       if (!state.formDirtyGuard.isDirty()) return;
