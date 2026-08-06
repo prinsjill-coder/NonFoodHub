@@ -134,7 +134,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             value: asset.status,
             options: getStatusOptions(mediaData),
             required: true,
-            help: "Concept is nog in bewerking. Gereed voor gebruik betekent dat metadata en rechten gecontroleerd zijn."
+            help: "Concept is nog in bewerking. Gereed voor publicatie betekent dat metadata en rechten gecontroleerd zijn voor gebruik op de website."
           })}
           ${renderRightsCheck(asset)}
           ${renderTextField({
@@ -155,7 +155,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             name: "alt",
             label: "Alt-tekst",
             value: asset.alt,
-            help: "Verplicht voor afbeeldingen met status Gereed voor gebruik. Beschrijf kort wat op de afbeelding staat."
+            help: "Verplicht voor afbeeldingen met status Gereed voor publicatie. Beschrijf kort wat op de afbeelding staat."
           })}
           ${renderTextField({
             name: "fileSize",
@@ -251,7 +251,7 @@ export function setupMediaForm({ mediaSession, formDirtyGuard }) {
     feedback.innerHTML = renderNotice({
       title: "Opgeslagen in bewerkversie",
       message:
-        "Het media-asset is toegepast in de bewerkversie. Uploads, bestandsplaatsing en publicatie zijn niet actief.",
+        "Het media-asset is toegepast in de bewerkversie. Uploads, bestandsplaatsing en automatisch Website bijwerken zijn niet actief.",
       tone: "success"
     });
     window.location.hash = `#/media/${asset.id}`;

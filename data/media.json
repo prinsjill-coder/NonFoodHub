@@ -4,7 +4,7 @@
   "storage": {
     "mode": "static-session",
     "writeEnabled": false,
-    "message": "Mediabestanden worden alleen in de bewerkversie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief."
+    "message": "Mediabestanden worden alleen in de bewerkversie geregistreerd. Uploads, automatische bestandsplaatsing en automatisch Website bijwerken zijn niet actief."
   },
   "statuses": ["concept", "ready", "published", "archived"],
   "types": [

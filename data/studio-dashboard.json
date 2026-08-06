@@ -1,6 +1,6 @@
 {
   "status": "foundation",
-  "summary": "Studio bundelt contentbeheer, kwaliteitscontrole, readiness en website-inzichten voor de Non-Food Hub. Content blijft lokaal beheerd en wordt niet automatisch gepubliceerd.",
+  "summary": "Studio bundelt contentbeheer, kwaliteitscontrole, websitegereedheid en website-inzichten voor de Non-Food Hub. Content blijft lokaal beheerd en de website wordt handmatig bijgewerkt.",
   "metrics": [
     {
       "id": "governanceAttention",
@@ -39,7 +39,7 @@
     },
     {
       "id": "articlePublished",
-      "label": "Artikelen gepubliceerd",
+      "label": "Kennisbank live-status",
       "value": null,
       "state": "not_connected",
       "note": "Wordt in Studio berekend uit de bewerkversie van de kennisbank."
@@ -88,7 +88,7 @@
     },
     {
       "id": "libraryPublished",
-      "label": "Bibliotheek gepubliceerd",
+      "label": "Bibliotheek live-status",
       "value": null,
       "state": "not_connected",
       "note": "Wordt in Studio berekend uit de bewerkversie van de bibliotheek."
@@ -119,7 +119,7 @@
       "id": "drafts",
       "title": "Concepten",
       "state": "empty",
-      "message": "Concepten bestaan als contentstatus. Automatische publicatie en audittrail zijn niet actief."
+      "message": "Concepten bestaan als contentstatus. Automatisch Website bijwerken en audittrail zijn niet actief."
     },
     {
       "id": "missingFiles",

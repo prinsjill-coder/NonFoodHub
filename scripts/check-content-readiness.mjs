@@ -100,9 +100,9 @@ function fixtureData() {
     brochures: {
       items: [
         {
-          id: "brochure-review",
-          slug: "brochure-review",
-          title: "Brochure Review"
+          id: "brochure-aandacht",
+          slug: "brochure-aandacht",
+          title: "Brochure Aandacht"
         }
       ]
     },
@@ -247,8 +247,8 @@ export async function runContentReadinessChecks() {
             module: "brochures",
             severity: "warning",
             type: "relationship",
-            message: "Reviewsignaal",
-            targetRoute: "#/brochures/brochure-review"
+            message: "Aandachtssignaal",
+            targetRoute: "#/brochures/brochure-aandacht"
           },
           {
             module: "articles",
@@ -269,7 +269,7 @@ export async function runContentReadinessChecks() {
     });
 
     assert.equal(findReadinessByRoute(report, "suppliers", "#/leveranciers/supplier-ready").status, "ready");
-    assert.equal(findReadinessByRoute(report, "brochures", "#/brochures/brochure-review").status, "review");
+    assert.equal(findReadinessByRoute(report, "brochures", "#/brochures/brochure-aandacht").status, "review");
     const attention = findReadinessByRoute(report, "articles", "#/kennisbank/article-attention");
     assert.equal(attention.status, "needs_attention");
     assert.deepEqual(
@@ -312,8 +312,8 @@ export async function runContentReadinessChecks() {
     const governanceHtml = renderRoute(routeFromHash("#/governance"), state);
 
     assert.match(governanceHtml, /Klaar/);
-    assert.match(governanceHtml, /Review/);
-    assert.match(governanceHtml, /Nog niet publiceerbaar/);
+    assert.match(governanceHtml, /Nog afronden/);
+    assert.match(governanceHtml, /Nog niet gereed/);
     assert.doesNotMatch(governanceHtml, /data-readiness-form|readiness.*bewerken/i);
 
     detailRoutes.forEach((targetRoute) => {

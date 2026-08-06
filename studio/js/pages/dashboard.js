@@ -94,7 +94,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: libraryQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de bewerkversie van de bibliotheek; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de bewerkversie van de bibliotheek; Website bijwerken blijft de handmatige stap."
       };
     }
 
@@ -112,7 +112,7 @@ function hydrateMetrics(dashboardData, supplierData, brochureData, mediaData, ar
         ...metric,
         value: articleQuality.stats.published,
         state: "foundation",
-        note: "Gelezen uit de bewerkversie van de kennisbank; contentstatus publiceert niets automatisch."
+        note: "Gelezen uit de bewerkversie van de kennisbank; Website bijwerken blijft de handmatige stap."
       };
     }
 
@@ -259,12 +259,12 @@ function renderPublicationExplanation() {
   return `
     <article class="studio-card">
       <div class="studio-card-head">
-        <h3>Publicatie-uitleg</h3>
+        <h3>Website bijwerken</h3>
         ${renderStatusBadge("foundation")}
       </div>
       <ul class="studio-relation-list">
         <li><span>Dit staat live</span><strong>Item is zichtbaar op de website en vraagt geen extra controle.</strong></li>
-        <li><span>Dit wordt gecontroleerd</span><strong>Item is zichtbaar, maar vraagt nog review op relatie, context of PDF-actie.</strong></li>
+        <li><span>Dit vraagt aandacht</span><strong>Item is zichtbaar, maar relatie, context of PDF-actie moet nog worden gecontroleerd.</strong></li>
         <li><span>Dit ontbreekt nog</span><strong>Readiness of governance geeft aan welke informatie eerst nodig is.</strong></li>
       </ul>
     </article>
@@ -279,7 +279,7 @@ function renderDemoReadinessSummary(readinessReport) {
     <section class="studio-section">
       <div class="studio-section-head">
         <h2>Website-overzicht</h2>
-        ${renderStatusBadge(state, state === "ready" ? "Publiceerbaar" : "Aandachtspunten")}
+        ${renderStatusBadge(state, state === "ready" ? "Gereed voor publicatie" : "Aandachtspunten")}
       </div>
       <div class="studio-grid studio-grid-4">
         ${renderDashboardMetric({
@@ -290,21 +290,21 @@ function renderDemoReadinessSummary(readinessReport) {
           badgeLabel: totals.publication.visible ? "Live" : "Leeg"
         })}
         ${renderDashboardMetric({
-          label: "Publiceerbaar",
+          label: "Gereed voor publicatie",
           value: totals.publication.ready,
-          note: "Zichtbare items zonder extra publicatiefeedback.",
+          note: "Live items zonder extra websitefeedback.",
           state: totals.publication.ready ? "ready" : "foundation",
           badgeLabel: "Klaar"
         })}
         ${renderDashboardMetric({
-          label: "Review",
+          label: "Nog afronden",
           value: totals.publication.review,
-          note: "Zichtbare items waar relatie, context of PDF-actie nog review vraagt.",
+          note: "Live items waar relatie, context of PDF-actie nog controle vraagt.",
           state: totals.publication.review ? "review" : "foundation",
-          badgeLabel: "Review"
+          badgeLabel: "Aandacht"
         })}
         ${renderDashboardMetric({
-          label: "Nog niet publiceerbaar",
+          label: "Nog niet gereed",
           value: totals.needs_attention,
           note: "Contentitems waar belangrijke informatie ontbreekt volgens bestaande signalen.",
           state: totals.needs_attention ? "needs_attention" : "foundation",
@@ -367,7 +367,7 @@ export function renderDashboard(dashboardData, supplierData, brochureData, media
 export function renderRoutePlaceholder(route) {
   return renderEmptyState({
     title: `${route.title} is nog niet actief`,
-    message: "Deze route is nog niet actief. Gebruik het dashboard of de actieve contentmodules voor review.",
+    message: "Deze route is nog niet actief. Gebruik het dashboard of de actieve contentmodules voor controle.",
     label: "Nog niet actief",
     actions: renderButton({ label: "Terug naar dashboard", href: "#/dashboard", variant: "secondary" })
   });

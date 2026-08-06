@@ -265,7 +265,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
         <article class="studio-card studio-metric-card">
           <h3>Gereed voor publicatie</h3>
           <p class="studio-metric-value">${counts.statuses.ready || 0}</p>
-          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+          <p class="studio-muted">Contentstatus; Website bijwerken blijft handmatig.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Gearchiveerd</h3>

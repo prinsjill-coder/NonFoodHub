@@ -158,11 +158,11 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
   validateExtension(asset, path, errors);
 
   if (isReadyForPublicationStatus(status) && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
-    errors.push(createIssue(`${path}.alt`, "Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig."));
+    errors.push(createIssue(`${path}.alt`, "Afbeeldingsassets die gereed zijn voor publicatie hebben alt-tekst nodig."));
   }
 
   if (isReadyForPublicationStatus(status) && asset.rightsStatus !== "approved") {
-    errors.push(createIssue(`${path}.rightsStatus`, "Controleer de beeldrechten voordat dit media-item gereed is voor gebruik."));
+    errors.push(createIssue(`${path}.rightsStatus`, "Controleer de beeldrechten voordat dit media-item gereed is voor publicatie."));
   }
 }
 

@@ -467,20 +467,20 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await page.getByRole("link", { name: "Bewerken" }).click();
   await expect(page.getByRole("checkbox", { name: "Beeldrechten gecontroleerd" })).toBeChecked();
   await page.getByRole("link", { name: "Bekijken" }).click();
-  await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeEnabled();
-  await page.getByRole("button", { name: "Gereed voor gebruik" }).click();
+  await expect(page.getByRole("heading", { name: "Klaarzetten voor website", level: 2 })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Gereed voor publicatie" })).toBeEnabled();
+  await page.getByRole("button", { name: "Gereed voor publicatie" }).click();
   await expect(page.locator("[data-media-action-feedback]").getByText("Status aangepast in bewerkversie")).toBeVisible();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor gebruik is ingesteld.")).toBeVisible();
+  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor publicatie is ingesteld.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Terug naar Concept" })).toBeEnabled();
 
   await page.goto("/studio/index.html#/media");
   const demoImageAsset = page.locator("[data-media-item]", { hasText: "assets/images/brochures/cover-zomer.jpeg" }).first();
   await expect(demoImageAsset).toBeVisible();
   await demoImageAsset.getByRole("link", { name: /bekijken/i }).click();
-  await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeDisabled();
-  await expect(page.getByText("Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Klaarzetten voor website", level: 2 })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Gereed voor publicatie" })).toBeDisabled();
+  await expect(page.getByText("Afbeeldingsassets die gereed zijn voor publicatie hebben alt-tekst nodig.")).toBeVisible();
   await page.getByRole("link", { name: "Bewerken" }).click();
   await expect(page.getByLabel("Status (verplicht)", { exact: true })).toHaveValue("concept");
   const imageRightsCheck = page.getByRole("checkbox", { name: "Beeldrechten gecontroleerd" });
@@ -488,11 +488,11 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await page.getByLabel("Alt-tekst").fill("Brochureafbeelding voor RC1H bestandsbrochure.");
   await imageRightsCheck.check();
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
-  await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Klaarzetten voor website", level: 2 })).toBeVisible();
   await expect(page.getByText("Controleer de beeldrechten voordat dit bestand breder op de website wordt gebruikt.")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeEnabled();
-  await page.getByRole("button", { name: "Gereed voor gebruik" }).click();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor gebruik is ingesteld.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Gereed voor publicatie" })).toBeEnabled();
+  await page.getByRole("button", { name: "Gereed voor publicatie" }).click();
+  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor publicatie is ingesteld.")).toBeVisible();
 
   await page.goto("/studio/index.html#/brochures/rc1h-bestandsbrochure");
   const pdfOpenLink = page.getByRole("link", { name: "PDF openen" });

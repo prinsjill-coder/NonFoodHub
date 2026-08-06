@@ -123,11 +123,11 @@ export function validateMediaAsset(asset, existingAssets, options = {}) {
   validateExtension(asset, errors);
 
   if (isReadyForPublicationStatus(asset.status) && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
-    errors.alt = "Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig.";
+    errors.alt = "Afbeeldingsassets die gereed zijn voor publicatie hebben alt-tekst nodig.";
   }
 
   if (isReadyForPublicationStatus(asset.status) && asset.rightsStatus !== "approved") {
-    errors.rightsStatus = "Controleer de beeldrechten voordat dit media-item gereed is voor gebruik.";
+    errors.rightsStatus = "Controleer de beeldrechten voordat dit media-item gereed is voor publicatie.";
   }
 
   return errors;

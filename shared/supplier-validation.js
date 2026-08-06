@@ -87,7 +87,7 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
     }
 
     if (!supplier.categories.length) {
-      errors.categories = "Kies minimaal een categorie voor publicatie.";
+      errors.categories = "Kies minimaal een categorie voor Gereed voor publicatie.";
     }
 
     if (!hasValue(supplier.logo)) {

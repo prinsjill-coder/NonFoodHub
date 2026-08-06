@@ -82,7 +82,7 @@ function renderMediaWorkflowActions({ asset, mediaData }) {
   if (asset.status === "concept") {
     actions.push(
       renderMediaStatusAction({
-        label: "Gereed voor gebruik",
+        label: "Gereed voor publicatie",
         targetStatus: "ready",
         disabled: readyErrors.length > 0,
         reason: readyErrors[0] || ""
@@ -117,7 +117,7 @@ function renderMediaWorkflowActions({ asset, mediaData }) {
       <article class="studio-card studio-workflow-action-card">
         <div class="studio-card-head">
           <div>
-            <h2>Klaarzetten voor gebruik</h2>
+            <h2>Klaarzetten voor website</h2>
             <p class="studio-muted">
               Deze acties wijzigen alleen de status van dit media-item. Studio uploadt of verplaatst het bestand niet.
             </p>

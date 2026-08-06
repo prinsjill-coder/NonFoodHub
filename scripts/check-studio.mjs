@@ -79,7 +79,7 @@ function assertWorkflowPanel(html) {
   assert.match(html, /Concept/);
   assert.match(html, /Gereed voor publicatie/);
   assert.match(html, /Gepubliceerd/);
-  assert.match(html, /Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren\./);
+  assert.match(html, /Volgende stap na export: gegevens controleren, Website bijwerken uitvoeren en daarna committen en pushen\./);
 }
 
 function escapeRegExp(value) {
@@ -514,7 +514,7 @@ async function runStudioChecks() {
     assert.match(newHtml, /data-media-form/);
     assert.doesNotMatch(newHtml, /Pagina niet gevonden|is nog niet actief/);
     assert.match(detailHtml, /Brochures overzichtsbeeld/);
-    assert.match(detailHtml, /Klaarzetten voor gebruik/);
+    assert.match(detailHtml, /Klaarzetten voor website/);
     assert.match(detailHtml, /studio-workflow-action-card/);
     assert.match(detailHtml, /data-media-status-action="ready"/);
     assert.match(detailHtml, /data-media-rights-toggle/);
@@ -692,7 +692,7 @@ async function runStudioChecks() {
     };
     const dashboardHtml = renderRoute(routeFromHash("#/dashboard"), state);
 
-    assert.match(dashboardHtml, /Artikelen gepubliceerd/);
+    assert.match(dashboardHtml, /Kennisbank live-status/);
     assert.match(dashboardHtml, /Artikelwaarschuwingen/);
     assert.match(dashboardHtml, /Ontbrekende artikelmedia/);
     assert.match(dashboardHtml, /Artikelen zonder leverancier/);
@@ -700,15 +700,15 @@ async function runStudioChecks() {
     assert.match(dashboardHtml, /Media zonder gebruik/);
     assert.match(dashboardHtml, /Bibliotheekitems/);
     assert.match(dashboardHtml, /Governance signalen/);
-    assert.match(dashboardHtml, /Bibliotheek gepubliceerd/);
+    assert.match(dashboardHtml, /Bibliotheek live-status/);
     assert.match(dashboardHtml, /Bibliotheekwaarschuwingen/);
     assert.match(dashboardHtml, /Bibliotheek zonder bestand/);
     assert.match(dashboardHtml, /Website-overzicht/);
     assert.match(dashboardHtml, /Zichtbaar op website/);
     assert.match(dashboardHtml, /Websiteonderdelen actief/);
-    assert.match(dashboardHtml, /Publicatie-uitleg/);
+    assert.match(dashboardHtml, /Website bijwerken/);
     assert.match(dashboardHtml, /Dit staat live/);
-    assert.match(dashboardHtml, /Dit wordt gecontroleerd/);
+    assert.match(dashboardHtml, /Dit vraagt aandacht/);
   });
 
   await runCheck("dirty guard bewaakt formuliermutaties zonder browseropslag", async () => {

@@ -288,7 +288,7 @@ async function initStudio() {
     app.innerHTML = `
       <main class="studio-noscript">
         <h1>NonFood Hub Studio</h1>
-        <p>De Studio-data kon niet worden geladen. Start de lokale preview vanuit de projectmap met <code>python3 -m http.server 8080</code>.</p>
+        <p>De Studio-data kon niet worden geladen. Start de lokale preview vanuit de projectmap met <code>npm run dev</code>.</p>
       </main>
     `;
     console.error(error);

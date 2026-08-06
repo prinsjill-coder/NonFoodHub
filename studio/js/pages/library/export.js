@@ -123,7 +123,7 @@ export function renderLibraryExportPage({ sessionSnapshot }) {
     ${renderNotice({
       title: "Handmatige overdracht",
       message:
-        "Exporteren downloadt alleen een bestand. Studio publiceert niets automatisch.",
+        "Exporteren downloadt alleen een bestand. Studio werkt de website niet automatisch bij.",
       tone: "warning"
     })}
 

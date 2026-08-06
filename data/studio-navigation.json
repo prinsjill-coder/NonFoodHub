@@ -26,21 +26,21 @@
       "id": "suppliers",
       "label": "Leveranciers",
       "route": "#/leveranciers",
-      "description": "Leveranciers beheren en publicatie-readiness volgen",
+      "description": "Leveranciers beheren en websitegereedheid volgen",
       "enabled": true
     },
     {
       "id": "brochures",
       "label": "Brochures",
       "route": "#/brochures",
-      "description": "Brochures beheren en publicatie-readiness volgen",
+      "description": "Brochures beheren en websitegereedheid volgen",
       "enabled": true
     },
     {
       "id": "knowledge",
       "label": "Kennisbank",
       "route": "#/kennisbank",
-      "description": "Kennisbankartikelen beheren en publicatie-readiness volgen",
+      "description": "Kennisbankartikelen beheren en websitegereedheid volgen",
       "enabled": true
     },
     {

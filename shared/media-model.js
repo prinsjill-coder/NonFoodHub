@@ -4,7 +4,7 @@ export const MEDIA_STATUSES = [...CONTENT_STATUSES];
 
 export const MEDIA_STATUS_LABELS = {
   ...CONTENT_STATUS_LABELS,
-  ready: "Gereed voor gebruik"
+  ready: "Gereed voor publicatie"
 };
 
 export const MEDIA_TYPES = ["image", "logo", "thumbnail", "pdf"];

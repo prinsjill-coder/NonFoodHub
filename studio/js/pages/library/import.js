@@ -241,7 +241,7 @@ export function renderLibraryImportPage({ sessionSnapshot }) {
     })}
 
     ${renderNotice({
-      title: "Importeren is geen publicatie",
+      title: "Importeren werkt de website niet bij",
       message:
         "Een geldig bestand wordt gelezen en pas na bevestiging toegepast op de bewerkversie. De website verandert nog niet.",
       tone: "warning"

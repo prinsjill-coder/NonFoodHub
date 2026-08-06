@@ -296,7 +296,7 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
             name: "pdfFile",
             label: "Verwachte bestandsnaam van de PDF",
             value: brochure.pdfFile,
-            help: "Dit is het projectbestand dat na de lokale publicatiestap moet bestaan. Voorbeeld: assets/downloads/brochures/amefa-2026.pdf. Sla hier geen lokaal Windows-pad op."
+            help: "Dit is het projectbestand dat na Website bijwerken moet bestaan. Voorbeeld: assets/downloads/brochures/amefa-2026.pdf. Sla hier geen lokaal Windows-pad op."
           })}
           ${renderTextField({
             name: "pdfSize",
@@ -308,7 +308,7 @@ export function renderBrochureForm({ brochureData, supplierData, articleData = {
             name: "thumbnail",
             label: "Verwachte bestandsnaam van de afbeelding",
             value: brochure.thumbnail,
-            help: "Dit is het projectbestand dat na de lokale publicatiestap moet bestaan. Voorbeeld: assets/images/brochures/amefa-2026.jpg. Gebruik geen lokaal computerpad."
+            help: "Dit is het projectbestand dat na Website bijwerken moet bestaan. Voorbeeld: assets/images/brochures/amefa-2026.jpg. Gebruik geen lokaal computerpad."
           })}
         </div>
         ${renderNotice({

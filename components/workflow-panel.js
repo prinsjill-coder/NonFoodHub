@@ -18,7 +18,7 @@ const DEFAULT_STEPS = [
 ];
 
 const DEFAULT_NEXT_STEP =
-  "Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren.";
+  "Volgende stap na export: gegevens controleren, Website bijwerken uitvoeren en daarna committen en pushen.";
 
 export function renderWorkflowPanel({
   title = "Van beheer naar website",
@@ -82,7 +82,7 @@ export function renderWorkflowActionCard({
   title = "Klaarzetten voor website",
   description =
     "Deze acties wijzigen alleen de bewerkversie. De website verandert pas na export, Website bijwerken, controle, commit en push.",
-  footer = "Gereed voor publicatie betekent dat de content gecontroleerd is. Gepubliceerd wordt pas zichtbaar nadat de publieke websitegegevens zijn bijgewerkt."
+  footer = "Gereed voor publicatie betekent dat de content gecontroleerd is. Gepubliceerd betekent dat het item live staat nadat Website bijwerken is uitgevoerd."
 }) {
   return `
     <section class="studio-section">

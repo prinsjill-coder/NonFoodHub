@@ -17,9 +17,9 @@ import { getSuppliers } from "./supplier-model.js";
 export const CONTENT_READINESS_STATUSES = ["ready", "review", "needs_attention"];
 
 export const CONTENT_READINESS_LABELS = {
-  ready: "Publiceerbaar",
+  ready: "Gereed voor publicatie",
   review: "Nog enkele punten afronden",
-  needs_attention: "Nog niet publiceerbaar"
+  needs_attention: "Nog niet gereed"
 };
 
 const NEEDS_ATTENTION_ISSUE_TYPES = ["missing-file", "missing-alt"];
@@ -31,8 +31,8 @@ const PRIORITY_LABELS = {
 };
 const PUBLICATION_STATUS_LABELS = {
   ready: "Gepubliceerd",
-  review: "Zichtbaar, nog afronden",
-  not_public: "Nog niet gepubliceerd",
+  review: "Live met aandachtspunten",
+  not_public: "Niet live",
   not_applicable: "Geen websiteweergave"
 };
 const PUBLICATION_MODULE_CONFIG = {
