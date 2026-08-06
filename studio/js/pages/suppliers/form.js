@@ -1,3 +1,4 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import {
   renderCheckboxField,
@@ -8,6 +9,7 @@ import {
 } from "../../../../components/form-field.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { canDeleteContentStatus, getSupplierDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { createEmptySupplier, normalizeSlug } from "../../../../shared/supplier-model.js";
 import { hasValidationErrors, supplierFromForm, validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
@@ -24,15 +26,29 @@ function getTypeOptions(supplierData) {
 function getStatusOptions(supplierData) {
   const labels = {
     concept: "Concept",
-    review: "Review",
+    ready: "Gereed voor publicatie",
     published: "Gepubliceerd",
-    hidden: "Verborgen",
     archived: "Gearchiveerd"
   };
   return optionList(supplierData.statuses || [], labels);
 }
 
-export function renderSupplierForm({ supplierData, supplier = createEmptySupplier(), mode }) {
+function renderDeleteFormAction({ supplier, brochureData = {}, articleData = {} }) {
+  if (!canDeleteContentStatus(supplier.status)) return "";
+
+  const reason = getSupplierDeleteBlocker({ supplier, brochureData, articleData });
+  return `
+    ${renderButton({
+      label: "Definitief verwijderen",
+      variant: "danger",
+      disabled: Boolean(reason),
+      attributes: { "data-supplier-form-delete": true, "data-disabled-reason": reason }
+    })}
+    ${reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
+  `;
+}
+
+export function renderSupplierForm({ supplierData, brochureData = {}, articleData = {}, supplier = createEmptySupplier(), mode }) {
   const isEdit = mode === "edit";
   const title = isEdit ? `${supplier.name} bewerken` : "Nieuwe leverancier";
   const description = isEdit
@@ -94,7 +110,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
             value: supplier.status,
             options: getStatusOptions(supplierData),
             required: true,
-            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
+            help: "Concept is nog in bewerking. Gereed voor publicatie betekent gecontroleerd. Gepubliceerd zie je pas wanneer het item in de publieke websitegegevens staat."
           })}
           ${renderTextField({
             name: "sortOrder",
@@ -175,6 +191,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
 
       <div class="studio-form-actions">
         <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
+        ${isEdit ? renderDeleteFormAction({ supplier, brochureData, articleData }) : ""}
         ${renderButton({
           label: "Annuleren",
           href: "#/leveranciers",
@@ -186,7 +203,7 @@ export function renderSupplierForm({ supplierData, supplier = createEmptySupplie
   `;
 }
 
-export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
+export function setupSupplierForm({ supplierSession, brochureSession, articleSession, formDirtyGuard, rerender }) {
   const form = document.querySelector("[data-supplier-form]");
   if (!form) return;
 
@@ -199,6 +216,43 @@ export function setupSupplierForm({ supplierSession, formDirtyGuard }) {
   const dirtyRegistration = formDirtyGuard?.registerForm(form, { dirtyNotice });
 
   setupErrorLinkFocus(feedback, form);
+
+  form.querySelector("[data-supplier-form-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const originalSlug = form.dataset.originalSlug || "";
+    const supplier = supplierSession.findBySlug(originalSlug);
+    if (!supplier) return;
+
+    const reason = getSupplierDeleteBlocker({
+      supplier,
+      brochureData: brochureSession?.getWorkingData(),
+      articleData: articleSession?.getWorkingData()
+    });
+    if (reason) {
+      feedback.innerHTML = renderNotice({
+        title: "Leverancier niet verwijderd",
+        message: reason,
+        tone: "warning"
+      });
+      return;
+    }
+
+    const confirmed = await confirmStudioAction({
+      title: "Leverancier definitief verwijderen?",
+      message:
+        "Deze leverancier wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await supplierSession.deleteSupplier(originalSlug);
+    dirtyRegistration?.markClean();
+    window.location.hash = "#/leveranciers";
+    rerender?.();
+  });
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;

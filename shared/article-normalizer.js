@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { CONTENT_STATUSES, normalizeContentStatus } from "./content-status.js";
 import { ARTICLE_CATEGORIES, sortArticles } from "./article-model.js";
 
 export const ARTICLES_EXPORT_FILENAME = "articles.json";
@@ -68,7 +68,7 @@ export function normalizeArticleForSession(article) {
     id: asString(article?.id),
     title: asString(article?.title),
     slug: asString(article?.slug),
-    status: asString(article?.status),
+    status: normalizeContentStatus(article?.status),
     summary: asString(article?.summary),
     body: asString(article?.body),
     categories: uniqueSortedStrings(article?.categories),
@@ -92,7 +92,7 @@ export function normalizeArticleFileForSession(articleData) {
       writeEnabled: false,
       message: ARTICLE_STORAGE_NOTICE
     },
-    statuses: Array.isArray(articleData?.statuses) && articleData.statuses.length ? articleData.statuses : CONTENT_STATUSES,
+    statuses: CONTENT_STATUSES,
     categories:
       Array.isArray(articleData?.categories) && articleData.categories.length
         ? uniqueSortedStrings(articleData.categories)

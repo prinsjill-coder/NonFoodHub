@@ -27,10 +27,9 @@ function renderOverviewMetric({ label, value, note, state = "foundation" }) {
 
 function renderStatusDistribution(module) {
   const statuses = [
-    ["published", "Gepubliceerd", module.published],
     ["concept", "Concept", module.concept],
-    ["review", "Review", module.review],
-    ["hidden", "Verborgen", module.hidden],
+    ["ready", "Gereed voor publicatie", module.ready],
+    ["published", "Gepubliceerd", module.published],
     ["archived", "Gearchiveerd", module.archived]
   ];
 

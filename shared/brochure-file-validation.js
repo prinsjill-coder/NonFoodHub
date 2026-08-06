@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES, isContentStatus } from "./content-status.js";
+import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { normalizeSlug } from "./brochure-model.js";
 import { BROCHURE_FILE_KEYS, BROCHURE_KEYS } from "./brochure-normalizer.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -92,7 +92,9 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
     errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
-  if (!isContentStatus(brochure.status)) {
+  const status = normalizeContentStatus(brochure.status);
+
+  if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
   }
 
@@ -137,12 +139,12 @@ function validateBrochureRecord(brochure, index, brochureData, supplierData, err
     errors.push(createIssue(`${path}.thumbnail`, "Gebruik een afbeelding binnen het project, geen lokaal computerpad."));
   }
 
-  if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {
-    errors.push(createIssue(`${path}.pdfFile`, "Brochures met status review of published hebben een pdfFile nodig."));
+  if (isReadyForPublicationStatus(status) && !hasValue(brochure.pdfFile)) {
+    errors.push(createIssue(`${path}.pdfFile`, "Brochures die gereed zijn voor publicatie hebben een pdfFile nodig."));
   }
 
-  if (brochure.status === "published" && !hasValue(brochure.thumbnail)) {
-    errors.push(createIssue(`${path}.thumbnail`, "Gepubliceerde brochures hebben een thumbnail nodig."));
+  if (isReadyForPublicationStatus(status) && !hasValue(brochure.thumbnail)) {
+    errors.push(createIssue(`${path}.thumbnail`, "Brochures die gereed zijn voor publicatie hebben een thumbnail nodig."));
   }
 }
 

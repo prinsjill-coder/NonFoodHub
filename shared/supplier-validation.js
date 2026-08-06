@@ -1,4 +1,4 @@
-import { isContentStatus } from "./content-status.js";
+import { isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
 
 function isRelativeProjectPath(value) {
@@ -34,7 +34,7 @@ export function supplierFromForm(form) {
     relatedArticleIds: [],
     featured: formData.get("featured") === "on",
     sortOrder: Number(formData.get("sortOrder") || 0),
-    status: String(formData.get("status") || "").trim()
+    status: normalizeContentStatus(formData.get("status"))
   };
 }
 
@@ -77,13 +77,13 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
     errors.image = "Gebruik een bestand binnen het project, bijvoorbeeld assets/images/supplier-amefa.jpg. Gebruik geen lokaal computerpad.";
   }
 
-  if (supplier.status === "published") {
+  if (isReadyForPublicationStatus(supplier.status)) {
     if (!hasValue(supplier.summary)) {
-      errors.summary = "Een gepubliceerde leverancier heeft een samenvatting nodig.";
+      errors.summary = "Een leverancier die gereed is voor publicatie heeft een samenvatting nodig.";
     }
 
     if (!hasValue(supplier.description)) {
-      errors.description = "Een gepubliceerde leverancier heeft een omschrijving nodig.";
+      errors.description = "Een leverancier die gereed is voor publicatie heeft een omschrijving nodig.";
     }
 
     if (!supplier.categories.length) {
@@ -91,11 +91,11 @@ export function validateSupplier(supplier, existingSuppliers, options = {}) {
     }
 
     if (!hasValue(supplier.logo)) {
-      errors.logo = "Een gepubliceerde leverancier heeft een logoreferentie nodig.";
+      errors.logo = "Een leverancier die gereed is voor publicatie heeft een logoreferentie nodig.";
     }
 
     if (!hasValue(supplier.image)) {
-      errors.image = "Een gepubliceerde leverancier heeft een afbeeldingsreferentie nodig.";
+      errors.image = "Een leverancier die gereed is voor publicatie heeft een afbeeldingsreferentie nodig.";
     }
   }
 

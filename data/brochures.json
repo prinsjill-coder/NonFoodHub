@@ -8,9 +8,8 @@
   },
   "statuses": [
     "concept",
-    "review",
+    "ready",
     "published",
-    "hidden",
     "archived"
   ],
   "categories": [
@@ -62,10 +61,10 @@
         "Buffet & presentatie",
         "Servies"
       ],
-      "pdfFile": "assets/downloads/brochures/churchill-combined-brochure-2026-eu-unpriced-web.pdf",
+      "pdfFile": "assets/downloads/brochures/Churchill-Combined-Brochure-2026-EU-UNPRICED-WEB.pdf",
       "pdfSize": "",
       "thumbnail": "assets/images/brochures/chruchill-thumbnail.jpg",
-      "description": "Brochure in review voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
+      "description": "Brochure voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
       "language": "en",
       "status": "published",
       "sortOrder": 20,

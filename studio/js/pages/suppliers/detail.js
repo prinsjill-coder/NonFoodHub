@@ -3,6 +3,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderPublicationStateCard } from "../../../../components/publication-state.js";
 import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../../components/workflow-panel.js";
@@ -10,6 +11,8 @@ import { getArticleStatusLabel } from "../../../../shared/article-model.js";
 import { getBrochureStatusLabel } from "../../../../shared/brochure-model.js";
 import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
+import { canDeleteContentStatus, getSupplierDeleteBlocker } from "../../../../shared/delete-guards.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSupplierStatusLabel, getSupplierTypeLabel, getSuppliers } from "../../../../shared/supplier-model.js";
 import { validateSupplier } from "../../../../shared/supplier-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
@@ -129,32 +132,12 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
-function canDeleteStatus(status) {
-  return status === "concept" || status === "archived";
-}
-
-function deleteBlocker({ supplier, brochureData, articleData }) {
-  if (!canDeleteStatus(supplier.status)) return "";
-
-  const relatedBrochures = findSupplierBrochures(supplier, brochureData);
-  if (relatedBrochures.length) {
-    return "Verwijder of verplaats eerst gekoppelde brochures.";
-  }
-
-  const relatedArticles = findSupplierArticles(supplier, articleData);
-  if (relatedArticles.length) {
-    return "Verwijder of verplaats eerst gekoppelde kennisbankartikelen.";
-  }
-
-  return "";
-}
-
 function renderDeleteAction(reason = "") {
   if (reason) {
     return `
       ${renderButton({
         label: "Definitief verwijderen",
-        variant: "secondary",
+        variant: "danger",
         disabled: true,
         attributes: { "data-supplier-delete": true, "data-disabled-reason": reason }
       })}
@@ -164,44 +147,31 @@ function renderDeleteAction(reason = "") {
 
   return renderButton({
     label: "Definitief verwijderen",
-    variant: "secondary",
+    variant: "danger",
     attributes: { "data-supplier-delete": true }
   });
 }
 
-function renderSupplierWorkflowActions({ supplier, supplierData, brochureData = {}, articleData = {} }) {
-  const reviewErrors = validationMessages(validationForStatus({ supplier, status: "review", supplierData }));
-  const publishErrors = validationMessages(validationForStatus({ supplier, status: "published", supplierData }));
+function renderSupplierWorkflowActions({ supplier, supplierData, brochureData = {}, articleData = {}, publicData = {} }) {
+  const readyErrors = validationMessages(validationForStatus({ supplier, status: "ready", supplierData }));
+  const currentStatus = supplier.status;
+  const displayStatus = displayStatusForPublicModule("suppliers", supplier, publicData);
   const actions = [];
 
-  if (supplier.status === "concept") {
+  if (currentStatus === "concept") {
     actions.push(
       renderStatusAction({
-        label: "Naar review",
-        targetStatus: "review",
-        disabled: Boolean(reviewErrors.length),
-        reason: reviewErrors[0] || ""
-      })
-    );
-  }
-
-  if (supplier.status === "review") {
-    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
-  }
-
-  if (supplier.status === "concept" || supplier.status === "review" || supplier.status === "hidden") {
-    actions.push(
-      renderStatusAction({
-        label: "Publiceren",
-        targetStatus: "published",
+        label: "Gereed voor publicatie",
+        targetStatus: "ready",
         variant: "primary",
-        disabled: Boolean(publishErrors.length),
-        reason: publishErrors[0] || ""
+        disabled: Boolean(readyErrors.length),
+        reason: readyErrors[0] || ""
       })
     );
   }
 
-  if (supplier.status === "published") {
+  if (currentStatus === "ready" || currentStatus === "published") {
+    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
     actions.push(
       renderButton({
         label: "Archiveren",
@@ -211,17 +181,17 @@ function renderSupplierWorkflowActions({ supplier, supplierData, brochureData = 
     );
   }
 
-  if (supplier.status === "archived") {
+  if (currentStatus === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
   }
 
-  if (canDeleteStatus(supplier.status)) {
-    actions.push(renderDeleteAction(deleteBlocker({ supplier, brochureData, articleData })));
+  if (canDeleteContentStatus(currentStatus)) {
+    actions.push(renderDeleteAction(getSupplierDeleteBlocker({ supplier, brochureData, articleData })));
   }
 
   return renderWorkflowActionCard({
-    status: supplier.status,
-    statusLabel: getSupplierStatusLabel(supplier.status),
+    status: displayStatus,
+    statusLabel: displayStatusLabelForPublicModule("suppliers", supplier, publicData),
     actions
   });
 }
@@ -231,7 +201,7 @@ function renderFeedbackForSupplier(supplier) {
   return supplierActionFeedback.html;
 }
 
-export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, supplier }) {
+export function renderSupplierDetail({ supplierData, brochureData = {}, articleData = {}, publicData = {}, supplier }) {
   const relatedBrochures = findSupplierBrochures(supplier, brochureData);
   const relatedArticles = findSupplierArticles(supplier, articleData);
   const readinessReport = getContentReadinessReport({
@@ -266,14 +236,19 @@ export function renderSupplierDetail({ supplierData, brochureData = {}, articleD
       ${renderReadinessCard(readiness)}
     </section>
 
-    ${renderSupplierWorkflowActions({ supplier, supplierData, brochureData, articleData })}
+    ${renderPublicationStateCard({ moduleId: "suppliers", item: supplier, publicData })}
+
+    ${renderSupplierWorkflowActions({ supplier, supplierData, brochureData, articleData, publicData })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
         <article class="studio-card">
           <div class="studio-card-head">
             <h2>Basisgegevens</h2>
-            ${renderStatusBadge(supplier.status, getSupplierStatusLabel(supplier.status))}
+            ${renderStatusBadge(
+              displayStatusForPublicModule("suppliers", supplier, publicData),
+              displayStatusLabelForPublicModule("suppliers", supplier, publicData)
+            )}
           </div>
           ${renderDetailList([
             { label: "Naam", value: supplier.name },
@@ -332,23 +307,12 @@ function setActionFeedback(slug, title, message, tone = "success") {
 }
 
 async function confirmStatusChange(targetStatus) {
-  if (targetStatus === "published") {
+  if (targetStatus === "ready") {
     return confirmStudioAction({
-      title: "Leverancier publiceren?",
+      title: "Leverancier gereed voor publicatie zetten?",
       message:
-        "Alles is gereed om klaar te zetten voor de website. Deze actie wijzigt alleen de status in de bewerkversie; de website verandert pas na export, Website bijwerken, commit en push.",
-      confirmLabel: "Publiceren",
-      cancelLabel: "Annuleren",
-      tone: "info"
-    });
-  }
-
-  if (targetStatus === "review") {
-    return confirmStudioAction({
-      title: "Naar review zetten?",
-      message:
-        "De leverancier blijft in de bewerkversie en wordt gemarkeerd als klaar om inhoudelijk te controleren.",
-      confirmLabel: "Naar review",
+        "Deze actie wijzigt alleen de status in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken.",
+      confirmLabel: "Gereed voor publicatie",
       cancelLabel: "Annuleren",
       tone: "info"
     });
@@ -407,7 +371,7 @@ export function setupSupplierWorkflowActions({ supplierSession, brochureData = {
       if (!confirmed) return;
 
       await supplierSession.applySupplier({ ...supplier, status: targetStatus }, supplier.slug);
-      const label = targetStatus === "published" ? "Publiceren" : getSupplierStatusLabel(targetStatus);
+      const label = getSupplierStatusLabel(targetStatus);
       setActionFeedback(supplier.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();
     });

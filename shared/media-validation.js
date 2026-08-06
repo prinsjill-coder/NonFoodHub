@@ -1,4 +1,4 @@
-import { isContentStatus } from "./content-status.js";
+import { isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import {
   MEDIA_RIGHTS_STATUSES,
   MEDIA_TYPES,
@@ -62,7 +62,7 @@ export function mediaAssetFromForm(form) {
     fileSize: String(formData.get("fileSize") || "").trim(),
     usageType: String(formData.get("usageType") || "").trim(),
     rightsStatus: String(formData.get("rightsStatus") || "").trim(),
-    status: String(formData.get("status") || "").trim(),
+    status: normalizeContentStatus(formData.get("status")),
     sortOrder: Number(formData.get("sortOrder") || 0)
   };
 }
@@ -122,12 +122,12 @@ export function validateMediaAsset(asset, existingAssets, options = {}) {
 
   validateExtension(asset, errors);
 
-  if ((asset.status === "review" || asset.status === "published") && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
-    errors.alt = "Afbeeldingsassets met status review of published hebben alt-tekst nodig.";
+  if (isReadyForPublicationStatus(asset.status) && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
+    errors.alt = "Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig.";
   }
 
-  if (asset.status === "published" && asset.rightsStatus === "unknown") {
-    errors.rightsStatus = "Gepubliceerde media-assets hebben een bekende rechtenstatus nodig.";
+  if (isReadyForPublicationStatus(asset.status) && asset.rightsStatus !== "approved") {
+    errors.rightsStatus = "Controleer de beeldrechten voordat dit media-item gereed is voor gebruik.";
   }
 
   return errors;

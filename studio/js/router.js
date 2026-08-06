@@ -101,7 +101,8 @@ export function renderRoute(route, state) {
       state.brochureSession?.getWorkingData(),
       state.mediaSession?.getWorkingData(),
       state.articleSession?.getWorkingData(),
-      state.librarySession?.getWorkingData()
+      state.librarySession?.getWorkingData(),
+      state.publicData
     );
   }
 
@@ -111,16 +112,17 @@ export function renderRoute(route, state) {
       brochureData: state.brochureSession?.getWorkingData(),
       mediaData: state.mediaSession?.getWorkingData(),
       articleData: state.articleSession?.getWorkingData(),
-      libraryData: state.librarySession?.getWorkingData()
+      libraryData: state.librarySession?.getWorkingData(),
+      publicData: state.publicData
     });
   }
 
   if (route.sectionId === "suppliers") {
-    return renderSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession);
+    return renderSuppliersRoute(route, state.supplierSession, state.brochureSession, state.articleSession, state.publicData);
   }
 
   if (route.sectionId === "brochures") {
-    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession, state.mediaSession);
+    return renderBrochuresRoute(route, state.brochureSession, state.supplierSession, state.articleSession, state.mediaSession, state.publicData);
   }
 
   if (route.sectionId === "media") {
@@ -128,7 +130,7 @@ export function renderRoute(route, state) {
   }
 
   if (route.sectionId === "knowledge") {
-    return renderKnowledgeRoute(route, state.articleSession, state.supplierSession, state.brochureSession, state.mediaSession);
+    return renderKnowledgeRoute(route, state.articleSession, state.supplierSession, state.brochureSession, state.mediaSession, state.publicData);
   }
 
   if (route.sectionId === "library") {

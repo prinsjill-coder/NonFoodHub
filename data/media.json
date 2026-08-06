@@ -6,7 +6,7 @@
     "writeEnabled": false,
     "message": "Mediabestanden worden alleen in de bewerkversie geregistreerd. Uploads, automatische bestandsplaatsing en publicatie zijn niet actief."
   },
-  "statuses": ["concept", "review", "published", "hidden", "archived"],
+  "statuses": ["concept", "ready", "published", "archived"],
   "types": [
     {
       "id": "image",
@@ -82,7 +82,7 @@
       "fileSize": "Onbekend",
       "usageType": "supplier-logo",
       "rightsStatus": "needs-review",
-      "status": "review",
+      "status": "concept",
       "sortOrder": 10
     },
     {
@@ -97,7 +97,7 @@
       "fileSize": "Onbekend",
       "usageType": "page-image",
       "rightsStatus": "needs-review",
-      "status": "review",
+      "status": "concept",
       "sortOrder": 20
     },
     {
@@ -112,7 +112,7 @@
       "fileSize": "Onbekend",
       "usageType": "hero",
       "rightsStatus": "needs-review",
-      "status": "review",
+      "status": "concept",
       "sortOrder": 30
     }
   ]

@@ -8,16 +8,12 @@ const DEFAULT_STEPS = [
     text: "Je kunt content voorbereiden zonder dat deze op de website staat."
   },
   {
-    label: "Review",
-    text: "Controleer tekst, relaties en bestanden voordat de content verder kan."
-  },
-  {
-    label: "Publiceerbaar",
+    label: "Gereed voor publicatie",
     text: "De content is klaar om via de handmatige overdracht naar de website te gaan."
   },
   {
     label: "Gepubliceerd",
-    text: "De content staat pas live na controle, overdracht en Website bijwerken."
+    text: "De content staat in de publieke websitegegevens en is zichtbaar op de website."
   }
 ];
 
@@ -86,7 +82,7 @@ export function renderWorkflowActionCard({
   title = "Klaarzetten voor website",
   description =
     "Deze acties wijzigen alleen de bewerkversie. De website verandert pas na export, Website bijwerken, controle, commit en push.",
-  footer = "Publiceren betekent hier: status klaarzetten op Gepubliceerd. Het is geen automatische livegang."
+  footer = "Gereed voor publicatie betekent dat de content gecontroleerd is. Gepubliceerd wordt pas zichtbaar nadat de publieke websitegegevens zijn bijgewerkt."
 }) {
   return `
     <section class="studio-section">

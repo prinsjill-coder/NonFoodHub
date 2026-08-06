@@ -13,7 +13,7 @@
     "writeEnabled": false,
     "message": "Kennisbankartikelen worden in de bewerkversie aangepast. Gebruik Gegevens exporteren en daarna Website bijwerken voordat wijzigingen zichtbaar worden."
   },
-  "statuses": ["concept", "review", "published", "hidden", "archived"],
+  "statuses": ["concept", "ready", "published", "archived"],
   "categories": [
     "Inspiratie",
     "Terras & Outdoor",

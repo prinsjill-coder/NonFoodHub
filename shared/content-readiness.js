@@ -284,7 +284,7 @@ function publicationForItem(moduleId, item, issues, projectionContext) {
   const checks = [...feedback.checks];
 
   if (isPublicContentItem(item)) {
-    checks.unshift(publicationCheck("Contentstatus is Gepubliceerd."));
+    checks.unshift(publicationCheck(`Contentstatus is ${getContentStatusLabel(PUBLIC_CONTENT_STATUS)}.`));
   } else {
     reasons.unshift(
       publicationReason(

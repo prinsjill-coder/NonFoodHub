@@ -1,4 +1,4 @@
-import { isContentStatus } from "./content-status.js";
+import { isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { getSuppliers } from "./supplier-model.js";
 import { BROCHURE_LANGUAGES, normalizeSlug } from "./brochure-model.js";
 
@@ -57,7 +57,7 @@ export function brochureFromForm(form) {
     thumbnail: String(formData.get("thumbnail") || "").trim(),
     description: String(formData.get("description") || "").trim(),
     language: String(formData.get("language") || "").trim(),
-    status: String(formData.get("status") || "").trim(),
+    status: normalizeContentStatus(formData.get("status")),
     sortOrder: sortOrderValue ? Number(sortOrderValue) : NaN,
     updatedAt: String(formData.get("updatedAt") || "").trim()
   };
@@ -136,12 +136,12 @@ export function validateBrochure(brochure, existingBrochures, supplierData, broc
     errors.thumbnail = "Gebruik een afbeelding binnen het project, bijvoorbeeld assets/images/brochures/amefa-2026.jpg. Gebruik geen lokaal computerpad.";
   }
 
-  if ((brochure.status === "review" || brochure.status === "published") && !hasValue(brochure.pdfFile)) {
-    errors.pdfFile = "Vul het bestand van de PDF in voordat deze brochure Review of Gepubliceerd kan zijn.";
+  if (isReadyForPublicationStatus(brochure.status) && !hasValue(brochure.pdfFile)) {
+    errors.pdfFile = "Vul het bestand van de PDF in voordat deze brochure gereed voor publicatie kan zijn.";
   }
 
-  if (brochure.status === "published" && !hasValue(brochure.thumbnail)) {
-    errors.thumbnail = "Een gepubliceerde brochure heeft een afbeelding nodig.";
+  if (isReadyForPublicationStatus(brochure.status) && !hasValue(brochure.thumbnail)) {
+    errors.thumbnail = "Een brochure die gereed is voor publicatie heeft een afbeelding nodig.";
   }
 
   return errors;

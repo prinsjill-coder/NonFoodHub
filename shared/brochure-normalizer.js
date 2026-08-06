@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { CONTENT_STATUSES, normalizeContentStatus } from "./content-status.js";
 import { BROCHURE_LANGUAGES, normalizeSlug, sortBrochures } from "./brochure-model.js";
 
 export const BROCHURES_EXPORT_FILENAME = "brochures.json";
@@ -77,7 +77,7 @@ export function normalizeBrochureForExport(brochure) {
     thumbnail: asString(brochure?.thumbnail),
     description: asString(brochure?.description),
     language: asString(brochure?.language),
-    status: asString(brochure?.status),
+    status: normalizeContentStatus(brochure?.status),
     sortOrder: Number.isInteger(Number(brochure?.sortOrder)) ? Number(brochure.sortOrder) : 0,
     updatedAt: asString(brochure?.updatedAt)
   };
@@ -94,7 +94,7 @@ export function normalizeBrochureFileForSession(brochureData) {
       writeEnabled: false,
       message: BROCHURE_STORAGE_NOTICE
     },
-    statuses: Array.isArray(brochureData?.statuses) && brochureData.statuses.length ? brochureData.statuses : CONTENT_STATUSES,
+    statuses: CONTENT_STATUSES,
     categories: uniqueSortedStrings(brochureData?.categories),
     languages: normalizeLanguages(brochureData?.languages),
     items

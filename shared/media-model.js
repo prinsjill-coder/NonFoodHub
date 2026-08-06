@@ -2,7 +2,10 @@ import { CONTENT_STATUSES, CONTENT_STATUS_LABELS, getContentStatusLabel } from "
 
 export const MEDIA_STATUSES = [...CONTENT_STATUSES];
 
-export const MEDIA_STATUS_LABELS = CONTENT_STATUS_LABELS;
+export const MEDIA_STATUS_LABELS = {
+  ...CONTENT_STATUS_LABELS,
+  ready: "Gereed voor gebruik"
+};
 
 export const MEDIA_TYPES = ["image", "logo", "thumbnail", "pdf"];
 
@@ -107,7 +110,7 @@ export function getMediaRightsStatusLabel(rightsStatus, mediaData = {}) {
 }
 
 export function getMediaStatusLabel(status) {
-  return getContentStatusLabel(status);
+  return MEDIA_STATUS_LABELS[status] || getContentStatusLabel(status);
 }
 
 export function isImageLikeMedia(asset) {

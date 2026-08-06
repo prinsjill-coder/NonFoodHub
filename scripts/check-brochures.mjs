@@ -185,14 +185,14 @@ export async function runBrochureChecks() {
     assert.equal(duplicateDraft.id, "brochure-amefa-2027-2");
   });
 
-  await runCheck("pdfFile is optioneel bij concept en verplicht bij review of published", () => {
+  await runCheck("pdfFile is optioneel bij concept en verplicht bij ready of published", () => {
     let data = clone(brochures);
     firstBrochure(data).status = "concept";
     firstBrochure(data).pdfFile = "";
     assert.equal(validateBrochureFile(data, suppliers).valid, true);
 
     data = clone(brochures);
-    firstBrochure(data).status = "review";
+    firstBrochure(data).status = "ready";
     firstBrochure(data).pdfFile = "";
     expectInvalid(data, suppliers, "items[0].pdfFile");
 
@@ -202,11 +202,16 @@ export async function runBrochureChecks() {
     expectInvalid(data, suppliers, "items[0].pdfFile");
   });
 
-  await runCheck("thumbnail is verplicht bij published maar niet bij review", () => {
+  await runCheck("thumbnail is verplicht bij ready en published", () => {
     let data = clone(brochures);
-    firstBrochure(data).status = "review";
+    firstBrochure(data).status = "concept";
     firstBrochure(data).thumbnail = "";
     assert.equal(validateBrochureFile(data, suppliers).valid, true);
+
+    data = clone(brochures);
+    firstBrochure(data).status = "ready";
+    firstBrochure(data).thumbnail = "";
+    expectInvalid(data, suppliers, "items[0].thumbnail");
 
     data = clone(brochures);
     firstBrochure(data).status = "published";

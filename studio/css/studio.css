@@ -454,6 +454,12 @@ textarea:focus-visible {
   background: var(--studio-white);
 }
 
+.studio-button-danger {
+  color: var(--studio-error);
+  border-color: rgba(192, 57, 43, 0.32);
+  background: var(--studio-error-bg);
+}
+
 .studio-button:hover {
   transform: translateY(-1px);
 }

@@ -40,14 +40,15 @@ export async function runArticleQualityChecks() {
     assert.equal(report.valid, true);
     assert.equal(report.stats.total, articles.items.length);
     assert.equal(report.stats.published, articles.items.filter((article) => article.status === "published").length);
-    assert.equal(report.stats.review, articles.items.filter((article) => article.status === "review").length);
+    assert.equal(report.stats.ready, articles.items.filter((article) => article.status === "ready").length);
     assert.ok(report.stats.published >= 2);
     assert.ok(report.stats.warnings >= 1);
     assert.ok(report.stats.missingMediaRegistrations >= 1);
   });
 
-  await runCheck("published artikel zonder heroImage levert kwaliteitsfout op", () => {
+  await runCheck("ready artikel zonder heroImage levert kwaliteitsfout op", () => {
     const data = clone(articles);
+    firstArticle(data).status = "ready";
     firstArticle(data).heroImage = "";
     const report = getArticleQualityReport(data, suppliers, brochures, media);
     assert.equal(report.valid, false);

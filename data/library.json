@@ -15,9 +15,8 @@
   },
   "statuses": [
     "concept",
-    "review",
+    "ready",
     "published",
-    "hidden",
     "archived"
   ],
   "types": [
@@ -43,7 +42,7 @@
       "id": "library-churchill-combined-brochure-2026",
       "title": "Churchill Combined Brochure 2026",
       "slug": "churchill-combined-brochure-2026",
-      "status": "review",
+      "status": "concept",
       "type": "catalogus",
       "category": "Leveranciers",
       "summary": "Bibliotheekregistratie voor de Churchill Combined Brochure 2026, gekoppeld aan de bestaande leverancier en brochure.",

@@ -10,13 +10,16 @@ const port = Number(process.env.PORT || 4173);
 const contentTypes = new Map([
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
+  [".ico", "image/x-icon"],
   [".jpeg", "image/jpeg"],
   [".jpg", "image/jpeg"],
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".mjs", "text/javascript; charset=utf-8"],
   [".pdf", "application/pdf"],
   [".png", "image/png"],
   [".svg", "image/svg+xml"],
+  [".txt", "text/plain; charset=utf-8"],
   [".webp", "image/webp"]
 ]);
 
@@ -33,15 +36,39 @@ function requestPath(requestUrl = "/") {
   return isInsideRoot(filePath) ? filePath : "";
 }
 
-async function existingFile(filePath) {
+async function candidateFile(filePath) {
   if (!filePath || !existsSync(filePath)) return "";
   const fileStat = await stat(filePath);
-  if (fileStat.isDirectory()) return join(filePath, "index.html");
+  if (fileStat.isDirectory()) {
+    const indexFile = join(filePath, "index.html");
+    if (!existsSync(indexFile)) return "";
+    const indexStat = await stat(indexFile);
+    return indexStat.isFile() ? indexFile : "";
+  }
+
   return fileStat.isFile() ? filePath : "";
+}
+
+async function existingFile(filePath) {
+  const directFile = await candidateFile(filePath);
+  if (directFile) return directFile;
+
+  if (filePath && !extname(filePath)) {
+    return candidateFile(`${filePath}.html`);
+  }
+
+  return "";
 }
 
 export const server = createServer(async (request, response) => {
   try {
+    const method = (request.method || "GET").toUpperCase();
+    if (!["GET", "HEAD"].includes(method)) {
+      response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Methode niet toegestaan");
+      return;
+    }
+
     const filePath = await existingFile(requestPath(request.url));
     if (!filePath || !existsSync(filePath)) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
@@ -51,6 +78,11 @@ export const server = createServer(async (request, response) => {
 
     const contentType = contentTypes.get(extname(filePath).toLowerCase()) || "application/octet-stream";
     response.writeHead(200, { "content-type": contentType });
+    if (method === "HEAD") {
+      response.end();
+      return;
+    }
+
     createReadStream(filePath).pipe(response);
   } catch {
     response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
@@ -58,12 +90,17 @@ export const server = createServer(async (request, response) => {
   }
 });
 
-export function startStaticServer({ host = "127.0.0.1", listenPort = port } = {}) {
+export function startStaticServer({
+  host = "127.0.0.1",
+  displayHost = host,
+  label = "testserver",
+  listenPort = port
+} = {}) {
   return new Promise((resolveStart, rejectStart) => {
     server.once("error", rejectStart);
     server.listen(listenPort, host, () => {
       server.off("error", rejectStart);
-      console.log(`Non-Food Hub testserver draait op http://${host}:${listenPort}`);
+      console.log(`Non-Food Hub ${label} draait op http://${displayHost}:${listenPort}`);
       resolveStart(server);
     });
   });

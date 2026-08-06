@@ -17,13 +17,13 @@ Dit project wordt lokaal ontwikkeld en gepubliceerd via GitHub Desktop en GitHub
 Open een terminal in de projectmap en start:
 
 ```bash
-python3 -m http.server 8080
+npm run dev
 ```
 
 Open daarna:
 
 ```text
-http://localhost:8080
+http://localhost:3000
 ```
 
 ## Afspraken voor toekomstige ontwikkelingen

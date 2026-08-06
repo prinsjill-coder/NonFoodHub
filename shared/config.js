@@ -10,7 +10,10 @@ export const STUDIO_CONFIG = {
     brochures: "../data/brochures.json",
     media: "../data/media.json",
     articles: "../data/articles.json",
-    library: "../data/library.json"
+    library: "../data/library.json",
+    publicSuppliers: "../data/public/suppliers.json",
+    publicBrochures: "../data/public/brochures.json",
+    publicArticles: "../data/public/articles.json"
   },
   authPlaceholder: {
     title: "Authentication placeholder",

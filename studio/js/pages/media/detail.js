@@ -15,7 +15,7 @@ import {
   getMediaUsageTypeLabel
 } from "../../../../shared/media-model.js";
 import { validateMediaAsset } from "../../../../shared/media-validation.js";
-import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
+import { getSupplierStatusLabel, getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
 let mediaActionFeedback = null;
@@ -41,6 +41,12 @@ function renderUsageList(items, { emptyText, hrefForItem, labelForItem, statusFo
 
 function renderRightsCheckLabel(asset) {
   return asset.rightsStatus === "approved" ? "Beeldrechten gecontroleerd" : "Nog controleren";
+}
+
+function suppliersUsingBrochureMedia(usage, supplierData = {}) {
+  const supplierIds = new Set((usage.brochures || []).map((brochure) => brochure.supplierId).filter(Boolean));
+  const directSupplierIds = new Set((usage.suppliers || []).map((supplier) => supplier.id).filter(Boolean));
+  return getSuppliers(supplierData).filter((supplier) => supplierIds.has(supplier.id) && !directSupplierIds.has(supplier.id));
 }
 
 function validationMessages(errors) {
@@ -70,50 +76,21 @@ function renderMediaStatusAction({ label, targetStatus, disabled = false, reason
 
 function renderMediaWorkflowActions({ asset, mediaData }) {
   const conceptErrors = validationMessages(validationForStatus({ asset, status: "concept", mediaData }));
-  const reviewErrors = validationMessages(validationForStatus({ asset, status: "review", mediaData }));
-  const publishErrors = validationMessages(validationForStatus({ asset, status: "published", mediaData }));
+  const readyErrors = validationMessages(validationForStatus({ asset, status: "ready", mediaData }));
   const actions = [];
 
   if (asset.status === "concept") {
     actions.push(
       renderMediaStatusAction({
-        label: "Naar Review",
-        targetStatus: "review",
-        disabled: reviewErrors.length > 0,
-        reason: reviewErrors[0] || ""
+        label: "Gereed voor gebruik",
+        targetStatus: "ready",
+        disabled: readyErrors.length > 0,
+        reason: readyErrors[0] || ""
       })
     );
   }
 
-  if (asset.status === "review") {
-    actions.push(
-      renderMediaStatusAction({
-        label: "Terug naar Concept",
-        targetStatus: "concept",
-        disabled: conceptErrors.length > 0,
-        reason: conceptErrors[0] || ""
-      })
-    );
-    actions.push(
-      renderMediaStatusAction({
-        label: "Publiceren",
-        targetStatus: "published",
-        variant: "primary",
-        disabled: publishErrors.length > 0,
-        reason: publishErrors[0] || ""
-      })
-    );
-  }
-
-  if (asset.status === "published") {
-    actions.push(
-      renderMediaStatusAction({
-        label: "Terug naar Review",
-        targetStatus: "review",
-        disabled: reviewErrors.length > 0,
-        reason: reviewErrors[0] || ""
-      })
-    );
+  if (asset.status === "ready" || asset.status === "published") {
     actions.push(
       renderMediaStatusAction({
         label: "Terug naar Concept",
@@ -124,7 +101,7 @@ function renderMediaWorkflowActions({ asset, mediaData }) {
     );
   }
 
-  if ((asset.status === "hidden" || asset.status === "archived") && !actions.length) {
+  if (asset.status === "archived" && !actions.length) {
     actions.push(
       renderMediaStatusAction({
         label: "Terug naar Concept",
@@ -148,8 +125,17 @@ function renderMediaWorkflowActions({ asset, mediaData }) {
           ${renderStatusBadge(asset.status, getMediaStatusLabel(asset.status))}
         </div>
         <div class="studio-actions">${actions.join("")}</div>
+        <div class="studio-field-helper-card">
+          <label class="studio-check-pill">
+            <input type="checkbox" data-media-rights-toggle ${asset.rightsStatus === "approved" ? "checked" : ""}>
+            <span>Beeldrechten gecontroleerd</span>
+          </label>
+          <p class="studio-meta">
+            Vink dit aan wanneer de leverancier het bestand heeft aangeleverd en gebruik op de website is gecontroleerd.
+          </p>
+        </div>
         <p class="studio-meta">
-          Metadata zoals titel, alt-tekst, caption en beeldrechten beheer je via Bewerken.
+          Metadata zoals titel, alt-tekst en caption beheer je via Bewerken.
         </p>
       </article>
     </section>
@@ -163,6 +149,7 @@ function renderFeedbackForMedia(asset) {
 
 export function renderMediaDetail({ mediaData, supplierData = {}, brochureData = {}, articleData = {}, asset }) {
   const usage = findMediaUsage(asset, supplierData, brochureData, articleData);
+  const relatedSuppliers = [...usage.suppliers, ...suppliersUsingBrochureMedia(usage, supplierData)];
   const readinessReport = getContentReadinessReport({
     suppliers: supplierData,
     brochures: brochureData,
@@ -235,7 +222,7 @@ export function renderMediaDetail({ mediaData, supplierData = {}, brochureData =
       <div class="studio-grid studio-grid-3">
         <article class="studio-card">
           <h3>Leveranciers</h3>
-          ${renderUsageList(usage.suppliers, {
+          ${renderUsageList(relatedSuppliers, {
             emptyText: "Nog geen leveranciers gebruiken dit bestand.",
             hrefForItem: (supplier) => `#/leveranciers/${supplier.slug}`,
             labelForItem: (supplier) => supplier.name,
@@ -276,6 +263,24 @@ function setActionFeedback(id, title, message, tone = "success") {
 }
 
 export function setupMediaWorkflowActions({ mediaSession, asset, rerender }) {
+  document.querySelector("[data-media-rights-toggle]")?.addEventListener("change", async (event) => {
+    const currentAsset = mediaSession.findById(asset.id) || asset;
+    const checked = Boolean(event.currentTarget.checked);
+    await mediaSession.applyMediaAsset(
+      { ...currentAsset, rightsStatus: checked ? "approved" : "needs-review" },
+      currentAsset.id
+    );
+    setActionFeedback(
+      currentAsset.id,
+      "Beeldrechten bijgewerkt",
+      checked
+        ? "Beeldrechten gecontroleerd is vastgelegd in de bewerkversie."
+        : "Beeldrechten gecontroleerd is uitgezet in de bewerkversie.",
+      "success"
+    );
+    rerender?.();
+  });
+
   document.querySelectorAll("[data-media-status-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       if (button.disabled) return;

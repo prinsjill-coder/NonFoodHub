@@ -132,8 +132,7 @@ for (const route of studioRoutes) {
       const workflow = page.locator(".studio-workflow-panel");
       await expect(workflow.getByRole("heading", { name: "Van beheer naar website", level: 2 })).toBeVisible();
       await expect(workflow.getByText("Concept", { exact: true })).toBeVisible();
-      await expect(workflow.getByText("Review", { exact: true })).toBeVisible();
-      await expect(workflow.getByText("Publiceerbaar", { exact: true })).toBeVisible();
+      await expect(workflow.getByText("Gereed voor publicatie", { exact: true })).toBeVisible();
       await expect(workflow.getByText("Gepubliceerd", { exact: true })).toBeVisible();
     }
     await expectCleanStudioPage(page, errors);
@@ -223,6 +222,8 @@ test("Studio verwijdert conceptcontent definitief uit de bewerkversie", async ({
   await page.locator("#studio-field-categories-bestek").check({ force: true });
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/leveranciers\/rc1k-delete-leverancier$/);
+  await page.getByRole("link", { name: "Bewerken" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/rc1k-delete-leverancier\/bewerken$/);
   await page.getByRole("button", { name: "Definitief verwijderen" }).click();
   await expect(page.getByRole("alertdialog", { name: "Leverancier definitief verwijderen?" })).toBeVisible();
   await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
@@ -241,6 +242,8 @@ test("Studio verwijdert conceptcontent definitief uit de bewerkversie", async ({
   await page.locator("#studio-field-categories-bestek").check({ force: true });
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/brochures\/rc1k-delete-brochure$/);
+  await page.getByRole("link", { name: "Bewerken" }).click();
+  await expect(page).toHaveURL(/#\/brochures\/rc1k-delete-brochure\/bewerken$/);
   await page.getByRole("button", { name: "Definitief verwijderen" }).click();
   await expect(page.getByRole("alertdialog", { name: "Brochure definitief verwijderen?" })).toBeVisible();
   await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
@@ -258,6 +261,8 @@ test("Studio verwijdert conceptcontent definitief uit de bewerkversie", async ({
   await page.locator("#studio-field-categories-inspiratie").check({ force: true });
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/kennisbank\/rc1k-delete-artikel$/);
+  await page.getByRole("link", { name: "Bewerken" }).click();
+  await expect(page).toHaveURL(/#\/kennisbank\/rc1k-delete-artikel\/bewerken$/);
   await page.getByRole("button", { name: "Definitief verwijderen" }).click();
   await expect(page.getByRole("alertdialog", { name: "Artikel definitief verwijderen?" })).toBeVisible();
   await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
@@ -347,10 +352,10 @@ test("Studio brochurebeheer ondersteunt de handmatige bewerkflow", async ({ page
   await expect(page.getByText("Thumbnail aanwezig: Nee, nog geen bestand ingevuld")).toBeVisible();
 
   await page.getByRole("link", { name: "Bewerken" }).click();
-  await page.getByLabel("Status").selectOption("review");
+  await page.getByLabel("Status").selectOption("ready");
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page.locator('[data-field-error="pdfFile"]')).toHaveText(
-    "Vul het bestand van de PDF in voordat deze brochure Review of Gepubliceerd kan zijn."
+    "Vul het bestand van de PDF in voordat deze brochure gereed voor publicatie kan zijn."
   );
 
   await page.getByLabel("Status").selectOption("concept");
@@ -391,9 +396,10 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/brochures\/amefa-for-professionals-2026$/);
   await expect(page.getByText("assets/downloads/brochures/amefa-for-professionals-2026.pdf")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Afbeelding bekijken" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Afbeelding bekijken" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "PDF openen" })).toHaveCount(0);
   await expect(page.getByText("PDF status: Projectbestand nog plaatsen of controleren in Media")).toBeVisible();
+  await expect(page.getByText("Thumbnail status: Projectbestand nog plaatsen of controleren in Media")).toBeVisible();
 
   await page.goto("/studio/index.html#/brochures/nieuw");
   await page.getByLabel(/Titel/).fill("RC1H bestandsbrochure");
@@ -456,30 +462,25 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await expect(pdfRightsCheck).not.toBeChecked();
   await pdfRightsCheck.check();
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
-  await expect(page.getByText("Beeldrechten gecontroleerd")).toBeVisible();
+  await expect(page.getByRole("definition").filter({ hasText: "Beeldrechten gecontroleerd" })).toBeVisible();
   await expect(page.getByText("Controleer de beeldrechten voordat dit bestand breder op de website wordt gebruikt.")).toHaveCount(0);
   await page.getByRole("link", { name: "Bewerken" }).click();
   await expect(page.getByRole("checkbox", { name: "Beeldrechten gecontroleerd" })).toBeChecked();
   await page.getByRole("link", { name: "Bekijken" }).click();
   await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Naar Review" })).toBeEnabled();
-  await page.getByRole("button", { name: "Naar Review" }).click();
+  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeEnabled();
+  await page.getByRole("button", { name: "Gereed voor gebruik" }).click();
   await expect(page.locator("[data-media-action-feedback]").getByText("Status aangepast in bewerkversie")).toBeVisible();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Review is ingesteld.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publiceren" })).toBeEnabled();
-  await page.getByRole("button", { name: "Publiceren" }).click();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Gepubliceerd is ingesteld.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Terug naar Review" })).toBeEnabled();
-  await page.getByRole("button", { name: "Terug naar Review" }).click();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Review is ingesteld.")).toBeVisible();
+  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor gebruik is ingesteld.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Terug naar Concept" })).toBeEnabled();
 
   await page.goto("/studio/index.html#/media");
   const demoImageAsset = page.locator("[data-media-item]", { hasText: "assets/images/brochures/cover-zomer.jpeg" }).first();
   await expect(demoImageAsset).toBeVisible();
   await demoImageAsset.getByRole("link", { name: /bekijken/i }).click();
   await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Naar Review" })).toBeDisabled();
-  await expect(page.getByText("Afbeeldingsassets met status review of published hebben alt-tekst nodig.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeDisabled();
+  await expect(page.getByText("Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig.")).toBeVisible();
   await page.getByRole("link", { name: "Bewerken" }).click();
   await expect(page.getByLabel("Status (verplicht)", { exact: true })).toHaveValue("concept");
   const imageRightsCheck = page.getByRole("checkbox", { name: "Beeldrechten gecontroleerd" });
@@ -489,9 +490,9 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page.getByRole("heading", { name: "Klaarzetten voor gebruik", level: 2 })).toBeVisible();
   await expect(page.getByText("Controleer de beeldrechten voordat dit bestand breder op de website wordt gebruikt.")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Naar Review" })).toBeEnabled();
-  await page.getByRole("button", { name: "Naar Review" }).click();
-  await expect(page.locator("[data-media-action-feedback]").getByText("Review is ingesteld.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Gereed voor gebruik" })).toBeEnabled();
+  await page.getByRole("button", { name: "Gereed voor gebruik" }).click();
+  await expect(page.locator("[data-media-action-feedback]").getByText("Gereed voor gebruik is ingesteld.")).toBeVisible();
 
   await page.goto("/studio/index.html#/brochures/rc1h-bestandsbrochure");
   const pdfOpenLink = page.getByRole("link", { name: "PDF openen" });
@@ -501,11 +502,11 @@ test("Studio brochurebeheer ondersteunt RC1H acties zonder repositorydata te wij
   await expect(page.getByText("PDF status: Lokaal gekozen bestand en Media zijn gecontroleerd")).toBeVisible();
   await expect(page.getByText("Thumbnail status: Lokaal gekozen bestand en Media zijn gecontroleerd")).toBeVisible();
 
-  const publishButton = page.locator('[data-brochure-status-action="published"]');
+  const publishButton = page.locator('[data-brochure-status-action="ready"]');
   await expect(publishButton).toBeEnabled();
   await publishButton.click();
-  await expect(page.getByRole("alertdialog", { name: "Brochure publiceren?" })).toBeVisible();
-  await page.getByRole("button", { name: "Publiceren" }).last().click();
+  await expect(page.getByRole("alertdialog", { name: "Brochure gereed voor publicatie zetten?" })).toBeVisible();
+  await page.getByRole("button", { name: "Gereed voor publicatie" }).last().click();
   await expect(page.getByText("Status aangepast in bewerkversie")).toBeVisible();
   await expect(page.locator("[data-brochure-action-feedback]").getByText(/Gegevens exporteren/)).toBeVisible();
 
@@ -594,20 +595,20 @@ test("Studio contentbeheerflows tonen bewerkstatus, validatie en export per modu
     "assets/images/cover-zomer.jpeg"
   );
   await page.getByLabel("Titel").fill("RC1F artikel");
-  await page.getByLabel("Status").selectOption("review");
+  await page.getByLabel("Status").selectOption("ready");
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page.locator('[data-field-error="summary"]')).toHaveText(
-    "Vul een samenvatting in voor review of publicatie."
+    "Vul een samenvatting in voordat dit artikel gereed is voor publicatie."
   );
   await expect(page.locator('[data-field-error="categories"]')).toHaveText(
-    "Kies minimaal een categorie voor review of publicatie."
+    "Kies minimaal een categorie voordat dit artikel gereed is voor publicatie."
   );
   await page.getByLabel("Samenvatting").fill("Korte controlecopy voor kennisbankbeheer in de bewerkversie.");
   await page.getByLabel("Inhoud").fill("Deze tekst blijft in de bewerkversie totdat de gegevens handmatig zijn geexporteerd.");
   await page.locator("#studio-field-categories-inspiratie").check({ force: true });
   await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
   await expect(page).toHaveURL(/#\/kennisbank\/rc1f-artikel$/);
-  await expect(page.getByText("Dit staat nog niet op de publieke website. De punten hieronder tonen wat nog ontbreekt.")).toBeVisible();
+  await expect(page.getByText("Dit item is gereed in de bewerkversie, maar staat nog niet in de publieke dataset.")).toBeVisible();
   await expect(page.getByText("Afbeeldingsbestand nog niet beschikbaar in de projectmap.")).toBeVisible();
   await page.getByRole("link", { name: "Terug naar kennisbank" }).click();
   await expect(page.locator("[data-article-item]", { hasText: "RC1F artikel" }).first()).toBeVisible();

@@ -147,7 +147,7 @@ export function renderLibraryForm({
             value: item.status,
             options: getStatusOptions(libraryData),
             required: true,
-            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
+            help: "Concept is nog in bewerking. Gereed voor publicatie betekent gecontroleerd. Gepubliceerd zie je pas wanneer een publieke websitekoppeling bestaat."
           })}
           ${renderSelectField({
             name: "type",

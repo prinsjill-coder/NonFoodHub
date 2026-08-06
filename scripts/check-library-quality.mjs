@@ -44,6 +44,7 @@ export async function runLibraryQualityChecks() {
     assert.ok(Array.isArray(report.brokenRelations));
     assert.equal(report.stats.total, library.items.length);
     assert.equal(typeof report.stats.published, "number");
+    assert.equal(typeof report.stats.ready, "number");
     assert.equal(typeof report.stats.warnings, "number");
     assert.equal(typeof report.stats.missingFiles, "number");
   });

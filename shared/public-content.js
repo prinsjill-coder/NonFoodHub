@@ -1,4 +1,5 @@
-export const PUBLIC_CONTENT_STATUS = "published";
+export const PUBLIC_CONTENT_STATUS = "ready";
+export const PUBLIC_CONTENT_STATUSES = ["ready", "published"];
 
 export const PUBLIC_DATASET_ROOT_KEYS = ["items"];
 
@@ -42,11 +43,11 @@ export const PUBLIC_SUPPLIER_PROJECTION_PROPOSAL = {
   publicPath: "data/public/suppliers.json",
   publicFields: PUBLIC_DATASET_CONFIG.suppliers.itemKeys,
   internalFields: ["status", "brochureIds", "relatedArticleIds", "featured", "sortOrder", "governance", "readiness"],
-  publicationCriteria: "Gebruik de bestaande contentstatus en neem alleen published leveranciers op."
+  publicationCriteria: "Gebruik de bestaande contentstatus en neem ready of bestaande published leveranciers op."
 };
 
 export function isPublicContentItem(item) {
-  return item?.status === PUBLIC_CONTENT_STATUS;
+  return PUBLIC_CONTENT_STATUSES.includes(item?.status);
 }
 
 export function pickPublicFields(item, keys) {

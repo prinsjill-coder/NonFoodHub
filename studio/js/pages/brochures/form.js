@@ -1,3 +1,4 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import {
   renderCheckboxGroup,
@@ -14,6 +15,7 @@ import {
   normalizeSlug
 } from "../../../../shared/brochure-model.js";
 import { brochureFromForm, hasValidationErrors, validateBrochure } from "../../../../shared/brochure-validation.js";
+import { canDeleteContentStatus, getBrochureDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { getMediaAssets, normalizeMediaId } from "../../../../shared/media-model.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
@@ -42,6 +44,21 @@ function getLanguageOptions(brochureData) {
     value: language.id,
     label: getBrochureLanguageLabel(language.id, brochureData)
   }));
+}
+
+function renderDeleteFormAction({ brochure, articleData = {} }) {
+  if (!canDeleteContentStatus(brochure.status)) return "";
+
+  const reason = getBrochureDeleteBlocker({ brochure, articleData });
+  return `
+    ${renderButton({
+      label: "Definitief verwijderen",
+      variant: "danger",
+      disabled: Boolean(reason),
+      attributes: { "data-brochure-form-delete": true, "data-disabled-reason": reason }
+    })}
+    ${reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
+  `;
 }
 
 function renderSupplierCreateAction() {
@@ -128,7 +145,7 @@ function expectedImagePath(brochure) {
   return slug ? `assets/images/brochures/${slug}.jpg` : "";
 }
 
-export function renderBrochureForm({ brochureData, supplierData, brochure = createEmptyBrochure(), mode }) {
+export function renderBrochureForm({ brochureData, supplierData, articleData = {}, brochure = createEmptyBrochure(), mode }) {
   const isEdit = mode === "edit";
   const title = isEdit ? `${brochure.title} bewerken` : "Nieuwe brochure";
   const description = isEdit
@@ -211,7 +228,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
             value: brochure.status,
             options: getStatusOptions(brochureData),
             required: true,
-            help: "Concept is nog in bewerking. Review betekent controleren. Gepubliceerd betekent klaarzetten voor Website bijwerken."
+            help: "Concept is nog in bewerking. Gereed voor publicatie betekent gecontroleerd. Gepubliceerd zie je pas wanneer de brochure in de publieke websitegegevens staat."
           })}
           ${renderTextField({
             name: "sortOrder",
@@ -319,6 +336,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
 
       <div class="studio-form-actions">
         <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
+        ${isEdit ? renderDeleteFormAction({ brochure, articleData }) : ""}
         ${renderButton({
           label: "Annuleren",
           href: "#/brochures",
@@ -330,7 +348,7 @@ export function renderBrochureForm({ brochureData, supplierData, brochure = crea
   `;
 }
 
-export function setupBrochureForm({ brochureSession, supplierSession, mediaSession, formDirtyGuard }) {
+export function setupBrochureForm({ brochureSession, supplierSession, mediaSession, articleSession, formDirtyGuard, rerender }) {
   const form = document.querySelector("[data-brochure-form]");
   if (!form) return;
 
@@ -346,6 +364,42 @@ export function setupBrochureForm({ brochureSession, supplierSession, mediaSessi
   setupErrorLinkFocus(feedback, form);
 
   setupBrochureFileChoices(form, { mediaSession });
+
+  form.querySelector("[data-brochure-form-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const originalSlug = form.dataset.originalSlug || "";
+    const brochure = brochureSession.findBySlug(originalSlug);
+    if (!brochure) return;
+
+    const reason = getBrochureDeleteBlocker({
+      brochure,
+      articleData: articleSession?.getWorkingData()
+    });
+    if (reason) {
+      feedback.innerHTML = renderNotice({
+        title: "Brochure niet verwijderd",
+        message: reason,
+        tone: "warning"
+      });
+      return;
+    }
+
+    const confirmed = await confirmStudioAction({
+      title: "Brochure definitief verwijderen?",
+      message:
+        "Deze brochure wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await brochureSession.deleteBrochure(originalSlug);
+    dirtyRegistration?.markClean();
+    window.location.hash = "#/brochures";
+    rerender?.();
+  });
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;

@@ -1,3 +1,4 @@
+import { confirmStudioAction } from "../../../../components/confirm-dialog.js";
 import { renderButton } from "../../../../components/button.js";
 import {
   renderCheckboxGroup,
@@ -13,6 +14,7 @@ import {
   normalizeSlug
 } from "../../../../shared/article-model.js";
 import { getBrochures, sortBrochures } from "../../../../shared/brochure-model.js";
+import { canDeleteContentStatus, getArticleDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { articleFromForm, hasValidationErrors, validateArticle } from "../../../../shared/article-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
@@ -27,6 +29,21 @@ function optionList(items, labelGetter) {
 
 function getStatusOptions(articleData) {
   return optionList(articleData.statuses || [], getArticleStatusLabel);
+}
+
+function renderDeleteFormAction({ article, supplierData = {} }) {
+  if (!canDeleteContentStatus(article.status)) return "";
+
+  const reason = getArticleDeleteBlocker({ article, supplierData });
+  return `
+    ${renderButton({
+      label: "Definitief verwijderen",
+      variant: "danger",
+      disabled: Boolean(reason),
+      attributes: { "data-article-form-delete": true, "data-disabled-reason": reason }
+    })}
+    ${reason ? `<p class="studio-meta studio-action-hint">${escapeHtml(reason)}</p>` : ""}
+  `;
 }
 
 function renderRelationCheckboxGroup({ name, label, values = [], options = [], help = "" }) {
@@ -197,7 +214,7 @@ export function renderArticleForm({
             value: article.status,
             options: getStatusOptions(articleData),
             required: true,
-            help: "Concept is een bewerkversie. Review betekent controleren. Gepubliceerd betekent klaar voor Website bijwerken."
+            help: "Concept is nog in bewerking. Gereed voor publicatie betekent gecontroleerd. Gepubliceerd zie je pas wanneer het artikel in de publieke websitegegevens staat."
           })}
           ${renderTextField({
             name: "updatedAt",
@@ -225,21 +242,21 @@ export function renderArticleForm({
           label: "Samenvatting",
           value: article.summary,
           rows: 4,
-          help: "Verplicht voor Review en Gepubliceerd. Concepten mogen nog onvolledig zijn."
+          help: "Verplicht voor Gereed voor publicatie. Concepten mogen nog onvolledig zijn."
         })}
         ${renderTextAreaField({
           name: "body",
           label: "Inhoud",
           value: article.body,
           rows: 9,
-          help: "Verplicht voor Gepubliceerd. Gebruik gewone tekst; uitgebreide tekstopmaak komt later."
+          help: "Verplicht voor Gereed voor publicatie. Gebruik gewone tekst; uitgebreide tekstopmaak komt later."
         })}
         ${renderCheckboxGroup({
           name: "categories",
           label: "Categorieen",
           values: article.categories,
           options: articleData.categories || [],
-          help: "Minimaal een categorie is verplicht voor Review en Gepubliceerd."
+          help: "Minimaal een categorie is verplicht voor Gereed voor publicatie."
         })}
       </section>
 
@@ -267,6 +284,7 @@ export function renderArticleForm({
 
       <div class="studio-form-actions">
         <button class="studio-button studio-button-primary" type="submit">Opslaan in bewerkversie</button>
+        ${isEdit ? renderDeleteFormAction({ article, supplierData }) : ""}
         ${renderButton({
           label: "Annuleren",
           href: "#/kennisbank",
@@ -359,7 +377,7 @@ function setupHeroImageChoice(form) {
   });
 }
 
-export function setupArticleForm({ articleSession, supplierSession, brochureSession, mediaSession, formDirtyGuard }) {
+export function setupArticleForm({ articleSession, supplierSession, brochureSession, mediaSession, formDirtyGuard, rerender }) {
   const form = document.querySelector("[data-article-form]");
   if (!form) return;
 
@@ -376,6 +394,42 @@ export function setupArticleForm({ articleSession, supplierSession, brochureSess
 
   setupErrorLinkFocus(feedback, form);
   setupHeroImageChoice(form);
+
+  form.querySelector("[data-article-form-delete]")?.addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+
+    const originalSlug = form.dataset.originalSlug || "";
+    const article = articleSession.findBySlug(originalSlug);
+    if (!article) return;
+
+    const reason = getArticleDeleteBlocker({
+      article,
+      supplierData: supplierSession?.getWorkingData()
+    });
+    if (reason) {
+      feedback.innerHTML = renderNotice({
+        title: "Artikel niet verwijderd",
+        message: reason,
+        tone: "warning"
+      });
+      return;
+    }
+
+    const confirmed = await confirmStudioAction({
+      title: "Artikel definitief verwijderen?",
+      message:
+        "Dit artikel wordt verwijderd uit de bewerkversie. Dit kan alleen voor concepten of gearchiveerde items en verandert de publieke website pas na export en Website bijwerken.",
+      confirmLabel: "Definitief verwijderen",
+      cancelLabel: "Annuleren",
+      tone: "warning"
+    });
+    if (!confirmed) return;
+
+    await articleSession.deleteArticle(originalSlug);
+    dirtyRegistration?.markClean();
+    window.location.hash = "#/kennisbank";
+    rerender?.();
+  });
 
   slugInput.addEventListener("input", () => {
     slugTouched = true;

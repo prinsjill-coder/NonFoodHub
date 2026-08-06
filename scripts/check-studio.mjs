@@ -77,8 +77,7 @@ function assertNoPattern({ roots, pattern, label }) {
 function assertWorkflowPanel(html) {
   assert.match(html, /Van beheer naar website/);
   assert.match(html, /Concept/);
-  assert.match(html, /Review/);
-  assert.match(html, /Publiceerbaar/);
+  assert.match(html, /Gereed voor publicatie/);
   assert.match(html, /Gepubliceerd/);
   assert.match(html, /Volgende stap na export: gegevens controleren, publieke websitegegevens bijwerken en daarna handmatig publiceren\./);
 }
@@ -173,7 +172,10 @@ async function runStudioChecks() {
       brochures: "../data/brochures.json",
       media: "../data/media.json",
       articles: "../data/articles.json",
-      library: "../data/library.json"
+      library: "../data/library.json",
+      publicSuppliers: "../data/public/suppliers.json",
+      publicBrochures: "../data/public/brochures.json",
+      publicArticles: "../data/public/articles.json"
     });
 
     Object.entries(STUDIO_CONFIG.data).forEach(([key, value]) => {
@@ -243,13 +245,13 @@ async function runStudioChecks() {
   });
 
   await runCheck("contentstatussen zijn centraal, volledig en deterministisch", () => {
-    assert.deepEqual(CONTENT_STATUSES, ["concept", "review", "published", "hidden", "archived"]);
+    assert.deepEqual(CONTENT_STATUSES, ["concept", "ready", "published", "archived"]);
     CONTENT_STATUSES.forEach((status) => {
       assert.equal(typeof CONTENT_STATUS_LABELS[status], "string");
       assert.equal(isContentStatus(status), true);
     });
     assert.equal(isContentStatus("klaar"), false);
-    assert.deepEqual(sortContentStatuses(["archived", "concept", "published"]), ["concept", "published", "archived"]);
+    assert.deepEqual(sortContentStatuses(["archived", "concept", "ready", "published"]), ["concept", "ready", "published", "archived"]);
   });
 
   await runCheck("formulierfouthelpers beheren tekst, aria-invalid en focus", () => {
@@ -514,7 +516,8 @@ async function runStudioChecks() {
     assert.match(detailHtml, /Brochures overzichtsbeeld/);
     assert.match(detailHtml, /Klaarzetten voor gebruik/);
     assert.match(detailHtml, /studio-workflow-action-card/);
-    assert.match(detailHtml, /data-media-status-action="published"/);
+    assert.match(detailHtml, /data-media-status-action="ready"/);
+    assert.match(detailHtml, /data-media-rights-toggle/);
     assert.match(detailHtml, /Studio uploadt of verplaatst het bestand niet/);
     assert.match(detailHtml, /Beeldrechten/);
     assert.match(detailHtml, /Gebruikt door/);

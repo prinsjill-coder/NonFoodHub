@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES, isContentStatus } from "./content-status.js";
+import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { SUPPLIER_TYPES, normalizeSlug } from "./supplier-model.js";
 import { SUPPLIER_FILE_KEYS, SUPPLIER_KEYS } from "./supplier-normalizer.js";
 
@@ -75,7 +75,9 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
     errors.push(createIssue(`${path}.type`, "type is ongeldig."));
   }
 
-  if (!isContentStatus(supplier.status)) {
+  const status = normalizeContentStatus(supplier.status);
+
+  if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
   }
 
@@ -112,21 +114,21 @@ function validateSupplierRecord(supplier, index, supplierData, errors, warnings)
     }
   });
 
-  if (supplier.status === "published") {
+  if (isReadyForPublicationStatus(status)) {
     if (!hasValue(supplier.summary)) {
-      errors.push(createIssue(`${path}.summary`, "Gepubliceerde leveranciers hebben een samenvatting nodig."));
+      errors.push(createIssue(`${path}.summary`, "Leveranciers die gereed zijn voor publicatie hebben een samenvatting nodig."));
     }
     if (!hasValue(supplier.description)) {
-      errors.push(createIssue(`${path}.description`, "Gepubliceerde leveranciers hebben een omschrijving nodig."));
+      errors.push(createIssue(`${path}.description`, "Leveranciers die gereed zijn voor publicatie hebben een omschrijving nodig."));
     }
     if (!Array.isArray(supplier.categories) || !supplier.categories.length) {
-      errors.push(createIssue(`${path}.categories`, "Gepubliceerde leveranciers hebben minimaal een categorie nodig."));
+      errors.push(createIssue(`${path}.categories`, "Leveranciers die gereed zijn voor publicatie hebben minimaal een categorie nodig."));
     }
     if (!hasValue(supplier.logo)) {
-      errors.push(createIssue(`${path}.logo`, "Gepubliceerde leveranciers hebben een logoreferentie nodig."));
+      errors.push(createIssue(`${path}.logo`, "Leveranciers die gereed zijn voor publicatie hebben een logoreferentie nodig."));
     }
     if (!hasValue(supplier.image)) {
-      errors.push(createIssue(`${path}.image`, "Gepubliceerde leveranciers hebben een afbeeldingsreferentie nodig."));
+      errors.push(createIssue(`${path}.image`, "Leveranciers die gereed zijn voor publicatie hebben een afbeeldingsreferentie nodig."));
     }
   }
 }

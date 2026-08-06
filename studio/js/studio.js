@@ -26,7 +26,10 @@ const STUDIO_DATA_PATHS = {
   brochures: "../data/brochures.json",
   media: "../data/media.json",
   articles: "../data/articles.json",
-  library: "../data/library.json"
+  library: "../data/library.json",
+  publicSuppliers: "../data/public/suppliers.json",
+  publicBrochures: "../data/public/brochures.json",
+  publicArticles: "../data/public/articles.json"
 };
 
 function getStudioDataPath(key) {
@@ -52,6 +55,16 @@ async function loadBundledContentData() {
   ]);
 
   return { suppliers, brochures, media, articles, library };
+}
+
+async function loadPublicContentData() {
+  const [suppliers, brochures, articles] = await Promise.all([
+    fetchJson(getStudioDataPath("publicSuppliers")).catch(() => ({ items: [] })),
+    fetchJson(getStudioDataPath("publicBrochures")).catch(() => ({ items: [] })),
+    fetchJson(getStudioDataPath("publicArticles")).catch(() => ({ items: [] }))
+  ]);
+
+  return { suppliers, brochures, articles };
 }
 
 function draftOptions(draft, moduleKey) {
@@ -153,15 +166,17 @@ function attachDraftPersistence(state) {
 }
 
 async function loadStudioData() {
-  const [{ navigation, dashboard }, draft] = await Promise.all([
+  const [{ navigation, dashboard }, draft, publicData] = await Promise.all([
     loadStudioShellData(),
-    loadStudioDraft()
+    loadStudioDraft(),
+    loadPublicContentData()
   ]);
   const contentData = draft ? null : await loadBundledContentData();
 
   const state = {
     navigation,
     dashboard,
+    publicData,
     ...createStudioSessions({ contentData, draft }),
     formDirtyGuard: createFormDirtyGuard()
   };

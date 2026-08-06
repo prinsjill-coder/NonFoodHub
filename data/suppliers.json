@@ -8,9 +8,8 @@
   },
   "statuses": [
     "concept",
-    "review",
+    "ready",
     "published",
-    "hidden",
     "archived"
   ],
   "types": [
@@ -61,7 +60,7 @@
       "slug": "churchill",
       "type": "leverancier",
       "summary": "Servies en hospitality-presentatie voor professionele horeca.",
-      "description": "Churchill is opgenomen als leverancier in review voor servies en hospitality-presentatie. De content wordt nog gecontroleerd voordat deze publiek zichtbaar wordt.",
+      "description": "Churchill ondersteunt horeca en hospitality met servies en presentatie-oplossingen voor dagelijks professioneel gebruik.",
       "categories": [
         "Buffet & presentatie",
         "Servies"

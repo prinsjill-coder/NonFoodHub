@@ -76,13 +76,13 @@ Studio gebruikt een in-memory werksessie:
 Start een lokale previewserver vanuit de projectmap:
 
 ```bash
-python -m http.server 8080
+npm run dev
 ```
 
 Open daarna:
 
 ```text
-http://localhost:8080
+http://localhost:3000
 ```
 
 De Playwright-tests starten hun eigen lokale testserver via `npm run test:e2e`.

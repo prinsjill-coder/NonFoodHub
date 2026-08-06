@@ -17,7 +17,7 @@
       "id": "brochure-churchill-2026",
       "slug": "churchill-combined-brochure-2026",
       "title": "Churchill Combined Brochure 2026",
-      "summary": "Brochure in review voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
+      "summary": "Brochure voor servies en hospitality-presentatie, gekoppeld aan Churchill.",
       "supplierId": "supplier-churchill",
       "categories": [
         "Bestek",
@@ -26,7 +26,7 @@
       ],
       "thumbnail": "assets/images/brochures/chruchill-thumbnail.jpg",
       "updatedAt": "2026-08-05",
-      "downloadUrl": "assets/downloads/brochures/churchill-combined-brochure-2026-eu-unpriced-web.pdf"
+      "downloadUrl": "assets/downloads/brochures/Churchill-Combined-Brochure-2026-EU-UNPRICED-WEB.pdf"
     }
   ]
 }

@@ -100,9 +100,9 @@ export async function runMediaChecks() {
     expectInvalid(data, "items[0].file");
   });
 
-  await runCheck("alt-tekst en rechtenstatus zijn verplicht bij review/published waar nodig", () => {
+  await runCheck("alt-tekst en rechtenstatus zijn verplicht bij ready/published waar nodig", () => {
     let data = clone(media);
-    firstAsset(data).status = "review";
+    firstAsset(data).status = "ready";
     firstAsset(data).alt = "";
     expectInvalid(data, "items[0].alt");
 

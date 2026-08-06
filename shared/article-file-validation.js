@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES, isContentStatus } from "./content-status.js";
+import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { getBrochures } from "./brochure-model.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -108,9 +108,8 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
   }
 
   reportUnknownKeys(article, ARTICLE_KEYS, path, warnings);
-  const status = String(article.status || "").trim();
-  const requiresReviewFields = status === "review" || status === "published";
-  const requiresPublishedFields = status === "published";
+  const status = normalizeContentStatus(article.status);
+  const requiresPublicationFields = isReadyForPublicationStatus(status);
 
   if (!hasValue(article.id)) {
     errors.push(createIssue(`${path}.id`, "id is verplicht."));
@@ -118,8 +117,8 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
     errors.push(createIssue(`${path}.id`, "id moet lowercase kebab-case zijn."));
   }
 
-  if (requiresReviewFields && !hasValue(article.title)) {
-    errors.push(createIssue(`${path}.title`, "title is verplicht voor review en published."));
+  if (requiresPublicationFields && !hasValue(article.title)) {
+    errors.push(createIssue(`${path}.title`, "title is verplicht voordat het artikel gereed is voor publicatie."));
   }
 
   if (!hasValue(article.slug)) {
@@ -128,22 +127,22 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
     errors.push(createIssue(`${path}.slug`, "URL-naam gebruikt kleine letters, cijfers en koppeltekens."));
   }
 
-  if (!isContentStatus(article.status)) {
+  if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
   }
 
-  if (requiresReviewFields && !hasValue(article.summary)) {
-    errors.push(createIssue(`${path}.summary`, "summary is verplicht voor review en published."));
+  if (requiresPublicationFields && !hasValue(article.summary)) {
+    errors.push(createIssue(`${path}.summary`, "summary is verplicht voordat het artikel gereed is voor publicatie."));
   }
 
-  if (requiresPublishedFields && !hasValue(article.body)) {
-    errors.push(createIssue(`${path}.body`, "body is verplicht voor published."));
+  if (requiresPublicationFields && !hasValue(article.body)) {
+    errors.push(createIssue(`${path}.body`, "body is verplicht voordat het artikel gereed is voor publicatie."));
   }
 
   if (!Array.isArray(article.categories)) {
     errors.push(createIssue(`${path}.categories`, "categories moet een array zijn."));
-  } else if (requiresReviewFields && article.categories.length === 0) {
-    errors.push(createIssue(`${path}.categories`, "Minimaal een categorie is verplicht voor review en published."));
+  } else if (requiresPublicationFields && article.categories.length === 0) {
+    errors.push(createIssue(`${path}.categories`, "Minimaal een categorie is verplicht voordat het artikel gereed is voor publicatie."));
   } else {
     validateStringArray(article.categories, `${path}.categories`, errors);
     const allowedCategories = new Set(articleData.categories || []);
@@ -154,8 +153,8 @@ function validateArticleRecord(article, index, articleData, supplierData, brochu
     });
   }
 
-  if (requiresPublishedFields && !hasValue(article.heroImage)) {
-    errors.push(createIssue(`${path}.heroImage`, "heroImage is verplicht voor published."));
+  if (requiresPublicationFields && !hasValue(article.heroImage)) {
+    errors.push(createIssue(`${path}.heroImage`, "heroImage is verplicht voordat het artikel gereed is voor publicatie."));
   } else {
     validateHeroImage(article, path, mediaData, errors, warnings);
   }

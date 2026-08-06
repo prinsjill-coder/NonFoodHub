@@ -3,6 +3,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderPublicationStateCard } from "../../../../components/publication-state.js";
 import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../../components/workflow-panel.js";
@@ -16,7 +17,9 @@ import {
 import { validateBrochure } from "../../../../shared/brochure-validation.js";
 import { findBrochureArticles } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
+import { canDeleteContentStatus, getBrochureDeleteBlocker } from "../../../../shared/delete-guards.js";
 import { getMediaAssets } from "../../../../shared/media-model.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
@@ -167,27 +170,12 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
-function canDeleteStatus(status) {
-  return status === "concept" || status === "archived";
-}
-
-function deleteBlocker({ brochure, articleData }) {
-  if (!canDeleteStatus(brochure.status)) return "";
-
-  const relatedArticles = findBrochureArticles(brochure, articleData);
-  if (relatedArticles.length) {
-    return "Verwijder of verplaats eerst gekoppelde kennisbankartikelen.";
-  }
-
-  return "";
-}
-
 function renderDeleteAction(reason = "") {
   if (reason) {
     return `
       ${renderButton({
         label: "Definitief verwijderen",
-        variant: "secondary",
+        variant: "danger",
         disabled: true,
         attributes: { "data-brochure-delete": true, "data-disabled-reason": reason }
       })}
@@ -197,16 +185,16 @@ function renderDeleteAction(reason = "") {
 
   return renderButton({
     label: "Definitief verwijderen",
-    variant: "secondary",
+    variant: "danger",
     attributes: { "data-brochure-delete": true }
   });
 }
 
-function renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData = {} }) {
-  const reviewErrors = validationMessages(validationForStatus({ brochure, status: "review", brochureData, supplierData }));
-  const publishErrors = validationMessages(validationForStatus({ brochure, status: "published", brochureData, supplierData }));
-  const canReview = !reviewErrors.length;
-  const canPublish = !publishErrors.length;
+function renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData = {}, publicData = {} }) {
+  const readyErrors = validationMessages(validationForStatus({ brochure, status: "ready", brochureData, supplierData }));
+  const canReady = !readyErrors.length;
+  const currentStatus = brochure.status;
+  const displayStatus = displayStatusForPublicModule("brochures", brochure, publicData);
   const actions = [];
 
   actions.push(
@@ -217,34 +205,19 @@ function renderBrochureWorkflowActions({ brochure, brochureData, supplierData, a
     })
   );
 
-  if (brochure.status === "concept") {
+  if (currentStatus === "concept") {
     actions.push(
       renderStatusAction({
-        label: "Naar review",
-        targetStatus: "review",
-        disabled: !canReview,
-        reason: reviewErrors[0] || ""
-      })
-    );
-  }
-
-  if (brochure.status === "review") {
-    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
-  }
-
-  if (brochure.status === "concept" || brochure.status === "review" || brochure.status === "hidden") {
-    actions.push(
-      renderStatusAction({
-        label: "Publiceren",
-        targetStatus: "published",
+        label: "Gereed voor publicatie",
+        targetStatus: "ready",
         variant: "primary",
-        disabled: !canPublish,
-        reason: publishErrors[0] || ""
+        disabled: !canReady,
+        reason: readyErrors[0] || ""
       })
     );
   }
 
-  if (brochure.status === "published") {
+  if (currentStatus === "ready" || currentStatus === "published") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
     actions.push(
       renderButton({
@@ -255,17 +228,17 @@ function renderBrochureWorkflowActions({ brochure, brochureData, supplierData, a
     );
   }
 
-  if (brochure.status === "archived") {
+  if (currentStatus === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
   }
 
-  if (canDeleteStatus(brochure.status)) {
-    actions.push(renderDeleteAction(deleteBlocker({ brochure, articleData })));
+  if (canDeleteContentStatus(currentStatus)) {
+    actions.push(renderDeleteAction(getBrochureDeleteBlocker({ brochure, articleData })));
   }
 
   return renderWorkflowActionCard({
-    status: brochure.status,
-    statusLabel: getBrochureStatusLabel(brochure.status),
+    status: displayStatus,
+    statusLabel: displayStatusLabelForPublicModule("brochures", brochure, publicData),
     actions
   });
 }
@@ -289,7 +262,7 @@ function fileOpenAvailability(path, availability = {}) {
 }
 
 function mediaReadyToOpen(asset, availability) {
-  return Boolean(asset && pathIsSafeForLocalCheck(asset.file) && ["review", "published"].includes(asset.status) && availability.canOpen);
+  return Boolean(asset && pathIsSafeForLocalCheck(asset.file) && ["ready", "published"].includes(asset.status) && availability.canOpen);
 }
 
 export function renderBrochureDetail({
@@ -298,7 +271,8 @@ export function renderBrochureDetail({
   mediaData = {},
   articleData = {},
   brochure,
-  fileAvailability = {}
+  fileAvailability = {},
+  publicData = {}
 }) {
   const supplier = supplierForId(supplierData, brochure.supplierId);
   const relatedArticles = findBrochureArticles(brochure, articleData);
@@ -338,14 +312,19 @@ export function renderBrochureDetail({
       ${renderReadinessCard(readiness)}
     </section>
 
-    ${renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData })}
+    ${renderPublicationStateCard({ moduleId: "brochures", item: brochure, publicData })}
+
+    ${renderBrochureWorkflowActions({ brochure, brochureData, supplierData, articleData, publicData })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2">
         <article class="studio-card">
           <div class="studio-card-head">
             <h2>Basisgegevens</h2>
-            ${renderStatusBadge(brochure.status, getBrochureStatusLabel(brochure.status))}
+            ${renderStatusBadge(
+              displayStatusForPublicModule("brochures", brochure, publicData),
+              displayStatusLabelForPublicModule("brochures", brochure, publicData)
+            )}
           </div>
           ${renderDetailList([
             { label: "Titel", value: brochure.title },
@@ -487,23 +466,12 @@ function setActionFeedback(slug, title, message, tone = "success") {
 }
 
 async function confirmStatusChange(targetStatus) {
-  if (targetStatus === "published") {
+  if (targetStatus === "ready") {
     return confirmStudioAction({
-      title: "Brochure publiceren?",
+      title: "Brochure gereed voor publicatie zetten?",
       message:
-        "Alles is gereed om klaar te zetten voor de website. Deze actie wijzigt alleen de status in de bewerkversie; de website verandert pas na export, Website bijwerken, commit en push.",
-      confirmLabel: "Publiceren",
-      cancelLabel: "Annuleren",
-      tone: "info"
-    });
-  }
-
-  if (targetStatus === "review") {
-    return confirmStudioAction({
-      title: "Naar review zetten?",
-      message:
-        "De brochure blijft in de bewerkversie en wordt gemarkeerd als klaar om inhoudelijk te controleren.",
-      confirmLabel: "Naar review",
+        "Deze actie wijzigt alleen de status in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken.",
+      confirmLabel: "Gereed voor publicatie",
       cancelLabel: "Annuleren",
       tone: "info"
     });
@@ -523,7 +491,7 @@ export function setupBrochureWorkflowActions({ brochureSession, articleData = {}
   document.querySelector("[data-brochure-delete]")?.addEventListener("click", async (event) => {
     if (event.currentTarget.disabled) return;
 
-    const reason = deleteBlocker({ brochure, articleData });
+    const reason = getBrochureDeleteBlocker({ brochure, articleData });
     if (reason) {
       setActionFeedback(brochure.slug, "Brochure niet verwijderd", reason, "warning");
       rerender?.();
@@ -586,7 +554,7 @@ export function setupBrochureWorkflowActions({ brochureSession, articleData = {}
       if (!confirmed) return;
 
       await brochureSession.applyBrochure({ ...brochure, status: targetStatus, updatedAt: todayValue() }, brochure.slug);
-      const label = targetStatus === "published" ? "Publiceren" : getBrochureStatusLabel(targetStatus);
+      const label = getBrochureStatusLabel(targetStatus);
       setActionFeedback(brochure.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();
     });

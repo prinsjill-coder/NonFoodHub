@@ -3,17 +3,17 @@ import { renderSupplierDetail, setupSupplierWorkflowActions } from "./detail.js"
 import { renderSupplierForm, setupSupplierForm } from "./form.js";
 import { renderSuppliersList, setupSupplierList } from "./list.js";
 
-export function renderSuppliersRoute(route, supplierSession, brochureSession, articleSession) {
+export function renderSuppliersRoute(route, supplierSession, brochureSession, articleSession, publicData = {}) {
   const supplierData = supplierSession.getWorkingData();
   const brochureData = brochureSession?.getWorkingData();
   const articleData = articleSession?.getWorkingData();
 
   if (route.id === "suppliers") {
-    return renderSuppliersList({ supplierData, sessionSnapshot: supplierSession.snapshot() });
+    return renderSuppliersList({ supplierData, publicData, sessionSnapshot: supplierSession.snapshot() });
   }
 
   if (route.id === "supplierNew") {
-    return renderSupplierForm({ supplierData, mode: "create" });
+    return renderSupplierForm({ supplierData, brochureData, articleData, mode: "create" });
   }
 
   const supplier = supplierSession.findBySlug(route.params?.slug);
@@ -30,10 +30,10 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
   }
 
   if (route.id === "supplierEdit") {
-    return renderSupplierForm({ supplierData, supplier, mode: "edit" });
+    return renderSupplierForm({ supplierData, brochureData, articleData, supplier, mode: "edit" });
   }
 
-  return renderSupplierDetail({ supplierData, brochureData, articleData, supplier });
+  return renderSupplierDetail({ supplierData, brochureData, articleData, publicData, supplier });
 }
 
 export function setupSuppliersRoute(route, supplierSession, brochureSession, articleSession, options = {}) {
@@ -42,7 +42,14 @@ export function setupSuppliersRoute(route, supplierSession, brochureSession, art
   }
 
   if (route.id === "supplierNew" || route.id === "supplierEdit") {
-    setupSupplierForm({ route, supplierSession, formDirtyGuard: options.formDirtyGuard });
+    setupSupplierForm({
+      route,
+      supplierSession,
+      brochureSession,
+      articleSession,
+      formDirtyGuard: options.formDirtyGuard,
+      rerender: options.rerender
+    });
   }
 
   if (route.id === "supplierDetail") {

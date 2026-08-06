@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { CONTENT_STATUSES, normalizeContentStatus } from "./content-status.js";
 import {
   MEDIA_RIGHTS_STATUSES,
   MEDIA_TYPES,
@@ -86,7 +86,7 @@ export function normalizeMediaAssetForSession(asset) {
     fileSize: asString(asset?.fileSize),
     usageType: asString(asset?.usageType),
     rightsStatus: asString(asset?.rightsStatus),
-    status: asString(asset?.status),
+    status: normalizeContentStatus(asset?.status),
     sortOrder: Number.isInteger(Number(asset?.sortOrder)) ? Number(asset.sortOrder) : 0
   };
 }
@@ -102,7 +102,7 @@ export function normalizeMediaFileForSession(mediaData) {
       writeEnabled: false,
       message: MEDIA_STORAGE_NOTICE
     },
-    statuses: Array.isArray(mediaData?.statuses) && mediaData.statuses.length ? mediaData.statuses : CONTENT_STATUSES,
+    statuses: CONTENT_STATUSES,
     types: normalizeOptionList(mediaData?.types, MEDIA_TYPES),
     usageTypes: normalizeOptionList(mediaData?.usageTypes, MEDIA_USAGE_TYPES),
     rightsStatuses: normalizeOptionList(mediaData?.rightsStatuses, MEDIA_RIGHTS_STATUSES),

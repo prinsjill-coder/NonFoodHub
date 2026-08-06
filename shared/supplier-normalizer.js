@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES } from "./content-status.js";
+import { CONTENT_STATUSES, normalizeContentStatus } from "./content-status.js";
 import { SUPPLIER_TYPES, normalizeSlug, sortSuppliers } from "./supplier-model.js";
 
 export const SUPPLIERS_EXPORT_FILENAME = "suppliers.json";
@@ -79,7 +79,7 @@ export function normalizeSupplierForExport(supplier) {
     relatedArticleIds: uniqueSortedStrings(supplier?.relatedArticleIds),
     featured: Boolean(supplier?.featured),
     sortOrder: Number.isInteger(Number(supplier?.sortOrder)) ? Number(supplier.sortOrder) : 0,
-    status: asString(supplier?.status)
+    status: normalizeContentStatus(supplier?.status)
   };
 }
 
@@ -94,7 +94,7 @@ export function normalizeSupplierFileForExport(supplierData) {
       writeEnabled: false,
       message: SUPPLIER_STORAGE_NOTICE
     },
-    statuses: Array.isArray(supplierData?.statuses) && supplierData.statuses.length ? supplierData.statuses : CONTENT_STATUSES,
+    statuses: CONTENT_STATUSES,
     types: normalizeTypes(supplierData?.types),
     categories: uniqueSortedStrings(supplierData?.categories),
     items

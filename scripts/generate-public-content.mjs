@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -69,7 +69,20 @@ function isRelativeProjectPath(value) {
 }
 
 function publicFileExists(projectRoot, relativePath) {
-  return isRelativeProjectPath(relativePath) && existsSync(resolve(projectRoot, relativePath));
+  const projectPath = String(relativePath || "").trim();
+  if (!isRelativeProjectPath(projectPath)) return false;
+
+  let currentDir = projectRoot;
+  const segments = projectPath.split(/[\\/]/).filter(Boolean);
+
+  for (const segment of segments) {
+    if (!existsSync(currentDir) || !statSync(currentDir).isDirectory()) return false;
+    const exactMatch = readdirSync(currentDir).find((entry) => entry === segment);
+    if (!exactMatch) return false;
+    currentDir = resolve(currentDir, exactMatch);
+  }
+
+  return existsSync(currentDir) && statSync(currentDir).isFile();
 }
 
 export function createPublicDownloadChecker(projectRoot = rootDir) {

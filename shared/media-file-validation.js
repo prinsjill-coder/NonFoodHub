@@ -1,4 +1,4 @@
-import { CONTENT_STATUSES, isContentStatus } from "./content-status.js";
+import { CONTENT_STATUSES, isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { getMediaAssets, isImageLikeMedia } from "./media-model.js";
 import { MEDIA_ASSET_KEYS, MEDIA_FILE_KEYS } from "./media-normalizer.js";
 
@@ -133,7 +133,9 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
     errors.push(createIssue(`${path}.rightsStatus`, "rightsStatus staat niet in de top-level rightsStatuses-lijst."));
   }
 
-  if (!isContentStatus(asset.status)) {
+  const status = normalizeContentStatus(asset.status);
+
+  if (!isContentStatus(status)) {
     errors.push(createIssue(`${path}.status`, "status is ongeldig."));
   }
 
@@ -151,12 +153,12 @@ function validateMediaAsset(asset, index, mediaData, errors, warnings) {
 
   validateExtension(asset, path, errors);
 
-  if ((asset.status === "review" || asset.status === "published") && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
-    errors.push(createIssue(`${path}.alt`, "Afbeeldingsassets met status review of published hebben alt-tekst nodig."));
+  if (isReadyForPublicationStatus(status) && isImageLikeMedia(asset) && !hasValue(asset.alt)) {
+    errors.push(createIssue(`${path}.alt`, "Afbeeldingsassets die gereed zijn voor gebruik hebben alt-tekst nodig."));
   }
 
-  if (asset.status === "published" && asset.rightsStatus === "unknown") {
-    errors.push(createIssue(`${path}.rightsStatus`, "Gepubliceerde media-assets hebben een bekende rechtenstatus nodig."));
+  if (isReadyForPublicationStatus(status) && asset.rightsStatus !== "approved") {
+    errors.push(createIssue(`${path}.rightsStatus`, "Controleer de beeldrechten voordat dit media-item gereed is voor gebruik."));
   }
 }
 

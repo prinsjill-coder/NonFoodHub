@@ -147,7 +147,7 @@ export async function runArticleChecks() {
       { originalSlug: firstArticle(articles).slug, originalId: firstArticle(articles).id }
     );
 
-    assert.equal(result.errors.categories, "Kies minimaal een categorie voor review of publicatie.");
+    assert.equal(result.errors.categories, "Kies minimaal een categorie voordat dit artikel gereed is voor publicatie.");
 
     result = validateArticle(
       {
@@ -189,11 +189,11 @@ export async function runArticleChecks() {
     expectInvalid(data, suppliers, brochures, media, "items[0].brochureIds[0]");
   });
 
-  await runCheck("heroImage blijft optioneel en ontbrekende mediaregistratie waarschuwt alleen", () => {
+  await runCheck("heroImage blijft optioneel bij concept en ontbrekende mediaregistratie waarschuwt alleen", () => {
     let result = validateArticle(
       {
         ...firstArticle(articles),
-        status: "review",
+        status: "concept",
         heroImage: ""
       },
       articles.items,

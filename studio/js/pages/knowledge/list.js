@@ -16,6 +16,7 @@ import {
   sortArticles
 } from "../../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../../shared/article-quality.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { setupArticleExport } from "./export.js";
@@ -48,16 +49,33 @@ function supplierNames(article, suppliersById) {
   return (article.supplierIds || []).map((supplierId) => suppliersById.get(supplierId) || supplierId);
 }
 
-function renderArticleCards(articles, suppliersById) {
+function renderedArticleStatus(article, publicData) {
+  return displayStatusForPublicModule("articles", article, publicData);
+}
+
+function renderedArticleStatusLabel(article, publicData) {
+  return displayStatusLabelForPublicModule("articles", article, publicData);
+}
+
+function publicArticleCount(articles, publicData) {
+  return articles.filter((article) => renderedArticleStatus(article, publicData) === "published").length;
+}
+
+function readyArticleCount(articles, publicData) {
+  return articles.filter((article) => renderedArticleStatus(article, publicData) === "ready").length;
+}
+
+function renderArticleCards(articles, suppliersById, publicData = {}) {
   return articles
     .map((article) => {
       const suppliers = supplierNames(article, suppliersById);
+      const status = renderedArticleStatus(article, publicData);
       return `
         <article
           class="studio-card studio-article-card"
           data-article-item
           data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
-          data-status="${escapeHtml(article.status)}"
+          data-status="${escapeHtml(status)}"
           data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
         >
           <div class="studio-card-head">
@@ -65,7 +83,7 @@ function renderArticleCards(articles, suppliersById) {
               <h3>${escapeHtml(article.title)}</h3>
               <p class="studio-muted">${escapeHtml((article.categories || []).join(", ") || "Geen categorie")}</p>
             </div>
-            ${renderStatusBadge(article.status, getArticleStatusLabel(article.status))}
+            ${renderStatusBadge(status, renderedArticleStatusLabel(article, publicData))}
           </div>
           <p>${escapeHtml(article.summary)}</p>
           <p class="studio-meta">${escapeHtml(suppliers.join(", ") || "Geen leveranciers gekoppeld")}</p>
@@ -77,14 +95,14 @@ function renderArticleCards(articles, suppliersById) {
     .join("");
 }
 
-function renderArticleTable(articles, suppliersById) {
+function renderArticleTable(articles, suppliersById, publicData = {}) {
   return renderDataTable({
     label: "Kennisbankartikelen",
     rows: articles,
     rowAttributes: (article) => `
       data-article-item
       data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
-      data-status="${escapeHtml(article.status)}"
+      data-status="${escapeHtml(renderedArticleStatus(article, publicData))}"
       data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
     `,
     columns: [
@@ -106,7 +124,10 @@ function renderArticleTable(articles, suppliersById) {
       },
       {
         label: "Status",
-        render: (article) => renderStatusBadge(article.status, getArticleStatusLabel(article.status))
+        render: (article) => renderStatusBadge(
+          renderedArticleStatus(article, publicData),
+          renderedArticleStatusLabel(article, publicData)
+        )
       },
       {
         label: "Acties",
@@ -177,9 +198,9 @@ function renderQualitySummary(qualityReport) {
       </div>
       <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
-          <h3>Gepubliceerd</h3>
-          <p class="studio-metric-value">${qualityReport.stats.published}</p>
-          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+          <h3>Gereed volgens beheer</h3>
+          <p class="studio-metric-value">${qualityReport.stats.ready + qualityReport.stats.published}</p>
+          <p class="studio-muted">Controleerbare artikelen volgens de beheerstatus.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Waarschuwingen</h3>
@@ -201,9 +222,11 @@ function renderQualitySummary(qualityReport) {
   `;
 }
 
-export function renderArticlesList({ articleData, supplierData, brochureData, mediaData, sessionSnapshot }) {
+export function renderArticlesList({ articleData, supplierData, brochureData, mediaData, publicData = {}, sessionSnapshot }) {
   const articles = sortArticles(getArticles(articleData));
   const counts = getArticleCounts(articleData);
+  const publishedCount = publicArticleCount(articles, publicData);
+  const readyCount = readyArticleCount(articles, publicData);
   const qualityReport = getArticleQualityReport(articleData, supplierData, brochureData, mediaData);
   const suppliersById = supplierNameById(supplierData);
   const actions = `
@@ -274,16 +297,21 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-3">
+      <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
           <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Review</h3>
-          <p class="studio-metric-value">${counts.statuses.review || 0}</p>
-          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+          <h3>Gereed voor publicatie</h3>
+          <p class="studio-metric-value">${readyCount}</p>
+          <p class="studio-muted">Gecontroleerd in Studio; nog niet zichtbaar in de publieke dataset.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Gepubliceerd</h3>
+          <p class="studio-metric-value">${publishedCount}</p>
+          <p class="studio-muted">Staat in de publieke websitegegevens.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Afbeelding ontbreekt</h3>
@@ -307,7 +335,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-2" data-article-card-list>${renderArticleCards(articles, suppliersById)}</div>
+      <div class="studio-grid studio-grid-2" data-article-card-list>${renderArticleCards(articles, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-article-empty hidden>
         Geen kennisbankartikelen gevonden met deze filters.
       </div>
@@ -317,7 +345,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       <div class="studio-section-head">
         <h2>Tabelweergave</h2>
       </div>
-      ${renderArticleTable(articles, suppliersById)}
+      ${renderArticleTable(articles, suppliersById, publicData)}
     </section>
   `;
 }

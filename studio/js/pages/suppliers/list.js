@@ -15,6 +15,7 @@ import {
   getSuppliers,
   sortSuppliers
 } from "../../../../shared/supplier-model.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { setupSupplierImportExport } from "./import-export.js";
 
@@ -37,14 +38,32 @@ function renderSupplierActions(supplier) {
   `;
 }
 
-function renderSupplierCards(suppliers) {
+function renderedSupplierStatus(supplier, publicData) {
+  return displayStatusForPublicModule("suppliers", supplier, publicData);
+}
+
+function renderedSupplierStatusLabel(supplier, publicData) {
+  return displayStatusLabelForPublicModule("suppliers", supplier, publicData);
+}
+
+function publicSupplierCount(suppliers, publicData) {
+  return suppliers.filter((supplier) => renderedSupplierStatus(supplier, publicData) === "published").length;
+}
+
+function readySupplierCount(suppliers, publicData) {
+  return suppliers.filter((supplier) => renderedSupplierStatus(supplier, publicData) === "ready").length;
+}
+
+function renderSupplierCards(suppliers, publicData = {}) {
   return suppliers
-    .map((supplier) => `
+    .map((supplier) => {
+      const status = renderedSupplierStatus(supplier, publicData);
+      return `
       <article
         class="studio-card studio-supplier-card"
         data-supplier-item
         data-name="${escapeHtml(supplier.name.toLowerCase())}"
-        data-status="${escapeHtml(supplier.status)}"
+        data-status="${escapeHtml(status)}"
         data-type="${escapeHtml(supplier.type)}"
         data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
       >
@@ -53,24 +72,25 @@ function renderSupplierCards(suppliers) {
             <h3>${escapeHtml(supplier.name)}</h3>
             <p class="studio-muted">${escapeHtml(getSupplierTypeLabel(supplier.type))}</p>
           </div>
-          ${renderStatusBadge(supplier.status)}
+          ${renderStatusBadge(status, renderedSupplierStatusLabel(supplier, publicData))}
         </div>
         <p>${escapeHtml(supplier.summary)}</p>
         <p class="studio-meta">${escapeHtml((supplier.categories || []).join(", ") || "Geen categorieen")}</p>
         ${renderSupplierActions(supplier)}
       </article>
-    `)
+    `;
+    })
     .join("");
 }
 
-function renderSupplierTable(suppliers) {
+function renderSupplierTable(suppliers, publicData = {}) {
   return renderDataTable({
     label: "Leveranciersoverzicht",
     rows: suppliers,
     rowAttributes: (supplier) => `
       data-supplier-item
       data-name="${escapeHtml(supplier.name.toLowerCase())}"
-      data-status="${escapeHtml(supplier.status)}"
+      data-status="${escapeHtml(renderedSupplierStatus(supplier, publicData))}"
       data-type="${escapeHtml(supplier.type)}"
       data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
     `,
@@ -89,7 +109,10 @@ function renderSupplierTable(suppliers) {
       },
       {
         label: "Status",
-        render: (supplier) => renderStatusBadge(supplier.status, getSupplierStatusLabel(supplier.status))
+        render: (supplier) => renderStatusBadge(
+          renderedSupplierStatus(supplier, publicData),
+          renderedSupplierStatusLabel(supplier, publicData)
+        )
       },
       {
         label: "Acties",
@@ -120,9 +143,11 @@ function renderImportNotice(sessionSnapshot) {
   });
 }
 
-export function renderSuppliersList({ supplierData, sessionSnapshot }) {
+export function renderSuppliersList({ supplierData, publicData = {}, sessionSnapshot }) {
   const suppliers = sortSuppliers(getSuppliers(supplierData));
   const counts = getSupplierCounts(supplierData);
+  const publishedCount = publicSupplierCount(suppliers, publicData);
+  const readyCount = readySupplierCount(suppliers, publicData);
   const typeOptions = [
     { value: "all", label: "Alle typen" },
     ...(supplierData.types || []).map((type) => ({ value: type.id, label: type.label }))
@@ -188,13 +213,13 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Gepubliceerd</h3>
-          <p class="studio-metric-value">${counts.statuses.published || 0}</p>
-          <p class="studio-muted">Status in beheer; zichtbaar na het bijwerken van de publieke websitegegevens.</p>
+          <p class="studio-metric-value">${publishedCount}</p>
+          <p class="studio-muted">Staat in de publieke websitegegevens.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Review</h3>
-          <p class="studio-metric-value">${counts.statuses.review || 0}</p>
-          <p class="studio-muted">Controleer deze items voordat ze publiek zichtbaar kunnen worden.</p>
+          <h3>Gereed voor publicatie</h3>
+          <p class="studio-metric-value">${readyCount}</p>
+          <p class="studio-muted">Gecontroleerd in Studio; nog niet zichtbaar in de publieke dataset.</p>
         </article>
       </div>
     </section>
@@ -209,7 +234,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers)}</div>
+      <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers, publicData)}</div>
       <div class="studio-list-empty" data-supplier-empty hidden>
         Geen leveranciers gevonden met deze filters.
       </div>
@@ -219,7 +244,7 @@ export function renderSuppliersList({ supplierData, sessionSnapshot }) {
       <div class="studio-section-head">
         <h2>Tabelweergave</h2>
       </div>
-      ${renderSupplierTable(suppliers)}
+      ${renderSupplierTable(suppliers, publicData)}
     </section>
   `;
 }

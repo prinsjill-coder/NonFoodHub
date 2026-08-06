@@ -36,7 +36,7 @@ function heroImagePreviewForArticle(article, articleSession, mediaSession) {
   };
 }
 
-export function renderKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession) {
+export function renderKnowledgeRoute(route, articleSession, supplierSession, brochureSession, mediaSession, publicData = {}) {
   const articleData = articleSession.getWorkingData();
   const supplierData = supplierSession.getWorkingData();
   const brochureData = brochureSession.getWorkingData();
@@ -48,6 +48,7 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
       supplierData,
       brochureData,
       mediaData,
+      publicData,
       sessionSnapshot: articleSession.snapshot()
     });
   }
@@ -79,7 +80,8 @@ export function renderKnowledgeRoute(route, articleSession, supplierSession, bro
     supplierData,
     brochureData,
     mediaData,
-    heroImagePreview: heroImagePreviewForArticle(article, articleSession, mediaSession)
+    heroImagePreview: heroImagePreviewForArticle(article, articleSession, mediaSession),
+    publicData
   });
 }
 
@@ -106,7 +108,8 @@ export function setupKnowledgeRoute(route, articleSession, supplierSession, broc
       supplierSession,
       brochureSession,
       mediaSession,
-      formDirtyGuard: options.formDirtyGuard
+      formDirtyGuard: options.formDirtyGuard,
+      rerender: options.rerender
     });
   }
 

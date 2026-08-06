@@ -26,7 +26,7 @@ function fileAvailabilityForBrochure(brochure, mediaSession) {
   );
 }
 
-export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession) {
+export function renderBrochuresRoute(route, brochureSession, supplierSession, articleSession, mediaSession, publicData = {}) {
   const brochureData = brochureSession.getWorkingData();
   const supplierData = supplierSession.getWorkingData();
   const articleData = articleSession?.getWorkingData();
@@ -36,12 +36,13 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
     return renderBrochuresList({
       brochureData,
       supplierData,
+      publicData,
       sessionSnapshot: brochureSession.snapshot()
     });
   }
 
   if (route.id === "brochureNew") {
-    return renderBrochureForm({ brochureData, supplierData, mode: "create" });
+    return renderBrochureForm({ brochureData, supplierData, articleData, mode: "create" });
   }
 
   const brochure = brochureSession.findBySlug(route.params?.slug);
@@ -58,7 +59,7 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
   }
 
   if (route.id === "brochureEdit") {
-    return renderBrochureForm({ brochureData, supplierData, brochure, mode: "edit" });
+    return renderBrochureForm({ brochureData, supplierData, articleData, brochure, mode: "edit" });
   }
 
   return renderBrochureDetail({
@@ -67,7 +68,8 @@ export function renderBrochuresRoute(route, brochureSession, supplierSession, ar
     mediaData,
     articleData,
     brochure,
-    fileAvailability: fileAvailabilityForBrochure(brochure, mediaSession)
+    fileAvailability: fileAvailabilityForBrochure(brochure, mediaSession),
+    publicData
   });
 }
 
@@ -82,7 +84,9 @@ export function setupBrochuresRoute(route, brochureSession, supplierSession, art
       brochureSession,
       supplierSession,
       mediaSession,
-      formDirtyGuard: options.formDirtyGuard
+      articleSession,
+      formDirtyGuard: options.formDirtyGuard,
+      rerender: options.rerender
     });
   }
 

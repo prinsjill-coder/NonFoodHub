@@ -3,6 +3,7 @@ import { renderButton } from "../../../../components/button.js";
 import { renderDetailList } from "../../../../components/detail-list.js";
 import { renderNotice } from "../../../../components/notice.js";
 import { renderPageHeader } from "../../../../components/page-header.js";
+import { renderPublicationStateCard } from "../../../../components/publication-state.js";
 import { renderReadinessCard } from "../../../../components/readiness-card.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderWorkflowActionCard, renderWorkflowStatusAction } from "../../../../components/workflow-panel.js";
@@ -15,7 +16,9 @@ import {
   findMediaAssetByPath
 } from "../../../../shared/content-relations.js";
 import { findReadinessByRoute, getContentReadinessReport } from "../../../../shared/content-readiness.js";
-import { getSupplierStatusLabel, getSuppliers } from "../../../../shared/supplier-model.js";
+import { canDeleteContentStatus, getArticleDeleteBlocker } from "../../../../shared/delete-guards.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
+import { getSupplierStatusLabel } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 
 let articleActionFeedback = null;
@@ -143,29 +146,12 @@ function renderStatusAction({ label, targetStatus, disabled = false, reason = ""
   });
 }
 
-function canDeleteStatus(status) {
-  return status === "concept" || status === "archived";
-}
-
-function deleteBlocker({ article, supplierData }) {
-  if (!canDeleteStatus(article.status)) return "";
-
-  const incomingSupplierLinks = getSuppliers(supplierData).filter((supplier) =>
-    Array.isArray(supplier.relatedArticleIds) && supplier.relatedArticleIds.includes(article.id)
-  );
-  if (incomingSupplierLinks.length) {
-    return "Verwijder eerst de handmatige koppeling bij gekoppelde leveranciers.";
-  }
-
-  return "";
-}
-
 function renderDeleteAction(reason = "") {
   if (reason) {
     return `
       ${renderButton({
         label: "Definitief verwijderen",
-        variant: "secondary",
+        variant: "danger",
         disabled: true,
         attributes: { "data-article-delete": true, "data-disabled-reason": reason }
       })}
@@ -175,48 +161,32 @@ function renderDeleteAction(reason = "") {
 
   return renderButton({
     label: "Definitief verwijderen",
-    variant: "secondary",
+    variant: "danger",
     attributes: { "data-article-delete": true }
   });
 }
 
-function renderArticleWorkflowActions({ article, articleData, supplierData, brochureData, mediaData }) {
-  const reviewErrors = validationMessages(
-    validationForStatus({ article, status: "review", articleData, supplierData, brochureData, mediaData })
+function renderArticleWorkflowActions({ article, articleData, supplierData, brochureData, mediaData, publicData = {} }) {
+  const readyErrors = validationMessages(
+    validationForStatus({ article, status: "ready", articleData, supplierData, brochureData, mediaData })
   );
-  const publishErrors = validationMessages(
-    validationForStatus({ article, status: "published", articleData, supplierData, brochureData, mediaData })
-  );
+  const currentStatus = article.status;
+  const displayStatus = displayStatusForPublicModule("articles", article, publicData);
   const actions = [];
 
-  if (article.status === "concept") {
+  if (currentStatus === "concept") {
     actions.push(
       renderStatusAction({
-        label: "Naar review",
-        targetStatus: "review",
-        disabled: Boolean(reviewErrors.length),
-        reason: reviewErrors[0] || ""
-      })
-    );
-  }
-
-  if (article.status === "review") {
-    actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
-  }
-
-  if (article.status === "concept" || article.status === "review" || article.status === "hidden") {
-    actions.push(
-      renderStatusAction({
-        label: "Publiceren",
-        targetStatus: "published",
+        label: "Gereed voor publicatie",
+        targetStatus: "ready",
         variant: "primary",
-        disabled: Boolean(publishErrors.length),
-        reason: publishErrors[0] || ""
+        disabled: Boolean(readyErrors.length),
+        reason: readyErrors[0] || ""
       })
     );
   }
 
-  if (article.status === "published") {
+  if (currentStatus === "ready" || currentStatus === "published") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
     actions.push(
       renderButton({
@@ -227,17 +197,17 @@ function renderArticleWorkflowActions({ article, articleData, supplierData, broc
     );
   }
 
-  if (article.status === "archived") {
+  if (currentStatus === "archived") {
     actions.push(renderStatusAction({ label: "Terug naar concept", targetStatus: "concept" }));
   }
 
-  if (canDeleteStatus(article.status)) {
-    actions.push(renderDeleteAction(deleteBlocker({ article, supplierData })));
+  if (canDeleteContentStatus(currentStatus)) {
+    actions.push(renderDeleteAction(getArticleDeleteBlocker({ article, supplierData })));
   }
 
   return renderWorkflowActionCard({
-    status: article.status,
-    statusLabel: getArticleStatusLabel(article.status),
+    status: displayStatus,
+    statusLabel: displayStatusLabelForPublicModule("articles", article, publicData),
     actions
   });
 }
@@ -253,7 +223,8 @@ export function renderArticleDetail({
   supplierData,
   brochureData,
   mediaData = {},
-  heroImagePreview = {}
+  heroImagePreview = {},
+  publicData = {}
 }) {
   const relatedSuppliers = findArticleSuppliers(article, supplierData);
   const relatedBrochures = findArticleBrochures(article, brochureData);
@@ -291,12 +262,17 @@ export function renderArticleDetail({
       ${renderReadinessCard(readiness)}
     </section>
 
-    ${renderArticleWorkflowActions({ article, articleData, supplierData, brochureData, mediaData })}
+    ${renderPublicationStateCard({ moduleId: "articles", item: article, publicData })}
+
+    ${renderArticleWorkflowActions({ article, articleData, supplierData, brochureData, mediaData, publicData })}
 
     <section class="studio-section">
       <div class="studio-section-head">
         <h2>Gegevens</h2>
-        ${renderStatusBadge(article.status, getArticleStatusLabel(article.status))}
+        ${renderStatusBadge(
+          displayStatusForPublicModule("articles", article, publicData),
+          displayStatusLabelForPublicModule("articles", article, publicData)
+        )}
       </div>
       ${renderDetailList([
         { label: "ID", value: article.id },
@@ -361,23 +337,12 @@ function setActionFeedback(slug, title, message, tone = "success") {
 }
 
 async function confirmStatusChange(targetStatus) {
-  if (targetStatus === "published") {
+  if (targetStatus === "ready") {
     return confirmStudioAction({
-      title: "Artikel publiceren?",
+      title: "Artikel gereed voor publicatie zetten?",
       message:
-        "Alles is gereed om klaar te zetten voor de website. Deze actie wijzigt alleen de status in de bewerkversie; de website verandert pas na export, Website bijwerken, commit en push.",
-      confirmLabel: "Publiceren",
-      cancelLabel: "Annuleren",
-      tone: "info"
-    });
-  }
-
-  if (targetStatus === "review") {
-    return confirmStudioAction({
-      title: "Naar review zetten?",
-      message:
-        "Het artikel blijft in de bewerkversie en wordt gemarkeerd als klaar om inhoudelijk te controleren.",
-      confirmLabel: "Naar review",
+        "Deze actie wijzigt alleen de status in de bewerkversie. De website verandert pas na Gegevens exporteren en Website bijwerken.",
+      confirmLabel: "Gereed voor publicatie",
       cancelLabel: "Annuleren",
       tone: "info"
     });
@@ -405,7 +370,7 @@ export function setupArticleWorkflowActions({
     if (event.currentTarget.disabled) return;
 
     const supplierData = supplierSession.getWorkingData();
-    const reason = deleteBlocker({ article, supplierData });
+    const reason = getArticleDeleteBlocker({ article, supplierData });
     if (reason) {
       setActionFeedback(article.slug, "Artikel niet verwijderd", reason, "warning");
       rerender?.();
@@ -472,7 +437,7 @@ export function setupArticleWorkflowActions({
       if (!confirmed) return;
 
       await articleSession.applyArticle({ ...currentArticle, status: targetStatus }, currentArticle.slug);
-      const label = targetStatus === "published" ? "Publiceren" : getArticleStatusLabel(targetStatus);
+      const label = getArticleStatusLabel(targetStatus);
       setActionFeedback(currentArticle.slug, "Status aangepast in bewerkversie", nextStepsMessage(label));
       rerender?.();
     });

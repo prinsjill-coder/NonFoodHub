@@ -134,7 +134,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             value: asset.status,
             options: getStatusOptions(mediaData),
             required: true,
-            help: "Contentstatus; dit publiceert niets automatisch naar de publieke website."
+            help: "Concept is nog in bewerking. Gereed voor gebruik betekent dat metadata en rechten gecontroleerd zijn."
           })}
           ${renderRightsCheck(asset)}
           ${renderTextField({
@@ -155,7 +155,7 @@ export function renderMediaForm({ mediaData, asset = createEmptyMediaAsset(), mo
             name: "alt",
             label: "Alt-tekst",
             value: asset.alt,
-            help: "Verplicht voor afbeeldingen met status Review of Gepubliceerd. Beschrijf kort wat op de afbeelding staat."
+            help: "Verplicht voor afbeeldingen met status Gereed voor gebruik. Beschrijf kort wat op de afbeelding staat."
           })}
           ${renderTextField({
             name: "fileSize",

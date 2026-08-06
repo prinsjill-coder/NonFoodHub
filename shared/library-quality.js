@@ -4,6 +4,7 @@ import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
 import { validateLibraryFile } from "./library-file-validation.js";
 import { getLibraryItems } from "./library-model.js";
+import { isReadyForPublicationStatus } from "./content-status.js";
 
 function createIssue(path, message) {
   return { path, message };
@@ -77,19 +78,19 @@ function collectBrokenRelations({ item, index, supplierIds, brochureIds, article
   });
 }
 
-function collectPublishedWarnings(item, index, warnings) {
-  if (item.status !== "published") return;
+function collectReadyWarnings(item, index, warnings) {
+  if (!isReadyForPublicationStatus(item.status)) return;
 
   if (!hasValue(item.summary)) {
-    addUniqueIssue(warnings, createIssue(`items[${index}].summary`, "Samenvatting is belangrijk voor gepubliceerde bibliotheekitems."));
+    addUniqueIssue(warnings, createIssue(`items[${index}].summary`, "Samenvatting is belangrijk voor bibliotheekitems die gereed zijn voor publicatie."));
   }
 
   if (!hasValue(item.filePath)) {
-    addUniqueIssue(warnings, createIssue(`items[${index}].filePath`, "Bestand is belangrijk voor gepubliceerde bibliotheekitems."));
+    addUniqueIssue(warnings, createIssue(`items[${index}].filePath`, "Bestand is belangrijk voor bibliotheekitems die gereed zijn voor publicatie."));
   }
 
   if (!hasValue(item.thumbnailPath)) {
-    addUniqueIssue(warnings, createIssue(`items[${index}].thumbnailPath`, "Afbeelding is belangrijk voor gepubliceerde bibliotheekitems."));
+    addUniqueIssue(warnings, createIssue(`items[${index}].thumbnailPath`, "Afbeelding is belangrijk voor bibliotheekitems die gereed zijn voor publicatie."));
   }
 }
 
@@ -133,7 +134,7 @@ export function getLibraryQualityReport(libraryData = {}, supplierData = {}, bro
       brokenRelations,
       warnings
     });
-    collectPublishedWarnings(item, index, warnings);
+    collectReadyWarnings(item, index, warnings);
   });
 
   const statusCounts = items.reduce((counts, item) => {
@@ -150,6 +151,7 @@ export function getLibraryQualityReport(libraryData = {}, supplierData = {}, bro
     stats: {
       total: items.length,
       published: statusCounts.published || 0,
+      ready: statusCounts.ready || 0,
       concept: statusCounts.concept || 0,
       review: statusCounts.review || 0,
       warnings: warnings.length,

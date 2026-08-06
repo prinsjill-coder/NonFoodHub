@@ -16,6 +16,7 @@ import {
   getBrochures,
   sortBrochures
 } from "../../../../shared/brochure-model.js";
+import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
 import { setupBrochureImportExport } from "./import-export.js";
@@ -43,16 +44,33 @@ function renderBrochureActions(brochure) {
   `;
 }
 
-function renderBrochureCards(brochures, suppliersById) {
+function renderedBrochureStatus(brochure, publicData) {
+  return displayStatusForPublicModule("brochures", brochure, publicData);
+}
+
+function renderedBrochureStatusLabel(brochure, publicData) {
+  return displayStatusLabelForPublicModule("brochures", brochure, publicData);
+}
+
+function publicBrochureCount(brochures, publicData) {
+  return brochures.filter((brochure) => renderedBrochureStatus(brochure, publicData) === "published").length;
+}
+
+function readyBrochureCount(brochures, publicData) {
+  return brochures.filter((brochure) => renderedBrochureStatus(brochure, publicData) === "ready").length;
+}
+
+function renderBrochureCards(brochures, suppliersById, publicData = {}) {
   return brochures
     .map((brochure) => {
       const supplierName = suppliersById.get(brochure.supplierId) || "Onbekende leverancier";
+      const status = renderedBrochureStatus(brochure, publicData);
       return `
         <article
           class="studio-card studio-brochure-card"
           data-brochure-item
           data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
-          data-status="${escapeHtml(brochure.status)}"
+          data-status="${escapeHtml(status)}"
           data-supplier="${escapeHtml(brochure.supplierId)}"
           data-year="${escapeHtml(String(brochure.year || ""))}"
           data-categories="${escapeHtml((brochure.categories || []).join(" ").toLowerCase())}"
@@ -62,7 +80,7 @@ function renderBrochureCards(brochures, suppliersById) {
               <h3>${escapeHtml(brochure.title)}</h3>
               <p class="studio-muted">${escapeHtml(supplierName)}</p>
             </div>
-            ${renderStatusBadge(brochure.status, getBrochureStatusLabel(brochure.status))}
+            ${renderStatusBadge(status, renderedBrochureStatusLabel(brochure, publicData))}
           </div>
           <p>${escapeHtml(brochure.description || "Geen beschrijving ingevuld.")}</p>
           <p class="studio-meta">${escapeHtml((brochure.categories || []).join(", ") || "Geen categorieen")}</p>
@@ -74,14 +92,14 @@ function renderBrochureCards(brochures, suppliersById) {
     .join("");
 }
 
-function renderBrochureTable(brochures, suppliersById) {
+function renderBrochureTable(brochures, suppliersById, publicData = {}) {
   return renderDataTable({
     label: "Brochureoverzicht",
     rows: brochures,
     rowAttributes: (brochure) => `
       data-brochure-item
       data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
-      data-status="${escapeHtml(brochure.status)}"
+      data-status="${escapeHtml(renderedBrochureStatus(brochure, publicData))}"
       data-supplier="${escapeHtml(brochure.supplierId)}"
       data-year="${escapeHtml(String(brochure.year || ""))}"
       data-categories="${escapeHtml((brochure.categories || []).join(" ").toLowerCase())}"
@@ -101,7 +119,10 @@ function renderBrochureTable(brochures, suppliersById) {
       },
       {
         label: "Status",
-        render: (brochure) => renderStatusBadge(brochure.status, getBrochureStatusLabel(brochure.status))
+        render: (brochure) => renderStatusBadge(
+          renderedBrochureStatus(brochure, publicData),
+          renderedBrochureStatusLabel(brochure, publicData)
+        )
       },
       {
         label: "Acties",
@@ -149,9 +170,11 @@ function renderImportSummary(report) {
   });
 }
 
-export function renderBrochuresList({ brochureData, supplierData, sessionSnapshot }) {
+export function renderBrochuresList({ brochureData, supplierData, publicData = {}, sessionSnapshot }) {
   const brochures = sortBrochures(getBrochures(brochureData));
   const counts = getBrochureCounts(brochureData);
+  const publishedCount = publicBrochureCount(brochures, publicData);
+  const readyCount = readyBrochureCount(brochures, publicData);
   const suppliersById = supplierNameById(supplierData);
   const supplierOptions = [
     { value: "all", label: "Alle leveranciers" },
@@ -226,7 +249,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-3">
+      <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
           <h3>Totaal</h3>
           <p class="studio-metric-value">${counts.total}</p>
@@ -238,9 +261,14 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
           <p class="studio-muted">PDF-bestand ingevuld; aanwezigheid controleer je op de detailpagina en met checks.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Review</h3>
-          <p class="studio-metric-value">${counts.statuses.review || 0}</p>
-          <p class="studio-muted">Contentstatus; dit publiceert niets automatisch.</p>
+          <h3>Gereed voor publicatie</h3>
+          <p class="studio-metric-value">${readyCount}</p>
+          <p class="studio-muted">Gecontroleerd in Studio; nog niet zichtbaar in de publieke dataset.</p>
+        </article>
+        <article class="studio-card studio-metric-card">
+          <h3>Gepubliceerd</h3>
+          <p class="studio-metric-value">${publishedCount}</p>
+          <p class="studio-muted">Staat in de publieke websitegegevens.</p>
         </article>
       </div>
     </section>
@@ -258,7 +286,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
     })}
 
     <section class="studio-section">
-      <div class="studio-grid studio-grid-2" data-brochure-card-list>${renderBrochureCards(brochures, suppliersById)}</div>
+      <div class="studio-grid studio-grid-2" data-brochure-card-list>${renderBrochureCards(brochures, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-brochure-empty hidden>
         Geen brochures gevonden met deze filters.
       </div>
@@ -268,7 +296,7 @@ export function renderBrochuresList({ brochureData, supplierData, sessionSnapsho
       <div class="studio-section-head">
         <h2>Tabelweergave</h2>
       </div>
-      ${renderBrochureTable(brochures, suppliersById)}
+      ${renderBrochureTable(brochures, suppliersById, publicData)}
     </section>
   `;
 }

@@ -1,10 +1,14 @@
-export const CONTENT_STATUSES = ["concept", "review", "published", "hidden", "archived"];
+export const CONTENT_STATUSES = ["concept", "ready", "published", "archived"];
+
+export const LEGACY_CONTENT_STATUS_MIGRATIONS = {
+  review: "concept",
+  hidden: "archived"
+};
 
 export const CONTENT_STATUS_LABELS = {
   concept: "Concept",
-  review: "Review",
+  ready: "Gereed voor publicatie",
   published: "Gepubliceerd",
-  hidden: "Verborgen",
   archived: "Gearchiveerd"
 };
 
@@ -14,8 +18,18 @@ export function isContentStatus(status) {
   return CONTENT_STATUSES.includes(status);
 }
 
+export function normalizeContentStatus(status) {
+  const value = String(status || "").trim();
+  return LEGACY_CONTENT_STATUS_MIGRATIONS[value] || value;
+}
+
+export function isReadyForPublicationStatus(status) {
+  return ["ready", "published"].includes(normalizeContentStatus(status));
+}
+
 export function getContentStatusLabel(status) {
-  return CONTENT_STATUS_LABELS[status] || status;
+  const normalizedStatus = normalizeContentStatus(status);
+  return CONTENT_STATUS_LABELS[normalizedStatus] || normalizedStatus;
 }
 
 export function sortContentStatuses(statuses) {

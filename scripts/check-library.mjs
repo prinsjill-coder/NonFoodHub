@@ -335,7 +335,7 @@ export async function runLibraryChecks() {
     const counts = getLibraryCounts(library);
     assert.equal(counts.total, library.items.length);
     assert.equal(counts.missingFilePath, 0);
-    assert.equal(counts.statuses.review, 1);
+    assert.equal(counts.statuses.ready || 0, library.items.filter((item) => item.status === "ready").length);
   });
 }
 

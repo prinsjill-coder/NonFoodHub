@@ -1,5 +1,6 @@
 import { getArticles } from "./article-model.js";
 import { getBrochures } from "./brochure-model.js";
+import { isReadyForPublicationStatus } from "./content-status.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
 
@@ -23,19 +24,14 @@ function arrayValues(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function addRequiredIssue({ article, index, field, label, errors, warnings, requiredForReview = false, requiredForPublished = false }) {
+function addRequiredIssue({ article, index, field, label, errors, warnings, requiredForReady = false }) {
   const status = article.status;
   const missing = field === "categories" ? !Array.isArray(article.categories) || article.categories.length === 0 : !hasValue(article[field]);
   if (!missing) return;
 
   const path = `items[${index}].${field}`;
-  if (status === "published" && requiredForPublished) {
-    errors.push(createIssue(path, `${label} is verplicht voor gepubliceerde artikelen.`));
-    return;
-  }
-
-  if (status === "review" && requiredForReview) {
-    errors.push(createIssue(path, `${label} is verplicht voor artikelen in review.`));
+  if (isReadyForPublicationStatus(status) && requiredForReady) {
+    errors.push(createIssue(path, `${label} is verplicht voor artikelen die gereed zijn voor publicatie.`));
     return;
   }
 
@@ -43,15 +39,15 @@ function addRequiredIssue({ article, index, field, label, errors, warnings, requ
 }
 
 function validateArticleQuality(article, index, supplierIds, brochureIds, registeredMedia, errors, warnings) {
-  addRequiredIssue({ article, index, field: "title", label: "Titel", errors, warnings, requiredForReview: true, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "slug", label: "URL-naam", errors, warnings, requiredForReview: true, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "summary", label: "Samenvatting", errors, warnings, requiredForReview: true, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "body", label: "Inhoud", errors, warnings, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "categories", label: "Categorie", errors, warnings, requiredForReview: true, requiredForPublished: true });
-  addRequiredIssue({ article, index, field: "updatedAt", label: "Bijgewerkt op", errors, warnings, requiredForPublished: true });
+  addRequiredIssue({ article, index, field: "title", label: "Titel", errors, warnings, requiredForReady: true });
+  addRequiredIssue({ article, index, field: "slug", label: "URL-naam", errors, warnings, requiredForReady: true });
+  addRequiredIssue({ article, index, field: "summary", label: "Samenvatting", errors, warnings, requiredForReady: true });
+  addRequiredIssue({ article, index, field: "body", label: "Inhoud", errors, warnings, requiredForReady: true });
+  addRequiredIssue({ article, index, field: "categories", label: "Categorie", errors, warnings, requiredForReady: true });
+  addRequiredIssue({ article, index, field: "updatedAt", label: "Bijgewerkt op", errors, warnings, requiredForReady: true });
 
-  if (article.status === "published" && !hasValue(article.heroImage)) {
-    errors.push(createIssue(`items[${index}].heroImage`, "Headerafbeelding is verplicht voor gepubliceerde artikelen."));
+  if (isReadyForPublicationStatus(article.status) && !hasValue(article.heroImage)) {
+    errors.push(createIssue(`items[${index}].heroImage`, "Headerafbeelding is verplicht voor artikelen die gereed zijn voor publicatie."));
   }
 
   if (hasValue(article.heroImage) && !registeredMedia.has(article.heroImage)) {
@@ -113,6 +109,7 @@ export function getArticleQualityReport(articleData = {}, supplierData = {}, bro
     stats: {
       total: articles.length,
       published: statusCounts.published || 0,
+      ready: statusCounts.ready || 0,
       concept: statusCounts.concept || 0,
       review: statusCounts.review || 0,
       warnings: warnings.length,

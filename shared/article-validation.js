@@ -1,4 +1,4 @@
-import { isContentStatus } from "./content-status.js";
+import { isContentStatus, isReadyForPublicationStatus, normalizeContentStatus } from "./content-status.js";
 import { getBrochures } from "./brochure-model.js";
 import { getMediaAssets } from "./media-model.js";
 import { getSuppliers } from "./supplier-model.js";
@@ -50,7 +50,7 @@ export function articleFromForm(form) {
     id: String(formData.get("id") || "").trim() || `article-${slug || normalizeSlug(formData.get("title"))}`,
     title: String(formData.get("title") || "").trim(),
     slug,
-    status: String(formData.get("status") || "").trim(),
+    status: normalizeContentStatus(formData.get("status")),
     summary: String(formData.get("summary") || "").trim(),
     body: String(formData.get("body") || "").trim(),
     categories: stringsFromForm(formData, "categories"),
@@ -67,9 +67,8 @@ export function validateArticle(article, existingArticles, supplierData, brochur
   const warnings = {};
   const originalSlug = options.originalSlug || "";
   const originalId = options.originalId || "";
-  const status = String(article.status || "").trim();
-  const requiresReviewFields = status === "review" || status === "published";
-  const requiresPublishedFields = status === "published";
+  const status = normalizeContentStatus(article.status);
+  const requiresPublicationFields = isReadyForPublicationStatus(status);
 
   if (!hasValue(article.id)) {
     errors.id = "Vul een id in.";
@@ -82,8 +81,8 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     }
   }
 
-  if (requiresReviewFields && !hasValue(article.title)) {
-    errors.title = "Vul een titel in voor review of publicatie.";
+  if (requiresPublicationFields && !hasValue(article.title)) {
+    errors.title = "Vul een titel in voordat dit artikel gereed is voor publicatie.";
   }
 
   if (!hasValue(article.slug)) {
@@ -101,18 +100,18 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     errors.status = "Kies een geldige status.";
   }
 
-  if (requiresReviewFields && !hasValue(article.summary)) {
-    errors.summary = "Vul een samenvatting in voor review of publicatie.";
+  if (requiresPublicationFields && !hasValue(article.summary)) {
+    errors.summary = "Vul een samenvatting in voordat dit artikel gereed is voor publicatie.";
   }
 
-  if (requiresPublishedFields && !hasValue(article.body)) {
-    errors.body = "Vul de artikelinhoud in voor publicatie.";
+  if (requiresPublicationFields && !hasValue(article.body)) {
+    errors.body = "Vul de artikelinhoud in voordat dit artikel gereed is voor publicatie.";
   }
 
   if (!Array.isArray(article.categories)) {
     errors.categories = "Categorieen moeten een lijst zijn.";
-  } else if (requiresReviewFields && article.categories.length === 0) {
-    errors.categories = "Kies minimaal een categorie voor review of publicatie.";
+  } else if (requiresPublicationFields && article.categories.length === 0) {
+    errors.categories = "Kies minimaal een categorie voordat dit artikel gereed is voor publicatie.";
   } else {
     const allowedCategories = new Set(articleData.categories || []);
     const invalidCategory = article.categories.find((category) => !allowedCategories.has(category));
@@ -121,8 +120,8 @@ export function validateArticle(article, existingArticles, supplierData, brochur
     }
   }
 
-  if (requiresPublishedFields && !hasValue(article.heroImage)) {
-    errors.heroImage = "Hero afbeelding is verplicht voor publicatie.";
+  if (requiresPublicationFields && !hasValue(article.heroImage)) {
+    errors.heroImage = "Headerafbeelding is verplicht voordat dit artikel gereed is voor publicatie.";
   } else if (!hasValue(article.heroImage)) {
     warnings.heroImage = "Er is nog geen hero afbeelding gekoppeld.";
   } else if (!isRelativeProjectPath(article.heroImage)) {

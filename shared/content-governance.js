@@ -359,6 +359,7 @@ function createModuleSummary({
     route,
     total,
     published: statusCounts.published || 0,
+    ready: statusCounts.ready || 0,
     concept: statusCounts.concept || 0,
     review: statusCounts.review || 0,
     hidden: statusCounts.hidden || 0,

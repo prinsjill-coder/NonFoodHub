@@ -174,9 +174,9 @@ function renderQualitySummary(qualityReport) {
       </div>
       <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
-          <h3>Gepubliceerd</h3>
-          <p class="studio-metric-value">${qualityReport.stats.published}</p>
-          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+          <h3>Gereed voor publicatie</h3>
+          <p class="studio-metric-value">${qualityReport.stats.ready}</p>
+          <p class="studio-muted">Gecontroleerd in Studio; bibliotheek heeft nog geen publieke websiteweergave.</p>
         </article>
         <article class="studio-card studio-metric-card">
           <h3>Waarschuwingen</h3>
@@ -263,14 +263,14 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
           <p class="studio-muted">In de bewerkversie geladen.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Review</h3>
-          <p class="studio-metric-value">${counts.statuses.review || 0}</p>
+          <h3>Gereed voor publicatie</h3>
+          <p class="studio-metric-value">${counts.statuses.ready || 0}</p>
           <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
         </article>
         <article class="studio-card studio-metric-card">
-          <h3>Gepubliceerd</h3>
-          <p class="studio-metric-value">${qualityReport.stats.published}</p>
-          <p class="studio-muted">Contentstatus; publiceert niets automatisch.</p>
+          <h3>Gearchiveerd</h3>
+          <p class="studio-metric-value">${counts.statuses.archived || 0}</p>
+          <p class="studio-muted">Niet bedoeld voor publieke weergave.</p>
         </article>
       </div>
     </section>
