@@ -19,6 +19,7 @@ import { createSupplierSession } from "../studio/js/state/supplier-session.js";
 import { renderValidationSummary } from "../components/validation-summary.js";
 import { clearFieldErrors, focusFirstInvalidField, setFieldErrors } from "../studio/js/shared/form-errors.js";
 import { downloadTextFile, readJsonFile, validateFileSelection } from "../studio/js/shared/import-export-file.js";
+import { createSearchText, normalizeSearchText } from "../studio/js/shared/list-search.js";
 import { renderRouteNotFound } from "../studio/js/pages/dashboard.js";
 import { renderSuppliersList } from "../studio/js/pages/suppliers/list.js";
 import { renderSuppliersRoute } from "../studio/js/pages/suppliers/index.js";
@@ -80,6 +81,14 @@ function assertWorkflowPanel(html) {
   assert.match(html, /Gereed voor publicatie/);
   assert.match(html, /Gepubliceerd/);
   assert.match(html, /Volgende stap na export: gegevens controleren, Website bijwerken uitvoeren en daarna committen en pushen\./);
+}
+
+function assertListSearch(html, scope) {
+  assert.match(html, new RegExp(`data-${scope}-search`));
+  assert.match(html, new RegExp(`data-${scope}-search-clear`));
+  assert.match(html, /data-studio-list-search/);
+  assert.match(html, /data-search=/);
+  assert.match(html, /Geen .*gevonden met deze zoekterm of filters\./);
 }
 
 function escapeRegExp(value) {
@@ -254,6 +263,11 @@ async function runStudioChecks() {
     assert.deepEqual(sortContentStatuses(["archived", "concept", "ready", "published"]), ["concept", "ready", "published", "archived"]);
   });
 
+  await runCheck("zoeknormalisatie negeert hoofdletters en accenten", () => {
+    assert.equal(normalizeSearchText("  Étagère & HÔTEL  "), "etagere & hotel");
+    assert.equal(createSearchText("Café", ["Terras", "Buiten"]), "cafe terras buiten");
+  });
+
   await runCheck("formulierfouthelpers beheren tekst, aria-invalid en focus", () => {
     const form = createFakeForm();
     const errors = {
@@ -424,6 +438,7 @@ async function runStudioChecks() {
     const detailHtml = renderRoute(routeFromHash("#/leveranciers/amefa"), state);
 
     assert.match(listHtml, /Leveranciers/);
+    assertListSearch(listHtml, "supplier");
     assertWorkflowPanel(listHtml);
     assert.match(detailHtml, /Amefa/);
     assert.match(detailHtml, /Amefa for Professionals 2026/);
@@ -459,6 +474,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Brochurebeheer/);
     assert.match(listHtml, /Amefa for Professionals 2026/);
+    assertListSearch(listHtml, "brochure");
     assertWorkflowPanel(listHtml);
     assert.match(listHtml, /data-brochure-import-button/);
     assert.match(listHtml, /data-brochure-export-button/);
@@ -508,6 +524,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Mediaregister/);
     assert.match(listHtml, /Brochures overzichtsbeeld/);
+    assertListSearch(listHtml, "media");
     assertWorkflowPanel(listHtml);
     assert.doesNotMatch(listHtml, /is nog niet actief/);
     assert.match(newHtml, /Nieuw media-asset/);
@@ -552,6 +569,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Kennisbankbeheer/);
     assert.match(listHtml, /Terras &amp; outdoor tafelpresentatie/);
+    assertListSearch(listHtml, "article");
     assertWorkflowPanel(listHtml);
     assert.match(listHtml, /data-article-import-button/);
     assert.match(listHtml, /data-article-export-button/);
@@ -614,6 +632,7 @@ async function runStudioChecks() {
 
     assert.match(listHtml, /Bibliotheekbeheer/);
     assert.match(listHtml, /Churchill Combined Brochure 2026/);
+    assertListSearch(listHtml, "library");
     assert.match(listHtml, /Terras &amp; Outdoor inspiratie gids/);
     assert.match(listHtml, /href="#\/bibliotheek\/import"/);
     assert.match(listHtml, /href="#\/bibliotheek\/export"/);

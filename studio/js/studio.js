@@ -5,6 +5,7 @@ import { createFormDirtyGuard } from "./form-dirty-guard.js";
 import { renderLayout } from "./layout.js";
 import { focusRouteContent, applyRouteTitle } from "./route-focus.js";
 import { getCurrentRoute, getRouteTitle, renderRoute, setupRoute } from "./router.js";
+import { setupStudioSearchBridge } from "./shared/list-search.js";
 import { createArticleSession } from "./state/article-session.js";
 import { createBrochureSession } from "./state/brochure-session.js";
 import { createLibrarySession } from "./state/library-session.js";
@@ -204,6 +205,7 @@ function renderStudio(state, options = {}) {
     formDirtyGuard: state.formDirtyGuard,
     restoreDraft: state.restoreDraft
   });
+  setupStudioSearchBridge(document);
   applyRouteTitle(routeTitle);
 
   if (options.focus !== false) {

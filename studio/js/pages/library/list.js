@@ -18,6 +18,7 @@ import {
 import { getLibraryQualityReport } from "../../../../shared/library-quality.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
 
 function supplierNameById(supplierData) {
   return new Map(getSuppliers(supplierData).map((supplier) => [supplier.id, supplier.name]));
@@ -54,6 +55,17 @@ function renderLibraryCards(items, libraryData, suppliersById) {
         <article
           class="studio-card studio-library-card"
           data-library-item
+          data-search="${escapeHtml(createSearchText(
+            item.title,
+            item.slug,
+            item.summary,
+            item.category,
+            getLibraryTypeLabel(item.type, libraryData),
+            suppliers,
+            item.filePath,
+            item.thumbnailPath,
+            item.url
+          ))}"
           data-title="${escapeHtml(`${item.title} ${item.slug} ${item.summary}`.toLowerCase())}"
           data-status="${escapeHtml(item.status)}"
           data-type="${escapeHtml(item.type)}"
@@ -82,6 +94,17 @@ function renderLibraryTable(items, libraryData, suppliersById) {
     rows: items,
     rowAttributes: (item) => `
       data-library-item
+      data-search="${escapeHtml(createSearchText(
+        item.title,
+        item.slug,
+        item.summary,
+        item.category,
+        getLibraryTypeLabel(item.type, libraryData),
+        supplierNames(item, suppliersById),
+        item.filePath,
+        item.thumbnailPath,
+        item.url
+      ))}"
       data-title="${escapeHtml(`${item.title} ${item.slug} ${item.summary}`.toLowerCase())}"
       data-status="${escapeHtml(item.status)}"
       data-type="${escapeHtml(item.type)}"
@@ -292,7 +315,7 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-library-card-list>${renderLibraryCards(items, libraryData, suppliersById)}</div>
       <div class="studio-list-empty" data-library-empty hidden>
-        Geen bibliotheekitems gevonden met deze filters.
+        Geen bibliotheekitems gevonden met deze zoekterm of filters.
       </div>
     </section>
 
@@ -307,22 +330,23 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
 
 export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-library-search]");
+  const clearSearch = document.querySelector("[data-library-search-clear]");
   const filters = Array.from(document.querySelectorAll("[data-library-filter]"));
   const items = Array.from(document.querySelectorAll("[data-library-item]"));
   const empty = document.querySelector("[data-library-empty]");
   const restoreButton = document.querySelector("[data-library-restore]");
 
   function applyFilters() {
-    const query = search?.value.trim().toLowerCase() || "";
-    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.libraryFilter, filter.value]));
+    const query = search?.value || "";
+    const values = readFilterValues(filters, "library");
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const matchesSearch = !query || (item.dataset.title || "").includes(query);
+      const hasSearchMatch = matchesSearch(item, query);
       const matchesStatus = values.status === "all" || item.dataset.status === values.status;
       const matchesType = values.type === "all" || item.dataset.type === values.type;
       const matchesCategory = values.category === "all" || item.dataset.category === values.category;
-      const visible = matchesSearch && matchesStatus && matchesType && matchesCategory;
+      const visible = hasSearchMatch && matchesStatus && matchesType && matchesCategory;
       item.hidden = !visible;
       if (visible) visibleCount += 1;
     });
@@ -332,7 +356,7 @@ export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
     }
   }
 
-  search?.addEventListener("input", applyFilters);
+  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
   filters.forEach((filter) => filter.addEventListener("change", applyFilters));
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {

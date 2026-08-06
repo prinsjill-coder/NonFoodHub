@@ -41,7 +41,7 @@ export function renderLayout({ navigation, currentRoute, authState, content }) {
             <strong>${escapeHtml(STUDIO_CONFIG.projectName)}</strong>
             <span>${escapeHtml(currentRoute.title)}</span>
           </div>
-          <input class="studio-search" type="search" placeholder="Zoeken is nog niet actief" aria-label="Studio zoeken" disabled>
+          <input class="studio-search" type="search" placeholder="Zoeken in deze lijst" aria-label="Zoeken in deze lijst" data-studio-search>
           ${renderAuthPlaceholder(authState)}
         </header>
         <div class="studio-content" id="studio-route-content">${content}</div>

@@ -661,6 +661,12 @@ textarea:focus-visible {
   font-weight: 760;
 }
 
+.studio-toolbar-search-control {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .studio-required-label {
   color: var(--studio-muted);
   font-weight: 650;
@@ -678,6 +684,23 @@ textarea:focus-visible {
   border-radius: var(--studio-radius);
   color: var(--studio-ink);
   background: var(--studio-white);
+}
+
+.studio-search-clear {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius);
+  color: var(--studio-blue);
+  background: var(--studio-white);
+  cursor: pointer;
+  font-weight: 760;
+}
+
+.studio-search-clear:hover,
+.studio-search-clear:focus-visible {
+  border-color: var(--studio-blue);
+  background: var(--studio-blue-soft);
 }
 
 .studio-field textarea {

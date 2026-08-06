@@ -107,6 +107,10 @@ async function clearStudioDraftStore(page) {
   }), STUDIO_DRAFT_DB_NAME);
 }
 
+async function visibleItemCount(page, selector) {
+  return page.locator(selector).evaluateAll((items) => items.filter((item) => !item.hidden).length);
+}
+
 const studioRoutes = [
   { path: "/studio/index.html#/dashboard", heading: "Dashboard" },
   { path: "/studio/index.html#/governance", heading: "Governance" },
@@ -138,6 +142,67 @@ for (const route of studioRoutes) {
     await expectCleanStudioPage(page, errors);
   });
 }
+
+test("Studio zoekt realtime in alle contentoverzichten", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  const cases = [
+    {
+      path: "/studio/index.html#/leveranciers",
+      query: "ÁMEFA",
+      itemSelector: "[data-supplier-card-list] [data-supplier-item]",
+      emptySelector: "[data-supplier-empty]"
+    },
+    {
+      path: "/studio/index.html#/brochures",
+      query: "chürchill",
+      itemSelector: "[data-brochure-card-list] [data-brochure-item]",
+      emptySelector: "[data-brochure-empty]"
+    },
+    {
+      path: "/studio/index.html#/kennisbank",
+      query: "hospitálity",
+      itemSelector: "[data-article-card-list] [data-article-item]",
+      emptySelector: "[data-article-empty]"
+    },
+    {
+      path: "/studio/index.html#/bibliotheek",
+      query: "outdóor",
+      itemSelector: "[data-library-card-list] [data-library-item]",
+      emptySelector: "[data-library-empty]"
+    },
+    {
+      path: "/studio/index.html#/media",
+      query: "vîrtuele",
+      itemSelector: "[data-media-card-list] [data-media-item]",
+      emptySelector: "[data-media-empty]"
+    }
+  ];
+
+  for (const searchCase of cases) {
+    await page.goto(searchCase.path);
+    const topbarSearch = page.locator("[data-studio-search]");
+    const totalCount = await visibleItemCount(page, searchCase.itemSelector);
+
+    await expect(topbarSearch).toBeEnabled();
+    expect(totalCount).toBeGreaterThan(1);
+
+    await topbarSearch.fill(searchCase.query);
+    await expect(page.locator(searchCase.emptySelector)).toBeHidden();
+    const filteredCount = await visibleItemCount(page, searchCase.itemSelector);
+    expect(filteredCount).toBeGreaterThan(0);
+    expect(filteredCount).toBeLessThan(totalCount);
+
+    await topbarSearch.fill("geen-resultaat-voor-deze-zoektest");
+    await expect(page.locator(searchCase.emptySelector)).toBeVisible();
+
+    await page.getByRole("button", { name: "Wissen" }).click();
+    await expect(topbarSearch).toHaveValue("");
+    await expect(page.locator(searchCase.emptySelector)).toBeHidden();
+    expect(await visibleItemCount(page, searchCase.itemSelector)).toBe(totalCount);
+  }
+
+  await expectCleanStudioPage(page, errors);
+});
 
 test("Studio bewaart bewerkversies centraal na refresh en herstelt naar JSON-bron", async ({ page }) => {
   const errors = collectConsoleErrors(page);

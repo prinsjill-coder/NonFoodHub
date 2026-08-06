@@ -18,6 +18,7 @@ import {
   sortMediaAssets
 } from "../../../../shared/media-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
 
 function renderMediaActions(asset) {
   return `
@@ -45,6 +46,16 @@ function renderMediaCards(mediaAssets, mediaData) {
         <article
           class="studio-card studio-media-card"
           data-media-item
+          data-search="${escapeHtml(createSearchText(
+            asset.title,
+            asset.id,
+            asset.file,
+            asset.caption,
+            asset.alt,
+            getMediaTypeLabel(asset.type, mediaData),
+            getMediaUsageTypeLabel(asset.usageType, mediaData),
+            getMediaRightsStatusLabel(asset.rightsStatus, mediaData)
+          ))}"
           data-title="${escapeHtml(`${asset.title} ${asset.id} ${asset.file}`.toLowerCase())}"
           data-type="${escapeHtml(asset.type)}"
           data-usage="${escapeHtml(asset.usageType)}"
@@ -77,6 +88,16 @@ function renderMediaTable(mediaAssets, mediaData) {
     rows: mediaAssets,
     rowAttributes: (asset) => `
       data-media-item
+      data-search="${escapeHtml(createSearchText(
+        asset.title,
+        asset.id,
+        asset.file,
+        asset.caption,
+        asset.alt,
+        getMediaTypeLabel(asset.type, mediaData),
+        getMediaUsageTypeLabel(asset.usageType, mediaData),
+        getMediaRightsStatusLabel(asset.rightsStatus, mediaData)
+      ))}"
       data-title="${escapeHtml(`${asset.title} ${asset.id} ${asset.file}`.toLowerCase())}"
       data-type="${escapeHtml(asset.type)}"
       data-usage="${escapeHtml(asset.usageType)}"
@@ -210,7 +231,7 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-media-card-list>${renderMediaCards(mediaAssets, mediaData)}</div>
       <div class="studio-list-empty" data-media-empty hidden>
-        Geen media-assets gevonden met deze filters.
+        Geen media-assets gevonden met deze zoekterm of filters.
       </div>
     </section>
 
@@ -225,23 +246,24 @@ export function renderMediaList({ mediaData, sessionSnapshot }) {
 
 export function setupMediaList({ mediaSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-media-search]");
+  const clearSearch = document.querySelector("[data-media-search-clear]");
   const filters = Array.from(document.querySelectorAll("[data-media-filter]"));
   const items = Array.from(document.querySelectorAll("[data-media-item]"));
   const empty = document.querySelector("[data-media-empty]");
   const restoreButton = document.querySelector("[data-media-restore]");
 
   function applyFilters() {
-    const query = search?.value.trim().toLowerCase() || "";
-    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.mediaFilter, filter.value]));
+    const query = search?.value || "";
+    const values = readFilterValues(filters, "media");
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const matchesSearch = !query || (item.dataset.title || "").includes(query);
+      const hasSearchMatch = matchesSearch(item, query);
       const matchesType = values.type === "all" || item.dataset.type === values.type;
       const matchesUsage = values.usage === "all" || item.dataset.usage === values.usage;
       const matchesRights = values.rights === "all" || item.dataset.rights === values.rights;
       const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const visible = matchesSearch && matchesType && matchesUsage && matchesRights && matchesStatus;
+      const visible = hasSearchMatch && matchesType && matchesUsage && matchesRights && matchesStatus;
       item.hidden = !visible;
       if (visible) visibleCount += 1;
     });
@@ -251,7 +273,7 @@ export function setupMediaList({ mediaSession, rerender, restoreDraft }) {
     }
   }
 
-  search?.addEventListener("input", applyFilters);
+  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
   filters.forEach((filter) => filter.addEventListener("change", applyFilters));
   restoreButton?.addEventListener("click", async () => {
     if (mediaSession.snapshot().dirty) {

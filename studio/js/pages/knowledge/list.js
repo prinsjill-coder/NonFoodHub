@@ -19,6 +19,7 @@ import { getArticleQualityReport } from "../../../../shared/article-quality.js";
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
 import { setupArticleExport } from "./export.js";
 import { setupArticleImport } from "./import.js";
 
@@ -74,6 +75,14 @@ function renderArticleCards(articles, suppliersById, publicData = {}) {
         <article
           class="studio-card studio-article-card"
           data-article-item
+          data-search="${escapeHtml(createSearchText(
+            article.title,
+            article.slug,
+            article.summary,
+            article.body,
+            article.categories,
+            suppliers
+          ))}"
           data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
           data-status="${escapeHtml(status)}"
           data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
@@ -101,6 +110,14 @@ function renderArticleTable(articles, suppliersById, publicData = {}) {
     rows: articles,
     rowAttributes: (article) => `
       data-article-item
+      data-search="${escapeHtml(createSearchText(
+        article.title,
+        article.slug,
+        article.summary,
+        article.body,
+        article.categories,
+        supplierNames(article, suppliersById)
+      ))}"
       data-title="${escapeHtml(`${article.title} ${article.slug} ${article.summary}`.toLowerCase())}"
       data-status="${escapeHtml(renderedArticleStatus(article, publicData))}"
       data-categories="${escapeHtml((article.categories || []).join(" ").toLowerCase())}"
@@ -337,7 +354,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-article-card-list>${renderArticleCards(articles, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-article-empty hidden>
-        Geen kennisbankartikelen gevonden met deze filters.
+        Geen kennisbankartikelen gevonden met deze zoekterm of filters.
       </div>
     </section>
 
@@ -352,6 +369,7 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
 
 export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-article-search]");
+  const clearSearch = document.querySelector("[data-article-search-clear]");
   const filters = Array.from(document.querySelectorAll("[data-article-filter]"));
   const items = Array.from(document.querySelectorAll("[data-article-item]"));
   const empty = document.querySelector("[data-article-empty]");
@@ -361,15 +379,15 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
   setupArticleExport({ articleSession, rerender });
 
   function applyFilters() {
-    const query = search?.value.trim().toLowerCase() || "";
-    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.articleFilter, filter.value]));
+    const query = search?.value || "";
+    const values = readFilterValues(filters, "article");
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const matchesSearch = !query || (item.dataset.title || "").includes(query);
+      const hasSearchMatch = matchesSearch(item, query);
       const matchesStatus = values.status === "all" || item.dataset.status === values.status;
       const matchesCategory = values.category === "all" || (item.dataset.categories || "").includes(values.category);
-      const visible = matchesSearch && matchesStatus && matchesCategory;
+      const visible = hasSearchMatch && matchesStatus && matchesCategory;
       item.hidden = !visible;
       if (visible) visibleCount += 1;
     });
@@ -379,7 +397,7 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
     }
   }
 
-  search?.addEventListener("input", applyFilters);
+  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
   filters.forEach((filter) => filter.addEventListener("change", applyFilters));
   restoreButton?.addEventListener("click", async () => {
     if (articleSession.snapshot().dirty) {

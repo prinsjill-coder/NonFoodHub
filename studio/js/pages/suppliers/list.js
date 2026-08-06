@@ -17,6 +17,7 @@ import {
 } from "../../../../shared/supplier-model.js";
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
 import { setupSupplierImportExport } from "./import-export.js";
 
 function renderSupplierActions(supplier) {
@@ -61,10 +62,18 @@ function renderSupplierCards(suppliers, publicData = {}) {
       return `
       <article
         class="studio-card studio-supplier-card"
-        data-supplier-item
-        data-name="${escapeHtml(supplier.name.toLowerCase())}"
-        data-status="${escapeHtml(status)}"
-        data-type="${escapeHtml(supplier.type)}"
+          data-supplier-item
+          data-search="${escapeHtml(createSearchText(
+            supplier.name,
+            supplier.slug,
+            supplier.summary,
+            supplier.description,
+            supplier.categories,
+            getSupplierTypeLabel(supplier.type)
+          ))}"
+          data-name="${escapeHtml(supplier.name.toLowerCase())}"
+          data-status="${escapeHtml(status)}"
+          data-type="${escapeHtml(supplier.type)}"
         data-categories="${escapeHtml((supplier.categories || []).join(" ").toLowerCase())}"
       >
         <div class="studio-card-head">
@@ -89,6 +98,14 @@ function renderSupplierTable(suppliers, publicData = {}) {
     rows: suppliers,
     rowAttributes: (supplier) => `
       data-supplier-item
+      data-search="${escapeHtml(createSearchText(
+        supplier.name,
+        supplier.slug,
+        supplier.summary,
+        supplier.description,
+        supplier.categories,
+        getSupplierTypeLabel(supplier.type)
+      ))}"
       data-name="${escapeHtml(supplier.name.toLowerCase())}"
       data-status="${escapeHtml(renderedSupplierStatus(supplier, publicData))}"
       data-type="${escapeHtml(supplier.type)}"
@@ -236,7 +253,7 @@ export function renderSuppliersList({ supplierData, publicData = {}, sessionSnap
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers, publicData)}</div>
       <div class="studio-list-empty" data-supplier-empty hidden>
-        Geen leveranciers gevonden met deze filters.
+        Geen leveranciers gevonden met deze zoekterm of filters.
       </div>
     </section>
 
@@ -251,6 +268,7 @@ export function renderSuppliersList({ supplierData, publicData = {}, sessionSnap
 
 export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-supplier-search]");
+  const clearSearch = document.querySelector("[data-supplier-search-clear]");
   const filters = Array.from(document.querySelectorAll("[data-supplier-filter]"));
   const items = Array.from(document.querySelectorAll("[data-supplier-item]"));
   const empty = document.querySelector("[data-supplier-empty]");
@@ -258,16 +276,15 @@ export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
   setupSupplierImportExport({ supplierSession, rerender, restoreDraft });
 
   function applyFilters() {
-    const query = search?.value.trim().toLowerCase() || "";
-    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.supplierFilter, filter.value]));
+    const query = search?.value || "";
+    const values = readFilterValues(filters, "supplier");
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const haystack = `${item.dataset.name || ""} ${item.dataset.categories || ""}`;
-      const matchesSearch = !query || haystack.includes(query);
+      const hasSearchMatch = matchesSearch(item, query);
       const matchesType = values.type === "all" || item.dataset.type === values.type;
       const matchesStatus = values.status === "all" || item.dataset.status === values.status;
-      const visible = matchesSearch && matchesType && matchesStatus;
+      const visible = hasSearchMatch && matchesType && matchesStatus;
       item.hidden = !visible;
       if (visible) visibleCount += 1;
     });
@@ -277,6 +294,6 @@ export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
     }
   }
 
-  search?.addEventListener("input", applyFilters);
+  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
   filters.forEach((filter) => filter.addEventListener("change", applyFilters));
 }

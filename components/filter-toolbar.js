@@ -26,7 +26,10 @@ export function renderFilterToolbar({
     <section class="studio-toolbar" aria-label="${escapeHtml(ariaLabel)}">
       <label class="studio-toolbar-search">
         <span>Zoeken</span>
-        <input data-${safeScope}-search type="search" placeholder="${escapeHtml(searchPlaceholder)}">
+        <div class="studio-toolbar-search-control">
+          <input data-${safeScope}-search data-studio-list-search type="search" placeholder="${escapeHtml(searchPlaceholder)}">
+          <button class="studio-search-clear" type="button" data-${safeScope}-search-clear hidden>Wissen</button>
+        </div>
       </label>
       ${filterFields}
       <div class="studio-toolbar-actions">${actions}</div>

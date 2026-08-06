@@ -19,6 +19,7 @@ import {
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule } from "../../../../shared/publication-status.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import { createSearchText, matchesSearch, readFilterValues, setupSearchInput } from "../../shared/list-search.js";
 import { setupBrochureImportExport } from "./import-export.js";
 
 function supplierNameById(supplierData) {
@@ -69,6 +70,15 @@ function renderBrochureCards(brochures, suppliersById, publicData = {}) {
         <article
           class="studio-card studio-brochure-card"
           data-brochure-item
+          data-search="${escapeHtml(createSearchText(
+            brochure.title,
+            brochure.slug,
+            brochure.description,
+            supplierName,
+            brochure.categories,
+            brochure.year,
+            getBrochureLanguageLabel(brochure.language)
+          ))}"
           data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
           data-status="${escapeHtml(status)}"
           data-supplier="${escapeHtml(brochure.supplierId)}"
@@ -98,6 +108,15 @@ function renderBrochureTable(brochures, suppliersById, publicData = {}) {
     rows: brochures,
     rowAttributes: (brochure) => `
       data-brochure-item
+      data-search="${escapeHtml(createSearchText(
+        brochure.title,
+        brochure.slug,
+        brochure.description,
+        suppliersById.get(brochure.supplierId) || brochure.supplierId,
+        brochure.categories,
+        brochure.year,
+        getBrochureLanguageLabel(brochure.language)
+      ))}"
       data-title="${escapeHtml(`${brochure.title} ${brochure.slug}`.toLowerCase())}"
       data-status="${escapeHtml(renderedBrochureStatus(brochure, publicData))}"
       data-supplier="${escapeHtml(brochure.supplierId)}"
@@ -288,7 +307,7 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-brochure-card-list>${renderBrochureCards(brochures, suppliersById, publicData)}</div>
       <div class="studio-list-empty" data-brochure-empty hidden>
-        Geen brochures gevonden met deze filters.
+        Geen brochures gevonden met deze zoekterm of filters.
       </div>
     </section>
 
@@ -303,6 +322,7 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
 
 export function setupBrochureList({ brochureSession, supplierSession, rerender, restoreDraft }) {
   const search = document.querySelector("[data-brochure-search]");
+  const clearSearch = document.querySelector("[data-brochure-search-clear]");
   const filters = Array.from(document.querySelectorAll("[data-brochure-filter]"));
   const items = Array.from(document.querySelectorAll("[data-brochure-item]"));
   const empty = document.querySelector("[data-brochure-empty]");
@@ -311,17 +331,16 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender, 
   setupBrochureImportExport({ brochureSession, supplierSession, rerender });
 
   function applyFilters() {
-    const query = search?.value.trim().toLowerCase() || "";
-    const values = Object.fromEntries(filters.map((filter) => [filter.dataset.brochureFilter, filter.value]));
+    const query = search?.value || "";
+    const values = readFilterValues(filters, "brochure");
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const haystack = `${item.dataset.title || ""} ${item.dataset.categories || ""}`;
-      const matchesSearch = !query || haystack.includes(query);
+      const hasSearchMatch = matchesSearch(item, query);
       const matchesSupplier = values.supplier === "all" || item.dataset.supplier === values.supplier;
       const matchesStatus = values.status === "all" || item.dataset.status === values.status;
       const matchesYear = values.year === "all" || item.dataset.year === values.year;
-      const visible = matchesSearch && matchesSupplier && matchesStatus && matchesYear;
+      const visible = hasSearchMatch && matchesSupplier && matchesStatus && matchesYear;
       item.hidden = !visible;
       if (visible) visibleCount += 1;
     });
@@ -331,7 +350,7 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender, 
     }
   }
 
-  search?.addEventListener("input", applyFilters);
+  setupSearchInput({ search, clearButton: clearSearch, onChange: applyFilters });
   filters.forEach((filter) => filter.addEventListener("change", applyFilters));
   restoreButton?.addEventListener("click", async () => {
     if (brochureSession.snapshot().dirty) {
