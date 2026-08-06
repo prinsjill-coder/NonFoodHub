@@ -161,7 +161,7 @@ export function setupRoute(route, state, options = {}) {
   }
 
   if (route.sectionId === "media") {
-    setupMediaRoute(route, state.mediaSession, options);
+    setupMediaRoute(route, state.mediaSession, state.supplierSession, state.brochureSession, state.articleSession, options);
   }
 
   if (route.sectionId === "knowledge") {

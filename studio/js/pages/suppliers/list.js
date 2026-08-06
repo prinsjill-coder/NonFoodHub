@@ -9,6 +9,7 @@ import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import { findSupplierArticles, findSupplierBrochures } from "../../../../shared/content-relations.js";
+import { getSupplierDeleteBlocker } from "../../../../shared/delete-guards.js";
 import {
   getSupplierCounts,
   getSupplierStatusLabel,
@@ -16,8 +17,15 @@ import {
   getSuppliers,
   sortSuppliers
 } from "../../../../shared/supplier-model.js";
+import { validateSupplier } from "../../../../shared/supplier-validation.js";
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import {
+  firstValidationMessage,
+  renderBulkActionControls,
+  renderBulkSelectControl,
+  setupBulkActions
+} from "../../shared/bulk-actions.js";
 import {
   DEFAULT_SORT_OPTIONS,
   WEBSITE_STATUS_FILTER_OPTIONS,
@@ -116,6 +124,7 @@ function renderSupplierCards(suppliers, publicData = {}, relationData = {}) {
       >
         <div class="studio-card-head">
           <div>
+            ${renderBulkSelectControl({ scope: "supplier", itemId: supplier.id, label: supplier.name })}
             <h3>${escapeHtml(supplier.name)}</h3>
             <p class="studio-muted">${escapeHtml(getSupplierTypeLabel(supplier.type))}</p>
           </div>
@@ -241,6 +250,7 @@ export function renderSuppliersList({ supplierData, brochureData, articleData, p
     </section>
 
     ${renderFilterToolbar({
+      scope: "supplier",
       searchPlaceholder: "Zoek op naam, URL-naam of categorie",
       filters: [
         { name: "workflow", label: "Workflowstatus", options: statusOptions },
@@ -253,6 +263,8 @@ export function renderSuppliersList({ supplierData, brochureData, articleData, p
       sortOptions: DEFAULT_SORT_OPTIONS,
       actions
     })}
+
+    ${renderBulkActionControls({ scope: "supplier", moduleLabelPlural: "leveranciers" })}
 
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-supplier-card-list>${renderSupplierCards(suppliers, publicData, relationData)}</div>
@@ -271,6 +283,10 @@ export function renderSuppliersList({ supplierData, brochureData, articleData, p
         rows: suppliers,
         rowAttributes: (supplier) => renderSupplierListAttributes(supplier, { ...relationData, publicData }),
         columns: [
+          {
+            label: "Selectie",
+            render: (supplier) => renderBulkSelectControl({ scope: "supplier", itemId: supplier.id, label: supplier.name })
+          },
           {
             label: "Naam",
             render: (supplier) => `<strong>${escapeHtml(supplier.name)}</strong><br><span>${escapeHtml(supplier.slug)}</span>`
@@ -300,12 +316,38 @@ export function renderSuppliersList({ supplierData, brochureData, articleData, p
   `;
 }
 
-export function setupSupplierList({ supplierSession, rerender, restoreDraft }) {
+function findSupplierById(supplierData, id) {
+  return getSuppliers(supplierData).find((supplier) => supplier.id === id) || null;
+}
+
+export function setupSupplierList({ supplierSession, brochureSession, articleSession, rerender, restoreDraft, persistDraft }) {
   setupSupplierImportExport({ supplierSession, rerender, restoreDraft });
   setupListControls({
     scope: "supplier",
     itemSelector: "[data-supplier-item]",
     emptySelector: "[data-supplier-empty]",
     emptyText: "Geen leveranciers gevonden met de huidige zoekterm of filters."
+  });
+  setupBulkActions({
+    scope: "supplier",
+    itemSelector: "[data-supplier-item]",
+    moduleLabelSingular: "leverancier",
+    moduleLabelPlural: "leveranciers",
+    findItem: (id) => findSupplierById(supplierSession.getWorkingData(), id),
+    getItemLabel: (supplier) => supplier.name,
+    applyItem: (supplier, originalSupplier) => supplierSession.applySupplier(supplier, originalSupplier.slug),
+    validateStatusChange: (supplier, originalSupplier) =>
+      firstValidationMessage(validateSupplier(supplier, getSuppliers(supplierSession.getWorkingData()), {
+        originalSlug: originalSupplier.slug
+      })),
+    deleteItem: (supplier) => supplierSession.deleteSupplier(supplier.slug),
+    getDeleteBlocker: (supplier) =>
+      getSupplierDeleteBlocker({
+        supplier,
+        brochureData: brochureSession?.getWorkingData(),
+        articleData: articleSession?.getWorkingData()
+      }),
+    persistChanges: persistDraft,
+    rerender
   });
 }

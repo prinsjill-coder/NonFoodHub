@@ -52,9 +52,17 @@ export function renderMediaRoute(route, mediaSession, supplierSession, brochureS
   });
 }
 
-export function setupMediaRoute(route, mediaSession, options = {}) {
+export function setupMediaRoute(route, mediaSession, supplierSession, brochureSession, articleSession, options = {}) {
   if (route.id === "media") {
-    setupMediaList({ mediaSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
+    setupMediaList({
+      mediaSession,
+      supplierSession,
+      brochureSession,
+      articleSession,
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft,
+      persistDraft: options.persistDraft
+    });
   }
 
   if (route.id === "mediaNew" || route.id === "mediaEdit") {

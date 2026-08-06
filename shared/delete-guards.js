@@ -1,6 +1,6 @@
 import { getArticles } from "./article-model.js";
 import { getBrochures } from "./brochure-model.js";
-import { findSupplierArticles, findSupplierBrochures } from "./content-relations.js";
+import { findMediaUsage, findSupplierArticles, findSupplierBrochures } from "./content-relations.js";
 import { normalizeContentStatus } from "./content-status.js";
 import { getSuppliers } from "./supplier-model.js";
 
@@ -56,4 +56,21 @@ export function getArticleDeleteBlocker({ article, supplierData = {} }) {
   }
 
   return "";
+}
+
+export function getMediaDeleteBlocker({ asset, supplierData = {}, brochureData = {}, articleData = {} }) {
+  const statusBlocker = getStatusDeleteBlocker(asset?.status);
+  if (statusBlocker) return statusBlocker;
+
+  const usage = findMediaUsage(asset, supplierData, brochureData, articleData);
+  const usageCount = usage.suppliers.length + usage.brochures.length + usage.articles.length;
+  if (usageCount) {
+    return "Verwijder eerst de koppelingen bij leveranciers, brochures of kennisbankartikelen.";
+  }
+
+  return "";
+}
+
+export function getLibraryDeleteBlocker({ item }) {
+  return getStatusDeleteBlocker(item?.status);
 }

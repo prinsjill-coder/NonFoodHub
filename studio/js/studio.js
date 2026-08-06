@@ -140,9 +140,9 @@ function wrapSessionDraftMutations(state, persistDraft) {
   [
     [state.supplierSession, ["applySupplier", "deleteSupplier", "importSource", "markExported"]],
     [state.brochureSession, ["applyBrochure", "deleteBrochure", "importSource", "markExported"]],
-    [state.mediaSession, ["applyMediaAsset"]],
+    [state.mediaSession, ["applyMediaAsset", "deleteMediaAsset"]],
     [state.articleSession, ["applyArticle", "deleteArticle", "importSource", "markExported"]],
-    [state.librarySession, ["applyLibraryItem", "importSource", "markExported"]]
+    [state.librarySession, ["applyLibraryItem", "deleteLibraryItem", "importSource", "markExported"]]
   ].forEach(([session, methods]) => {
     methods.forEach((methodName) => {
       const original = session[methodName]?.bind(session);
@@ -205,7 +205,8 @@ function renderStudio(state, options = {}) {
   setupRoute(currentRoute, state, {
     rerender: () => renderStudio(state),
     formDirtyGuard: state.formDirtyGuard,
-    restoreDraft: state.restoreDraft
+    restoreDraft: state.restoreDraft,
+    persistDraft: state.persistDraft
   });
   setupStudioSearchBridge(document);
   applyRouteTitle(routeTitle);

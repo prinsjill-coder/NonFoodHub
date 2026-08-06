@@ -9,6 +9,7 @@ import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
+import { getBrochureDeleteBlocker } from "../../../../shared/delete-guards.js";
 import {
   getBrochureCounts,
   getBrochureLanguageLabel,
@@ -16,9 +17,16 @@ import {
   getBrochures,
   sortBrochures
 } from "../../../../shared/brochure-model.js";
+import { validateBrochure } from "../../../../shared/brochure-validation.js";
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import {
+  firstValidationMessage,
+  renderBulkActionControls,
+  renderBulkSelectControl,
+  setupBulkActions
+} from "../../shared/bulk-actions.js";
 import {
   DEFAULT_SORT_OPTIONS,
   WEBSITE_STATUS_FILTER_OPTIONS,
@@ -114,6 +122,7 @@ function renderBrochureCards(brochures, suppliersById, publicData = {}) {
         >
           <div class="studio-card-head">
             <div>
+              ${renderBulkSelectControl({ scope: "brochure", itemId: brochure.id, label: brochure.title })}
               <h3>${escapeHtml(brochure.title)}</h3>
               <p class="studio-muted">${escapeHtml(supplierName)}</p>
             </div>
@@ -135,6 +144,10 @@ function renderBrochureTable(brochures, suppliersById, publicData = {}) {
     rows: brochures,
     rowAttributes: (brochure) => renderBrochureListAttributes(brochure, suppliersById, publicData),
     columns: [
+      {
+        label: "Selectie",
+        render: (brochure) => renderBulkSelectControl({ scope: "brochure", itemId: brochure.id, label: brochure.title })
+      },
       {
         label: "Titel",
         render: (brochure) => `<strong>${escapeHtml(brochure.title)}</strong><br><span>${escapeHtml(brochure.slug)}</span>`
@@ -285,6 +298,8 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
       title: "Validatierapport brochurebestand"
     })}
 
+    ${renderBulkActionControls({ scope: "brochure", moduleLabelPlural: "brochures" })}
+
     <section class="studio-section">
       <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
@@ -343,7 +358,11 @@ export function renderBrochuresList({ brochureData, supplierData, publicData = {
   `;
 }
 
-export function setupBrochureList({ brochureSession, supplierSession, rerender, restoreDraft }) {
+function findBrochureByListId(brochureData, id) {
+  return getBrochures(brochureData).find((brochure) => brochure.id === id) || null;
+}
+
+export function setupBrochureList({ brochureSession, supplierSession, articleSession, rerender, restoreDraft, persistDraft }) {
   const restoreButton = document.querySelector("[data-brochure-restore]");
 
   setupBrochureImportExport({ brochureSession, supplierSession, rerender });
@@ -352,6 +371,31 @@ export function setupBrochureList({ brochureSession, supplierSession, rerender, 
     itemSelector: "[data-brochure-item]",
     emptySelector: "[data-brochure-empty]",
     emptyText: "Geen brochures gevonden met de huidige zoekterm of filters."
+  });
+  setupBulkActions({
+    scope: "brochure",
+    itemSelector: "[data-brochure-item]",
+    moduleLabelSingular: "brochure",
+    moduleLabelPlural: "brochures",
+    findItem: (id) => findBrochureByListId(brochureSession.getWorkingData(), id),
+    getItemLabel: (brochure) => brochure.title,
+    applyItem: (brochure, originalBrochure) => brochureSession.applyBrochure(brochure, originalBrochure.slug),
+    validateStatusChange: (brochure, originalBrochure) =>
+      firstValidationMessage(validateBrochure(
+        brochure,
+        getBrochures(brochureSession.getWorkingData()),
+        supplierSession.getWorkingData(),
+        brochureSession.getWorkingData(),
+        { originalSlug: originalBrochure.slug, originalId: originalBrochure.id }
+      )),
+    deleteItem: (brochure) => brochureSession.deleteBrochure(brochure.slug),
+    getDeleteBlocker: (brochure) =>
+      getBrochureDeleteBlocker({
+        brochure,
+        articleData: articleSession?.getWorkingData()
+      }),
+    persistChanges: persistDraft,
+    rerender
   });
   restoreButton?.addEventListener("click", async () => {
     if (brochureSession.snapshot().dirty) {

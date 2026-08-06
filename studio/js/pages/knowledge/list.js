@@ -9,6 +9,7 @@ import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
+import { getArticleDeleteBlocker } from "../../../../shared/delete-guards.js";
 import {
   getArticleCounts,
   getArticles,
@@ -16,9 +17,16 @@ import {
   sortArticles
 } from "../../../../shared/article-model.js";
 import { getArticleQualityReport } from "../../../../shared/article-quality.js";
+import { validateArticle } from "../../../../shared/article-validation.js";
 import { displayStatusForPublicModule, displayStatusLabelForPublicModule, isPublishedOnWebsite } from "../../../../shared/publication-status.js";
 import { getSuppliers, sortSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import {
+  firstValidationMessage,
+  renderBulkActionControls,
+  renderBulkSelectControl,
+  setupBulkActions
+} from "../../shared/bulk-actions.js";
 import {
   DEFAULT_SORT_OPTIONS,
   WEBSITE_STATUS_FILTER_OPTIONS,
@@ -116,6 +124,7 @@ function renderArticleCards(articles, suppliersById, publicData = {}) {
         >
           <div class="studio-card-head">
             <div>
+              ${renderBulkSelectControl({ scope: "article", itemId: article.id, label: article.title })}
               <h3>${escapeHtml(article.title)}</h3>
               <p class="studio-muted">${escapeHtml((article.categories || []).join(", ") || "Geen categorie")}</p>
             </div>
@@ -137,6 +146,10 @@ function renderArticleTable(articles, suppliersById, publicData = {}) {
     rows: articles,
     rowAttributes: (article) => renderArticleListAttributes(article, suppliersById, publicData),
     columns: [
+      {
+        label: "Selectie",
+        render: (article) => renderBulkSelectControl({ scope: "article", itemId: article.id, label: article.title })
+      },
       {
         label: "Artikel",
         render: (article) => `<strong>${escapeHtml(article.title)}</strong><br><span>${escapeHtml(article.slug)}</span>`
@@ -334,6 +347,8 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
       title: "Kwaliteitsrapport kennisbank"
     })}
 
+    ${renderBulkActionControls({ scope: "article", moduleLabelPlural: "kennisbankartikelen" })}
+
     <section class="studio-section">
       <div class="studio-grid studio-grid-4">
         <article class="studio-card studio-metric-card">
@@ -394,7 +409,11 @@ export function renderArticlesList({ articleData, supplierData, brochureData, me
   `;
 }
 
-export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender, restoreDraft }) {
+function findArticleByListId(articleData, id) {
+  return getArticles(articleData).find((article) => article.id === id) || null;
+}
+
+export function setupArticleList({ articleSession, supplierSession, brochureSession, mediaSession, rerender, restoreDraft, persistDraft }) {
   const restoreButton = document.querySelector("[data-article-restore]");
 
   setupArticleImport({ articleSession, supplierSession, brochureSession, mediaSession, rerender });
@@ -404,6 +423,33 @@ export function setupArticleList({ articleSession, supplierSession, brochureSess
     itemSelector: "[data-article-item]",
     emptySelector: "[data-article-empty]",
     emptyText: "Geen kennisbankartikelen gevonden met de huidige zoekterm of filters."
+  });
+  setupBulkActions({
+    scope: "article",
+    itemSelector: "[data-article-item]",
+    moduleLabelSingular: "kennisbankartikel",
+    moduleLabelPlural: "kennisbankartikelen",
+    findItem: (id) => findArticleByListId(articleSession.getWorkingData(), id),
+    getItemLabel: (article) => article.title,
+    applyItem: (article, originalArticle) => articleSession.applyArticle(article, originalArticle.slug),
+    validateStatusChange: (article, originalArticle) =>
+      firstValidationMessage(validateArticle(
+        article,
+        getArticles(articleSession.getWorkingData()),
+        supplierSession.getWorkingData(),
+        brochureSession.getWorkingData(),
+        articleSession.getWorkingData(),
+        mediaSession.getWorkingData(),
+        { originalSlug: originalArticle.slug, originalId: originalArticle.id }
+      )),
+    deleteItem: (article) => articleSession.deleteArticle(article.slug),
+    getDeleteBlocker: (article) =>
+      getArticleDeleteBlocker({
+        article,
+        supplierData: supplierSession.getWorkingData()
+      }),
+    persistChanges: persistDraft,
+    rerender
   });
   restoreButton?.addEventListener("click", async () => {
     if (articleSession.snapshot().dirty) {

@@ -86,6 +86,17 @@ export function createMediaSession(initialData, options = {}) {
     });
   }
 
+  function deleteMediaAsset(id) {
+    const assets = getMediaAssets(workingData);
+    workingData.items = sortMediaAssets(assets.filter((asset) => asset.id !== id));
+    workingData = normalizeMediaFileForSession(workingData);
+    lastValidationReport = deepClone({
+      ...validateMediaFile(workingData),
+      action: "session",
+      sourceFileName
+    });
+  }
+
   function findById(id) {
     const asset = findMediaAssetById(workingData, id);
     return asset ? deepClone(asset) : null;
@@ -129,6 +140,7 @@ export function createMediaSession(initialData, options = {}) {
     setValidationReport,
     restoreSource,
     applyMediaAsset,
+    deleteMediaAsset,
     findById,
     registerLocalProjectFile,
     findLocalProjectFile,

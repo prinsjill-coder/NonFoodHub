@@ -50,7 +50,14 @@ export function renderSuppliersRoute(route, supplierSession, brochureSession, ar
 
 export function setupSuppliersRoute(route, supplierSession, brochureSession, articleSession, mediaSession, options = {}) {
   if (route.id === "suppliers") {
-    setupSupplierList({ supplierSession, rerender: options.rerender, restoreDraft: options.restoreDraft });
+    setupSupplierList({
+      supplierSession,
+      brochureSession,
+      articleSession,
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft,
+      persistDraft: options.persistDraft
+    });
   }
 
   if (route.id === "supplierNew" || route.id === "supplierEdit") {

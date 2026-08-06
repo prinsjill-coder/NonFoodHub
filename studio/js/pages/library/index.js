@@ -61,7 +61,16 @@ export function renderLibraryRoute(route, librarySession, supplierSession, broch
 
 export function setupLibraryRoute(route, librarySession, supplierSession, brochureSession, articleSession, mediaSession, options = {}) {
   if (route.id === "library") {
-    setupLibraryList({ librarySession, rerender: options.rerender, restoreDraft: options.restoreDraft });
+    setupLibraryList({
+      librarySession,
+      supplierSession,
+      brochureSession,
+      articleSession,
+      mediaSession,
+      rerender: options.rerender,
+      restoreDraft: options.restoreDraft,
+      persistDraft: options.persistDraft
+    });
   }
 
   if (route.id === "libraryImport") {

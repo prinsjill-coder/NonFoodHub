@@ -9,6 +9,7 @@ import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
 import { findMediaUsage } from "../../../../shared/content-relations.js";
+import { getMediaDeleteBlocker } from "../../../../shared/delete-guards.js";
 import {
   getMediaAssets,
   getMediaCounts,
@@ -18,7 +19,14 @@ import {
   getMediaUsageTypeLabel,
   sortMediaAssets
 } from "../../../../shared/media-model.js";
+import { validateMediaAsset } from "../../../../shared/media-validation.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import {
+  firstValidationMessage,
+  renderBulkActionControls,
+  renderBulkSelectControl,
+  setupBulkActions
+} from "../../shared/bulk-actions.js";
 import {
   DEFAULT_SORT_OPTIONS,
   YES_NO_FILTER_OPTIONS,
@@ -95,6 +103,7 @@ function renderMediaCards(mediaAssets, mediaData, context = {}) {
         >
           <div class="studio-card-head">
             <div>
+              ${renderBulkSelectControl({ scope: "media", itemId: asset.id, label: asset.title })}
               <h3>${escapeHtml(asset.title)}</h3>
               <p class="studio-muted">${escapeHtml(asset.file)}</p>
             </div>
@@ -119,6 +128,10 @@ function renderMediaTable(mediaAssets, mediaData, context = {}) {
     rows: mediaAssets,
     rowAttributes: (asset) => renderMediaListAttributes(asset, mediaData, context),
     columns: [
+      {
+        label: "Selectie",
+        render: (asset) => renderBulkSelectControl({ scope: "media", itemId: asset.id, label: asset.title })
+      },
       {
         label: "Asset",
         render: (asset) => `<strong>${escapeHtml(asset.title)}</strong><br><span>${escapeHtml(asset.id)}</span>`
@@ -248,6 +261,8 @@ export function renderMediaList({ mediaData, supplierData, brochureData, article
       actions
     })}
 
+    ${renderBulkActionControls({ scope: "media", moduleLabelPlural: "media-items" })}
+
     <section class="studio-section">
       <div class="studio-grid studio-grid-2" data-media-card-list>${renderMediaCards(mediaAssets, mediaData, context)}</div>
       <div class="studio-list-empty" data-media-empty hidden>
@@ -265,7 +280,7 @@ export function renderMediaList({ mediaData, supplierData, brochureData, article
   `;
 }
 
-export function setupMediaList({ mediaSession, rerender, restoreDraft }) {
+export function setupMediaList({ mediaSession, supplierSession, brochureSession, articleSession, rerender, restoreDraft, persistDraft }) {
   const restoreButton = document.querySelector("[data-media-restore]");
 
   setupListControls({
@@ -273,6 +288,29 @@ export function setupMediaList({ mediaSession, rerender, restoreDraft }) {
     itemSelector: "[data-media-item]",
     emptySelector: "[data-media-empty]",
     emptyText: "Geen media-assets gevonden met de huidige zoekterm of filters."
+  });
+  setupBulkActions({
+    scope: "media",
+    itemSelector: "[data-media-item]",
+    moduleLabelSingular: "media-item",
+    moduleLabelPlural: "media-items",
+    findItem: (id) => mediaSession.findById(id),
+    getItemLabel: (asset) => asset.title,
+    applyItem: (asset, originalAsset) => mediaSession.applyMediaAsset(asset, originalAsset.id),
+    validateStatusChange: (asset, originalAsset) =>
+      firstValidationMessage(validateMediaAsset(asset, getMediaAssets(mediaSession.getWorkingData()), {
+        originalId: originalAsset.id
+      })),
+    deleteItem: (asset) => mediaSession.deleteMediaAsset(asset.id),
+    getDeleteBlocker: (asset) =>
+      getMediaDeleteBlocker({
+        asset,
+        supplierData: supplierSession?.getWorkingData(),
+        brochureData: brochureSession?.getWorkingData(),
+        articleData: articleSession?.getWorkingData()
+      }),
+    persistChanges: persistDraft,
+    rerender
   });
   restoreButton?.addEventListener("click", async () => {
     if (mediaSession.snapshot().dirty) {

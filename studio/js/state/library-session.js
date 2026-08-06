@@ -112,6 +112,14 @@ export function createLibrarySession(initialData, sources = {}, options = {}) {
     lastExport = null;
   }
 
+  function deleteLibraryItem(slug) {
+    const items = getLibraryItems(workingData);
+    workingData.items = sortLibraryItems(items.filter((item) => item.slug !== slug));
+    workingData = normalizeLibraryFileForSession(workingData);
+    lastValidationReport = createValidationReport(workingData, sources, "session", sourceFileName);
+    lastExport = null;
+  }
+
   function findBySlug(slug) {
     const item = findLibraryItemBySlug(workingData, slug);
     return item ? deepClone(item) : null;
@@ -152,6 +160,7 @@ export function createLibrarySession(initialData, sources = {}, options = {}) {
     restoreSource,
     importSource,
     applyLibraryItem,
+    deleteLibraryItem,
     findBySlug,
     findById,
     prepareExport,

@@ -107,6 +107,238 @@ async function clearStudioDraftStore(page) {
   }), STUDIO_DRAFT_DB_NAME);
 }
 
+async function readStudioDraftStore(page) {
+  return page.evaluate((dbName) => new Promise((resolve) => {
+    if (!window.indexedDB) {
+      resolve(null);
+      return;
+    }
+
+    const request = window.indexedDB.open(dbName);
+    request.addEventListener("upgradeneeded", () => resolve(null), { once: true });
+    request.addEventListener("error", () => resolve(null), { once: true });
+    request.addEventListener("success", () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("studio-drafts")) {
+        db.close();
+        resolve(null);
+        return;
+      }
+
+      const transaction = db.transaction("studio-drafts", "readonly");
+      const store = transaction.objectStore("studio-drafts");
+      const getRequest = store.get("current");
+      getRequest.addEventListener("success", () => {
+        const draft = getRequest.result || null;
+        db.close();
+        resolve(draft);
+      }, { once: true });
+      getRequest.addEventListener("error", () => {
+        db.close();
+        resolve(null);
+      }, { once: true });
+    }, { once: true });
+  }), STUDIO_DRAFT_DB_NAME);
+}
+
+async function seedBulkStatusDraftStore(page) {
+  await page.goto("/index.html");
+  await page.evaluate((dbName) => new Promise(async (resolve, reject) => {
+    const clone = (value) => JSON.parse(JSON.stringify(value));
+    const [
+      suppliers,
+      brochures,
+      media,
+      articles,
+      library
+    ] = await Promise.all([
+      fetch("/data/suppliers.json").then((response) => response.json()),
+      fetch("/data/brochures.json").then((response) => response.json()),
+      fetch("/data/media.json").then((response) => response.json()),
+      fetch("/data/articles.json").then((response) => response.json()),
+      fetch("/data/library.json").then((response) => response.json())
+    ]);
+    const seededAt = "2026-01-01T00:00:00.000Z";
+
+    function moduleDraft(key, data, workingData) {
+      return {
+        sourceData: clone(data),
+        workingData: clone(workingData),
+        sourceFileName: `data/${key}.json`,
+        sourceType: "bundled",
+        lastExport: null
+      };
+    }
+
+    const workingSuppliers = {
+      ...clone(suppliers),
+      items: [
+        ...clone(suppliers.items),
+        {
+          id: "supplier-rc35-duurzame-leverancier-a",
+          name: "RC35 duurzame leverancier A",
+          slug: "rc35-duurzame-leverancier-a",
+          type: "leverancier",
+          summary: "Samenvatting voor bulkstatuscontrole.",
+          description: "Omschrijving met voldoende inhoud voor gereed voor publicatie.",
+          categories: ["Bestek"],
+          logo: "assets/images/logos/rc35-duurzame-leverancier-a.jpg",
+          image: "assets/images/suppliers/rc35-duurzame-leverancier-a.jpg",
+          brochureIds: [],
+          relatedArticleIds: [],
+          featured: false,
+          sortOrder: 300,
+          status: "concept",
+          updatedAt: seededAt
+        },
+        {
+          id: "supplier-rc35-duurzame-leverancier-b",
+          name: "RC35 duurzame leverancier B",
+          slug: "rc35-duurzame-leverancier-b",
+          type: "leverancier",
+          summary: "Samenvatting voor bulkstatuscontrole.",
+          description: "Omschrijving met voldoende inhoud voor gereed voor publicatie.",
+          categories: ["Bestek"],
+          logo: "assets/images/logos/rc35-duurzame-leverancier-b.jpg",
+          image: "assets/images/suppliers/rc35-duurzame-leverancier-b.jpg",
+          brochureIds: [],
+          relatedArticleIds: [],
+          featured: false,
+          sortOrder: 310,
+          status: "concept",
+          updatedAt: seededAt
+        }
+      ]
+    };
+
+    const workingBrochures = {
+      ...clone(brochures),
+      items: [
+        ...clone(brochures.items),
+        {
+          id: "brochure-rc35-duurzame-brochure",
+          title: "RC35 duurzame brochure",
+          supplierId: "supplier-amefa",
+          slug: "rc35-duurzame-brochure",
+          year: 2029,
+          categories: ["Bestek"],
+          pdfFile: "assets/downloads/brochures/rc35-duurzame-brochure.pdf",
+          pdfSize: "",
+          thumbnail: "assets/images/brochures/rc35-duurzame-brochure.jpg",
+          description: "Brochure voor bulkstatuscontrole in de bewerkversie.",
+          language: "nl",
+          status: "concept",
+          sortOrder: 300,
+          updatedAt: seededAt
+        }
+      ]
+    };
+
+    const workingArticles = {
+      ...clone(articles),
+      items: [
+        ...clone(articles.items),
+        {
+          id: "article-rc35-duurzaam-artikel",
+          title: "RC35 duurzaam artikel",
+          slug: "rc35-duurzaam-artikel",
+          status: "concept",
+          summary: "Artikel voor bulkstatuscontrole in de bewerkversie.",
+          body: "Deze artikeltekst controleert dat bulkstatussen duurzaam worden opgeslagen.",
+          categories: ["Inspiratie"],
+          heroImage: "assets/images/rc35-duurzaam-artikel.jpg",
+          supplierIds: [],
+          brochureIds: [],
+          updatedAt: seededAt,
+          sortOrder: 300
+        }
+      ]
+    };
+
+    const workingMedia = {
+      ...clone(media),
+      items: [
+        ...clone(media.items),
+        {
+          id: "rc35-duurzaam-mediarecord",
+          title: "RC35 duurzaam mediarecord",
+          file: "assets/downloads/brochures/rc35-duurzaam-mediarecord.pdf",
+          type: "pdf",
+          alt: "",
+          caption: "Mediarecord voor bulkstatuscontrole.",
+          width: "",
+          height: "",
+          fileSize: "",
+          usageType: "brochure-pdf",
+          rightsStatus: "approved",
+          status: "concept",
+          sortOrder: 300,
+          updatedAt: seededAt
+        }
+      ]
+    };
+
+    const workingLibrary = {
+      ...clone(library),
+      items: [
+        ...clone(library.items),
+        {
+          id: "library-rc35-duurzaam-bibliotheekitem",
+          title: "RC35 duurzaam bibliotheekitem",
+          slug: "rc35-duurzaam-bibliotheekitem",
+          status: "concept",
+          type: "overig",
+          category: "Productinformatie",
+          summary: "Bibliotheekitem voor bulkstatuscontrole in de bewerkversie.",
+          filePath: "",
+          thumbnailPath: "",
+          supplierIds: [],
+          brochureIds: [],
+          articleIds: [],
+          tags: [],
+          updatedAt: seededAt,
+          sortOrder: 300
+        }
+      ]
+    };
+
+    const draft = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      modules: {
+        suppliers: moduleDraft("suppliers", suppliers, workingSuppliers),
+        brochures: moduleDraft("brochures", brochures, workingBrochures),
+        media: moduleDraft("media", media, workingMedia),
+        articles: moduleDraft("articles", articles, workingArticles),
+        library: moduleDraft("library", library, workingLibrary)
+      }
+    };
+
+    const openRequest = window.indexedDB.open(dbName, 1);
+    openRequest.addEventListener("upgradeneeded", () => {
+      const db = openRequest.result;
+      if (!db.objectStoreNames.contains("studio-drafts")) {
+        db.createObjectStore("studio-drafts");
+      }
+    }, { once: true });
+    openRequest.addEventListener("error", () => reject(openRequest.error), { once: true });
+    openRequest.addEventListener("success", () => {
+      const db = openRequest.result;
+      const transaction = db.transaction("studio-drafts", "readwrite");
+      const store = transaction.objectStore("studio-drafts");
+      store.put(draft, "current");
+      transaction.addEventListener("complete", () => {
+        db.close();
+        resolve();
+      }, { once: true });
+      transaction.addEventListener("error", () => {
+        db.close();
+        reject(transaction.error);
+      }, { once: true });
+    }, { once: true });
+  }), STUDIO_DRAFT_DB_NAME);
+}
+
 async function visibleItemCount(page, selector) {
   return page.locator(selector).evaluateAll((items) => items.filter((item) => !item.hidden).length);
 }
@@ -305,6 +537,205 @@ test("Studio combineert zoeken, slimme filters, sortering en reset", async ({ pa
   await expect(page.locator("[data-library-filter-summary]")).toContainText("Contenttype: Catalogus");
   expect(await visibleItemCount(page, libraryCards)).toBe(1);
   await expect(page.locator(libraryCards).filter({ hasText: "Churchill Combined Brochure 2026" }).first()).toBeVisible();
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio toont bulkselectie consistent op alle contentoverzichten", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  const cases = [
+    { path: "/studio/index.html#/leveranciers", scope: "supplier", selector: "[data-supplier-card-list] [data-supplier-item]" },
+    { path: "/studio/index.html#/brochures", scope: "brochure", selector: "[data-brochure-card-list] [data-brochure-item]" },
+    { path: "/studio/index.html#/kennisbank", scope: "article", selector: "[data-article-card-list] [data-article-item]" },
+    { path: "/studio/index.html#/media", scope: "media", selector: "[data-media-card-list] [data-media-item]" },
+    { path: "/studio/index.html#/bibliotheek", scope: "library", selector: "[data-library-card-list] [data-library-item]" }
+  ];
+
+  for (const bulkCase of cases) {
+    await page.goto(bulkCase.path);
+    const toolbar = page.locator(`[data-bulk-toolbar][data-bulk-scope="${bulkCase.scope}"]`);
+    await expect(page.locator(bulkCase.selector).first()).toBeVisible();
+    await expect(toolbar).toBeHidden();
+
+    await page.locator(`${bulkCase.selector} input[data-bulk-select]`).first().check();
+    await expect(toolbar).toBeVisible();
+    await expect(toolbar.locator("[data-bulk-count]")).toHaveText("1");
+
+    await page.locator(`[data-bulk-clear][data-bulk-scope="${bulkCase.scope}"]`).last().click();
+    await expect(toolbar).toBeHidden();
+  }
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio bulkacties werken met filters, statuswijziging, archiveren en deels geblokkeerd verwijderen", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  const supplierCards = "[data-supplier-card-list] [data-supplier-item]";
+  const rcSupplierCard = `${supplierCards}[data-list-id="supplier-rc35-bulk-leverancier"]`;
+  const amefaCard = `${supplierCards}[data-list-id="supplier-amefa"]`;
+  const toolbar = page.locator('[data-bulk-toolbar][data-bulk-scope="supplier"]');
+  const result = page.locator('[data-bulk-result][data-bulk-scope="supplier"]');
+
+  await page.goto("/studio/index.html#/leveranciers/nieuw");
+  await page.locator("#studio-field-name").fill("RC35 bulk leverancier");
+  await page.locator("#studio-field-categories-bestek").check({ force: true });
+  await page.getByRole("button", { name: "Opslaan in bewerkversie" }).click();
+  await expect(page).toHaveURL(/#\/leveranciers\/rc35-bulk-leverancier$/);
+
+  await page.goto("/studio/index.html#/leveranciers");
+  await expect(page.locator(rcSupplierCard)).toBeVisible();
+
+  await page.locator("[data-studio-search]").fill("RC35 bulk");
+  await page.locator('[data-bulk-select-visible][data-bulk-scope="supplier"]').click();
+  await expect(toolbar).toBeVisible();
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("1");
+
+  await page.locator("[data-studio-search]").fill("");
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("1");
+  await page.locator('[data-bulk-clear][data-bulk-scope="supplier"]').last().click();
+  await expect(toolbar).toBeHidden();
+
+  await page.locator(`${rcSupplierCard} input[data-bulk-select]`).first().check();
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("1");
+  await page.locator(`${amefaCard} input[data-bulk-select]`).first().check();
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("2");
+
+  await page.locator('[data-bulk-status="concept"][data-bulk-scope="supplier"]').click();
+  await expect(page.getByRole("alertdialog", { name: "2 leveranciers wijzigen naar Concept?" })).toBeVisible();
+  await page.getByRole("button", { name: "Status wijzigen" }).click();
+  await expect(result).toBeVisible();
+  await expect(result).toContainText("2 leveranciers op Concept gezet.");
+  await expect(toolbar).toBeHidden();
+
+  await page.locator(`${rcSupplierCard} input[data-bulk-select]`).first().check();
+  await page.locator('[data-bulk-status="archived"][data-bulk-scope="supplier"]').click();
+  await expect(page.getByRole("alertdialog", { name: "1 leveranciers archiveren?" })).toBeVisible();
+  await page.getByRole("button", { name: "Archiveren" }).last().click();
+  await expect(result).toContainText("1 leveranciers gearchiveerd.");
+
+  await page.locator(`${rcSupplierCard} input[data-bulk-select]`).first().check();
+  await page.locator(`${amefaCard} input[data-bulk-select]`).first().check();
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("2");
+  await page.locator('[data-bulk-delete][data-bulk-scope="supplier"]').click();
+  await expect(page.getByRole("alertdialog", { name: "2 leveranciers definitief verwijderen?" })).toBeVisible();
+  await page.getByRole("button", { name: "Definitief verwijderen" }).last().click();
+
+  await expect(page.locator(rcSupplierCard)).toHaveCount(0);
+  await expect(result).toContainText("1 leveranciers definitief verwijderd.");
+  await expect(result).toContainText("1 leveranciers overgeslagen");
+  await expect(result).toContainText("Verwijder of verplaats eerst gekoppelde brochures.");
+  await expect(toolbar).toBeVisible();
+  await expect(toolbar.locator("[data-bulk-count]")).toHaveText("1");
+  await expect(page.locator(`${amefaCard} input[data-bulk-select]`).first()).toBeChecked();
+
+  await page.reload();
+  await expect(page.locator(rcSupplierCard)).toHaveCount(0);
+  await expect(page.locator(amefaCard)).toBeVisible();
+
+  await expectCleanStudioPage(page, errors);
+});
+
+test("Studio bewaart bulkstatuswijzigingen duurzaam in de bewerkversie", async ({ page }) => {
+  test.setTimeout(90000);
+  const errors = collectConsoleErrors(page);
+
+  async function bulkReadyAndAssert({
+    path,
+    scope,
+    selector,
+    itemIds,
+    search = "",
+    moduleKey
+  }) {
+    await page.goto(path);
+    if (search) {
+      await page.locator("[data-studio-search]").fill(search);
+      await page.locator(`[data-bulk-select-visible][data-bulk-scope="${scope}"]`).click();
+    } else {
+      for (const itemId of itemIds) {
+        await page.locator(`${selector}[data-list-id="${itemId}"] input[data-bulk-select]`).first().check();
+      }
+    }
+    await expect(page.locator(`[data-bulk-toolbar][data-bulk-scope="${scope}"] [data-bulk-count]`)).toHaveText(String(itemIds.length));
+
+    const beforeValues = {};
+    for (const itemId of itemIds) {
+      beforeValues[itemId] = await page.locator(`${selector}[data-list-id="${itemId}"]`).first().getAttribute("data-sort-updated-at");
+    }
+
+    await page.waitForTimeout(25);
+    await page.locator(`[data-bulk-status="ready"][data-bulk-scope="${scope}"]`).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await page.getByRole("button", { name: "Status wijzigen" }).click();
+    await expect(page.locator(`[data-bulk-result][data-bulk-scope="${scope}"]`)).toContainText("gereed voor publicatie gezet");
+
+    for (const itemId of itemIds) {
+      const item = page.locator(`${selector}[data-list-id="${itemId}"]`).first();
+      await expect(item).toHaveAttribute("data-filter-workflow", "ready");
+      const updatedAt = await item.getAttribute("data-sort-updated-at");
+      expect(updatedAt).toMatch(/T/);
+      expect(updatedAt).not.toBe(beforeValues[itemId]);
+    }
+
+    const draftAfterChange = await readStudioDraftStore(page);
+    for (const itemId of itemIds) {
+      const draftItem = draftAfterChange?.modules?.[moduleKey]?.workingData?.items?.find((item) => item.id === itemId);
+      expect(draftItem?.status).toBe("ready");
+      expect(draftItem?.updatedAt).toMatch(/T/);
+    }
+
+    await page.reload();
+    await expect(page.locator(selector).first()).toBeVisible();
+    for (const itemId of itemIds) {
+      await expect(page.locator(`${selector}[data-list-id="${itemId}"]`).first()).toHaveAttribute("data-filter-workflow", "ready");
+    }
+
+    await page.goto("/index.html");
+    await page.goto(path);
+    await expect(page.locator(selector).first()).toBeVisible();
+    for (const itemId of itemIds) {
+      await expect(page.locator(`${selector}[data-list-id="${itemId}"]`).first()).toHaveAttribute("data-filter-workflow", "ready");
+    }
+  }
+
+  await seedBulkStatusDraftStore(page);
+
+  await bulkReadyAndAssert({
+    path: "/studio/index.html#/leveranciers",
+    scope: "supplier",
+    selector: "[data-supplier-card-list] [data-supplier-item]",
+    itemIds: ["supplier-rc35-duurzame-leverancier-a", "supplier-rc35-duurzame-leverancier-b"],
+    search: "RC35 duurzame leverancier",
+    moduleKey: "suppliers"
+  });
+  await bulkReadyAndAssert({
+    path: "/studio/index.html#/brochures",
+    scope: "brochure",
+    selector: "[data-brochure-card-list] [data-brochure-item]",
+    itemIds: ["brochure-rc35-duurzame-brochure"],
+    moduleKey: "brochures"
+  });
+  await bulkReadyAndAssert({
+    path: "/studio/index.html#/kennisbank",
+    scope: "article",
+    selector: "[data-article-card-list] [data-article-item]",
+    itemIds: ["article-rc35-duurzaam-artikel"],
+    moduleKey: "articles"
+  });
+  await bulkReadyAndAssert({
+    path: "/studio/index.html#/media",
+    scope: "media",
+    selector: "[data-media-card-list] [data-media-item]",
+    itemIds: ["rc35-duurzaam-mediarecord"],
+    moduleKey: "media"
+  });
+  await bulkReadyAndAssert({
+    path: "/studio/index.html#/bibliotheek",
+    scope: "library",
+    selector: "[data-library-card-list] [data-library-item]",
+    itemIds: ["library-rc35-duurzaam-bibliotheekitem"],
+    moduleKey: "library"
+  });
 
   await expectCleanStudioPage(page, errors);
 });

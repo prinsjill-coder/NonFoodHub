@@ -8,6 +8,7 @@ import { renderSessionBanner } from "../../../../components/session-banner.js";
 import { renderStatusBadge } from "../../../../components/status-badge.js";
 import { renderValidationReport } from "../../../../components/validation-report.js";
 import { renderWorkflowPanel } from "../../../../components/workflow-panel.js";
+import { getLibraryDeleteBlocker } from "../../../../shared/delete-guards.js";
 import {
   getLibraryCounts,
   getLibraryItems,
@@ -16,8 +17,15 @@ import {
   sortLibraryItems
 } from "../../../../shared/library-model.js";
 import { getLibraryQualityReport } from "../../../../shared/library-quality.js";
+import { validateLibraryItem } from "../../../../shared/library-validation.js";
 import { getSuppliers } from "../../../../shared/supplier-model.js";
 import { escapeHtml } from "../../../../shared/utils.js";
+import {
+  firstValidationMessage,
+  renderBulkActionControls,
+  renderBulkSelectControl,
+  setupBulkActions
+} from "../../shared/bulk-actions.js";
 import {
   DEFAULT_SORT_OPTIONS,
   createSearchText,
@@ -85,6 +93,7 @@ function renderLibraryCards(items, libraryData, suppliersById) {
         >
           <div class="studio-card-head">
             <div>
+              ${renderBulkSelectControl({ scope: "library", itemId: item.id, label: item.title })}
               <h3>${escapeHtml(item.title)}</h3>
               <p class="studio-muted">${escapeHtml(item.category)} · ${escapeHtml(getLibraryTypeLabel(item.type, libraryData))}</p>
             </div>
@@ -130,6 +139,10 @@ function renderLibraryTable(items, libraryData, suppliersById) {
       data-category="${escapeHtml(item.category)}"
     `,
     columns: [
+      {
+        label: "Selectie",
+        render: (item) => renderBulkSelectControl({ scope: "library", itemId: item.id, label: item.title })
+      },
       {
         label: "Item",
         render: (item) => `<strong>${escapeHtml(item.title)}</strong><br><span>${escapeHtml(item.slug)}</span>`
@@ -297,6 +310,8 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
       title: "Kwaliteitsrapport bibliotheek"
     })}
 
+    ${renderBulkActionControls({ scope: "library", moduleLabelPlural: "bibliotheekitems" })}
+
     <section class="studio-section">
       <div class="studio-grid studio-grid-3">
         <article class="studio-card studio-metric-card">
@@ -349,7 +364,20 @@ export function renderLibraryList({ libraryData, supplierData, brochureData, art
   `;
 }
 
-export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
+function findLibraryItemByListId(libraryData, id) {
+  return getLibraryItems(libraryData).find((item) => item.id === id) || null;
+}
+
+export function setupLibraryList({
+  librarySession,
+  supplierSession,
+  brochureSession,
+  articleSession,
+  mediaSession,
+  rerender,
+  restoreDraft,
+  persistDraft
+}) {
   const restoreButton = document.querySelector("[data-library-restore]");
 
   setupListControls({
@@ -357,6 +385,30 @@ export function setupLibraryList({ librarySession, rerender, restoreDraft }) {
     itemSelector: "[data-library-item]",
     emptySelector: "[data-library-empty]",
     emptyText: "Geen bibliotheekitems gevonden met de huidige zoekterm of filters."
+  });
+  setupBulkActions({
+    scope: "library",
+    itemSelector: "[data-library-item]",
+    moduleLabelSingular: "bibliotheekitem",
+    moduleLabelPlural: "bibliotheekitems",
+    findItem: (id) => findLibraryItemByListId(librarySession.getWorkingData(), id),
+    getItemLabel: (item) => item.title,
+    applyItem: (item, originalItem) => librarySession.applyLibraryItem(item, originalItem.slug),
+    validateStatusChange: (item, originalItem) =>
+      firstValidationMessage(validateLibraryItem(
+        item,
+        getLibraryItems(librarySession.getWorkingData()),
+        supplierSession.getWorkingData(),
+        brochureSession.getWorkingData(),
+        articleSession.getWorkingData(),
+        librarySession.getWorkingData(),
+        mediaSession.getWorkingData(),
+        { originalSlug: originalItem.slug, originalId: originalItem.id }
+      )),
+    deleteItem: (item) => librarySession.deleteLibraryItem(item.slug),
+    getDeleteBlocker: (item) => getLibraryDeleteBlocker({ item }),
+    persistChanges: persistDraft,
+    rerender
   });
   restoreButton?.addEventListener("click", async () => {
     if (librarySession.snapshot().dirty) {
