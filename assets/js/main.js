@@ -3,7 +3,12 @@
   const base = body.dataset.base || ".";
   const currentPage = body.dataset.page || "home";
 
-  const href = (path) => `${base}/${path}`.replace("//", "/");
+  const isAbsoluteHref = (path) => {
+    const rawPath = String(path ?? "");
+    return Boolean(rawPath.match(/^(?:https?:|mailto:|tel:)/i)) || rawPath.startsWith("#");
+  };
+  const href = (path) => (isAbsoluteHref(path) ? String(path) : `${base}/${path}`.replace("//", "/"));
+  const assortmentUrl = "https://www.bidfood.nl/webshop/assortiment/non-food/_/N-fcinf4Z1rc100h/categoryId-115";
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -77,9 +82,10 @@
     { id: "home", title: "Home", path: "index.html", description: "Startpunt voor de Non-Food Hub" },
     { id: "leveranciers", title: "Leveranciers", path: "pages/leveranciers.html", description: "Partners, merken en productgroepen" },
     { id: "brochures", title: "Brochures en catalogi", path: "pages/brochures-catalogi.html", description: "Collecties en catalogusoverzicht" },
+    { id: "assortiment", title: "Assortiment", path: assortmentUrl, description: "Direct beschikbaar non-foodassortiment" },
     { id: "showroom", title: "Virtuele Showroom", path: "pages/virtuele-showroom.html", description: "Digitale rondleiding en showroomafspraken" },
     { id: "inspiratie", title: "Inspiratie", path: "pages/inspiratie.html", description: "Trends, kennisbank en praktische inspiratie" },
-    { id: "nieuw", title: "Nieuw", path: "pages/nieuw.html", description: "Nieuw binnen Non-Food" },
+    { id: "nieuw", title: "Uitgelicht", path: "pages/nieuw.html", description: "Nieuwe onderwerpen binnen Non-Food" },
     { id: "aanbiedingen", title: "Aanbiedingen", path: "pages/aanbiedingen.html", description: "Actuele non-food deals" },
     { id: "personalisatie", title: "Logo's & Personalisatie", path: "pages/logos-personalisatie.html", description: "Glaswerk, servies en kleding met eigen logo" },
     { id: "bibliotheek", title: "Bibliotheek", path: "pages/bibliotheek.html", description: "Servies leasen zonder grote investering" },
@@ -88,19 +94,13 @@
     { id: "contact", title: "Contact", path: "pages/contact.html", description: "Non-food advies, showroom en support" }
   ];
 
-  const navGroups = [
-    {
-      title: "Ontdek",
-      items: ["leveranciers", "brochures", "showroom", "inspiratie"]
-    },
-    {
-      title: "Actueel",
-      items: ["nieuw", "aanbiedingen", "terras", "droogijs"]
-    },
-    {
-      title: "Services",
-      items: ["personalisatie", "bibliotheek", "contact"]
-    }
+  const primaryNavigation = [
+    { id: "brochures", label: "Collecties", path: "pages/brochures-catalogi.html", description: "Collecties en catalogi" },
+    { id: "inspiratie", label: "Inspiratie", path: "pages/inspiratie.html", description: "Trends en praktische inspiratie" },
+    { id: "personalisatie", label: "Services", path: "pages/logos-personalisatie.html", description: "Aanvullende diensten" },
+    { id: "assortiment", label: "Assortiment", path: assortmentUrl, description: "Direct online bestellen" },
+    { id: "nieuw", label: "Uitgelicht", path: "pages/nieuw.html", description: "Nieuwe onderwerpen" },
+    { id: "contact", label: "Advies", path: "pages/contact.html", description: "Persoonlijk advies en contact" }
   ];
 
   function linkById(id) {
@@ -114,30 +114,15 @@
     const activeClass = (id) => (currentPage === id ? "is-active" : "");
     const currentAttribute = (id) => (currentPage === id ? ' aria-current="page"' : "");
 
-    const dropdowns = navGroups.map((group) => {
-      const items = group.items.map((id) => {
-        const link = linkById(id);
-        return `
-          <li>
-            <a href="${href(link.path)}" class="${activeClass(link.id)}"${currentAttribute(link.id)}>
-              ${link.title}
-              <span>${link.description}</span>
-            </a>
-          </li>
-        `;
-      }).join("");
+    const navLinks = primaryNavigation.map((link) => `
+      <li>
+        <a class="nav-link ${activeClass(link.id)}" href="${href(link.path)}"${currentAttribute(link.id)}${isAbsoluteHref(link.path) ? ' target="_blank" rel="noreferrer"' : ""}>${link.label}</a>
+      </li>
+    `).join("");
 
-      return `
-        <li class="dropdown">
-          <button class="dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">${group.title}</button>
-          <ul class="dropdown-menu">${items}</ul>
-        </li>
-      `;
-    }).join("");
-
-    const mobileLinks = links.map((link) => `
-      <a href="${href(link.path)}" class="${activeClass(link.id)}"${currentAttribute(link.id)}>
-        ${link.title}
+    const mobileLinks = primaryNavigation.map((link) => `
+      <a href="${href(link.path)}" class="${activeClass(link.id)}"${currentAttribute(link.id)}${isAbsoluteHref(link.path) ? ' target="_blank" rel="noreferrer"' : ""}>
+        ${link.label}
         <small>${link.description}</small>
       </a>
     `).join("");
@@ -154,15 +139,14 @@
           </a>
           <nav class="desktop-nav" aria-label="Hoofdnavigatie">
             <ul class="nav-list">
-              <li><a class="nav-link ${activeClass("home")}" href="${href("index.html")}"${currentAttribute("home")}>Home</a></li>
-              ${dropdowns}
+              ${navLinks}
             </ul>
           </nav>
           <div class="header-actions">
             <button class="icon-button search-trigger" type="button" aria-label="Zoeken" aria-controls="site-search-overlay" aria-expanded="false">
               <span class="icon-search" aria-hidden="true"></span>
             </button>
-            <a class="btn btn-primary" href="${href("pages/contact.html")}">Advies aanvragen</a>
+            <a class="btn btn-primary" href="${href("pages/contact.html")}">Neem contact op</a>
             <button class="nav-toggle" type="button" aria-label="Menu openen" aria-controls="mobile-navigation" aria-expanded="false">
               <span></span><span></span><span></span>
             </button>
@@ -196,25 +180,31 @@
           <div>
             <h4>Ontdek</h4>
             <ul class="footer-links">
-              <li><a href="${href("pages/leveranciers.html")}">Leveranciers</a></li>
-              <li><a href="${href("pages/brochures-catalogi.html")}">Brochures</a></li>
-              <li><a href="${href("pages/virtuele-showroom.html")}">Showroom</a></li>
+              <li><a href="${href("pages/brochures-catalogi.html")}">Collecties</a></li>
+              <li><a href="${href("pages/inspiratie.html")}">Inspiratie</a></li>
+              <li><a href="${href("pages/logos-personalisatie.html")}">Services</a></li>
+              <li><a href="${href(assortmentUrl)}" target="_blank" rel="noreferrer">Assortiment</a></li>
+              <li><a href="${href("pages/nieuw.html")}">Uitgelicht</a></li>
+              <li><a href="${href("pages/contact.html")}">Advies</a></li>
+              <li><a href="${href("index.html#waarom-nonfoodhub")}">Waarom NonFoodHub</a></li>
             </ul>
           </div>
           <div>
             <h4>Inspiratie</h4>
             <ul class="footer-links">
-              <li><a href="${href("pages/inspiratie.html")}">Inspiratie</a></li>
-              <li><a href="${href("pages/terras-outdoor.html")}">Terras & Outdoor</a></li>
-              <li><a href="${href("pages/bibliotheek.html")}">Bibliotheek</a></li>
+              <li><a href="${href("pages/virtuele-showroom.html")}">Virtuele showroom</a></li>
+              <li><a href="${href("pages/inspiratie.html")}">Trends</a></li>
+              <li><a href="${href("pages/inspiratie.html")}">Praktische tips</a></li>
+              <li><a href="${href("pages/inspiratie.html")}">Trainingen</a></li>
             </ul>
           </div>
           <div>
             <h4>Contact</h4>
             <ul class="footer-links">
-              <li><a href="tel:+31135812712">013-5812712</a></li>
-              <li><a href="mailto:nonfood@bidfood.nl">nonfood@bidfood.nl</a></li>
+              <li><a href="${href("pages/contact.html")}">Non Food binnendienst</a></li>
+              <li><a href="${href("pages/contact.html")}">Specialist</a></li>
               <li><a href="https://wa.me/31135812712" target="_blank" rel="noreferrer">WhatsApp</a></li>
+              <li><a href="mailto:nonfood@bidfood.nl">E-mail</a></li>
             </ul>
           </div>
         </div>
@@ -271,9 +261,10 @@
   function setupSearch() {
     const openButtons = document.querySelectorAll(".search-trigger");
     const closeButton = document.querySelector(".search-close");
+    const overlay = document.querySelector("#site-search-overlay");
     const input = document.querySelector("#site-search");
     const results = document.querySelector("#search-results");
-    if (!input || !results) return;
+    if (!overlay || !input || !results) return;
 
     function renderResults(query) {
       const normalized = query.trim().toLowerCase();
@@ -308,7 +299,13 @@
     }
 
     openButtons.forEach((button) => button.addEventListener("click", openSearch));
-    closeButton.addEventListener("click", closeSearch);
+    closeButton?.addEventListener("click", closeSearch);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeSearch();
+    });
+    results.addEventListener("click", (event) => {
+      if (event.target.closest(".search-result")) closeSearch();
+    });
     input.addEventListener("input", () => renderResults(input.value));
 
     document.addEventListener("keydown", (event) => {

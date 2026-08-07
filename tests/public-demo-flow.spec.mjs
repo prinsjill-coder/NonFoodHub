@@ -105,11 +105,20 @@ test("publieke demo-flow loopt van homepage naar artikel, leverancier en brochur
   const errors = collectConsoleErrors(page);
 
   await page.goto("/index.html");
-  await expect(page.locator("[data-home-article-grid] .article-card")).toHaveCount(2);
-  await expect(page.getByRole("link", { name: /Start met inspiratie/i })).toBeVisible();
-  const homepageArticleCard = page.locator("[data-home-article-grid] .article-card", {
-    hasText: "Professioneel tafelconcept"
-  });
+  await expect(page.getByRole("heading", { name: "Waar ben je vandaag naar op zoek?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meer dan alleen een webshop" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Laat je inspireren" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ontdek het volledige assortiment" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Wij helpen je graag verder" })).toBeVisible();
+  await expect(page.locator(".hero .btn-primary")).toHaveCount(0);
+  await expect(page.locator(".hero-secondary a")).toHaveText("Kijk hier voor meer informatie");
+  await expect(page.locator(".hero-secondary a")).toHaveAttribute("href", "#waarom-nonfoodhub");
+  await expect(page.locator(".home-entry-grid .home-entry-card")).toHaveCount(6);
+  await expect(page.locator(".home-entry-grid .home-entry-card").nth(0)).toHaveAttribute("href", "pages/brochures-catalogi.html");
+  await expect(page.locator(".home-entry-grid .home-entry-card").nth(4)).toContainText("Uitgelicht");
+  await expect(page.locator(".home-entry-grid .home-entry-card").nth(5)).toContainText("Advies");
+  await expect(page.getByRole("link", { name: /Waarom NonFoodHub/i }).first()).toBeVisible();
+  const homepageArticleCard = page.getByRole("link", { name: /Glaswerk & Servies/i });
   await expect(homepageArticleCard).toHaveCount(1);
   await expect(homepageArticleCard).toHaveAttribute(
     "href",
@@ -216,18 +225,26 @@ test("publieke navigatie, filters en focusstates blijven toegankelijk", async ({
   const errors = collectConsoleErrors(page);
 
   await page.goto("/index.html");
-  await expect(page.locator('a[aria-current="page"]', { hasText: "Home" }).first()).toBeAttached();
+  await expect(page.locator(".desktop-nav").getByRole("link", { name: "Home" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Neem contact op" }).first()).toBeVisible();
 
-  const startCta = page.getByRole("link", { name: "Start met inspiratie" });
-  await tabUntilFocused(page, startCta);
-  await expect(startCta).toBeFocused();
-  await expect(startCta).toHaveCSS("outline-style", "solid");
+  const heroInfoLink = page.locator(".hero-secondary a");
+  await tabUntilFocused(page, heroInfoLink);
+  await expect(heroInfoLink).toBeFocused();
+  await expect(heroInfoLink).toHaveCSS("outline-style", "solid");
 
   const searchButton = page.getByRole("button", { name: "Zoeken" }).first();
   await expect(searchButton).toHaveAttribute("aria-expanded", "false");
   await searchButton.click();
   await expect(searchButton).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("dialog", { name: "Zoeken" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(searchButton).toHaveAttribute("aria-expanded", "false");
+  await searchButton.click();
+  await expect(searchButton).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.click(10, 10);
+  await expect(searchButton).toHaveAttribute("aria-expanded", "false");
+  await searchButton.click();
   await page.getByRole("button", { name: "Zoeken sluiten" }).click();
   await expect(searchButton).toHaveAttribute("aria-expanded", "false");
 

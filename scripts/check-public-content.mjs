@@ -388,29 +388,33 @@ export async function runPublicContentChecks() {
     });
   });
 
-  await runCheck("homepage gebruikt publieke projecties als ontdeklaag", () => {
+  await runCheck("homepage v1 gebruikt vaste ontdekblokken en veilige routes", () => {
     const pageHtml = readText("index.html");
     const publicJs = readText("assets/js/main.js");
 
-    assert.match(pageHtml, /data-home-article-grid/);
-    assert.match(pageHtml, /data-home-supplier-grid/);
-    assert.match(pageHtml, /data-home-brochure-grid/);
-    assert.match(pageHtml, /data-home-count="articles"/);
-    assert.match(pageHtml, /data-home-count="suppliers"/);
-    assert.match(pageHtml, /data-home-count="brochures"/);
-    assert.match(pageHtml, /\.\.\/images\/hero\.png/);
-    assert.match(publicJs, /setupHomepageDiscovery/);
-    assert.match(publicJs, /updateHomepageCount/);
-    assert.match(publicJs, /data\/public\/articles\.json/);
-    assert.match(publicJs, /data\/public\/suppliers\.json/);
-    assert.match(publicJs, /data\/public\/brochures\.json/);
-    assert.match(publicJs, /linkToArticlePage/);
-    assert.match(publicJs, /articlePageLink/);
-    assert.match(publicJs, /linkToSupplierPage/);
-    assert.match(publicJs, /linkToBrochurePage/);
-    assert.match(publicJs, /Geen inspiratie beschikbaar/);
-    assert.match(publicJs, /Geen leveranciers beschikbaar/);
-    assert.match(publicJs, /Geen brochures beschikbaar/);
+    assert.match(pageHtml, /Waar ben je vandaag naar op zoek\?/);
+    assert.match(pageHtml, /Meer dan alleen een webshop/);
+    assert.match(pageHtml, /Laat je inspireren/);
+    assert.match(pageHtml, /Ontdek het volledige assortiment/);
+    assert.match(pageHtml, /Wij helpen je graag verder/);
+    assert.doesNotMatch(pageHtml, /<div class="hero-actions">/);
+    assert.match(pageHtml, /Nieuw bij NonFoodHub\? <a href="#waarom-nonfoodhub">Kijk hier voor meer informatie<\/a>/);
+    assert.equal((pageHtml.match(/class="home-entry-card fade-in"/g) || []).length, 6);
+    assert.doesNotMatch(pageHtml, /home-entry-card-featured/);
+    assert.match(pageHtml, /href="pages\/brochures-catalogi\.html"/);
+    assert.match(pageHtml, /id="waarom-nonfoodhub"/);
+    assert.match(pageHtml, /href="#waarom-nonfoodhub">Meer informatie over NonFoodHub/);
+    assert.match(pageHtml, /href="pages\/inspiratie\.html#professioneel-tafelconcept-hospitality"/);
+    assert.match(pageHtml, /href="pages\/virtuele-showroom\.html">Start virtuele tour/);
+    assert.match(pageHtml, /href="pages\/contact\.html">Bekijk specialisten/);
+    assert.match(publicJs, /index\.html#waarom-nonfoodhub/);
+    assert.match(publicJs, />Neem contact op</);
+    assert.doesNotMatch(publicJs, />Advies aanvragen</);
+    assert.doesNotMatch(publicJs, />Home</);
+    assert.match(publicJs, /Collecties/);
+    assert.match(publicJs, /Uitgelicht/);
+    assert.match(publicJs, /overlay\.addEventListener\("click"/);
+    assert.match(pageHtml, /\.\.\/images\/supplier-stylepoint\.jpg/);
     assert.doesNotMatch(pageHtml, /data\/articles\.json|data\/suppliers\.json|data\/brochures\.json/);
     assert.doesNotMatch(publicJs, /fetch\(href\("data\/articles\.json"|fetch\(href\("data\/suppliers\.json"|fetch\(href\("data\/brochures\.json"/);
   });
@@ -546,7 +550,7 @@ export async function runPublicContentChecks() {
     assert.match(config, /name: "desktop"/);
     assert.match(config, /name: "tablet"/);
     assert.match(config, /name: "mobile"/);
-    assert.match(publicSpec, /data-home-article-grid/);
+    assert.match(publicSpec, /Glaswerk & Servies/);
     assert.match(publicSpec, /data-public-article-overview/);
     assert.match(publicSpec, /data-public-supplier-overview/);
     assert.match(publicSpec, /data-public-supplier-extra/);
@@ -607,7 +611,7 @@ export async function runPublicContentChecks() {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
 
     assert.doesNotMatch(publicShell, /url\('\.\.\/\.\.\/images\//);
-    assert.match(readText("index.html"), /--hero-image: url\('\.\.\/images\/hero\.png'\)/);
+    assert.match(readText("index.html"), /--hero-image: url\('\.\.\/images\/supplier-stylepoint\.jpg'\)/);
     [
       ["pages/inspiratie.html", "../images/inspiration.png", "assets/images/inspiration.png"],
       ["pages/leveranciers.html", "../images/assortment.png", "assets/images/assortment.png"],

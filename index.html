@@ -6,134 +6,217 @@
     <meta name="description" content="Non-Food Hub: inspiratie, leveranciers, brochures en persoonlijk advies voor professionele horeca non-food.">
     <title>Non-Food Hub</title>
     <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+    <link rel="preload" as="image" href="assets/images/supplier-stylepoint.jpg">
     <link rel="stylesheet" href="assets/css/styles.css">
   </head>
   <body data-page="home" data-base=".">
     <div data-site-header></div>
 
     <main>
-      <section class="hero" style="--hero-image: url('../images/hero.png');">
+      <section class="hero" style="--hero-image: url('../images/supplier-stylepoint.jpg');">
         <div class="container">
           <div class="hero-content">
-            <p class="eyebrow">Non-Food inspiratieomgeving</p>
-            <h1>Non-Food Hub</h1>
-            <p>Voor horecaondernemers, chefs en accountteams: ontdek inspiratie, leveranciers en collecties voor professionele non-food keuzes.</p>
-            <p>Start bij inspiratie, klik door naar relevante leveranciers en bekijk brochures wanneer je gericht verder wilt kijken.</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="pages/inspiratie.html">Start met inspiratie</a>
-              <a class="btn btn-secondary" href="pages/leveranciers.html">Bekijk leveranciers</a>
-            </div>
-            <div class="hero-proof" aria-label="Belangrijkste onderdelen">
-              <div class="proof-item">
+            <h1>Inspiratie, collecties en advies voor de professionele horeca.</h1>
+            <p class="hero-intro">Van servies en glaswerk tot buffetpresentatie, personalisatie en complete collecties.<br>Ontdek de mogelijkheden, download brochures en laat je inspireren.</p>
+            <p class="hero-secondary">Nieuw bij NonFoodHub? <a href="#waarom-nonfoodhub">Kijk hier voor meer informatie</a></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section home-finder" id="zoek-ingang">
+        <div class="container">
+          <div class="section-heading fade-in">
+            <h2>Waar ben je vandaag naar op zoek?</h2>
+            <p class="lead">Ontdek wat NonFoodHub voor jouw onderneming kan betekenen. Kies het onderwerp dat het beste aansluit bij jouw vraag of laat je inspireren door de mogelijkheden.</p>
+          </div>
+
+          <div class="home-entry-grid">
+            <a class="home-entry-card fade-in" href="pages/brochures-catalogi.html">
+              <img src="assets/images/brochures.png" alt="Collecties en catalogi voor horeca non-food" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag">Collecties</span>
+                <strong>Collecties</strong>
+                <span>Ontdek complete collecties en download brochures.</span>
+                <span class="card-link">Bekijk collecties</span>
+              </span>
+            </a>
+
+            <a class="home-entry-card fade-in" href="pages/inspiratie.html">
+              <img src="assets/images/inspiration.png" alt="Inspiratie voor servies, glaswerk en presentatie" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag sky">Inspiratie</span>
                 <strong>Inspiratie</strong>
-                <span data-home-count="articles">Kennis en context voor betere keuzes</span>
-              </div>
-              <div class="proof-item">
-                <strong>Leveranciers</strong>
-                <span data-home-count="suppliers">Geselecteerde merken en productgroepen</span>
-              </div>
-              <div class="proof-item">
-                <strong>Brochures</strong>
-                <span data-home-count="brochures">Collecties om gericht verder te kijken</span>
-              </div>
-            </div>
+                <span>Praktische ideeën, trends en vakkennis voor de professionele horeca.</span>
+                <span class="card-link">Bekijk inspiratie</span>
+              </span>
+            </a>
+
+            <a class="home-entry-card fade-in" href="pages/logos-personalisatie.html">
+              <img src="assets/images/personalisation.png" alt="Personalisatie en aanvullende non-food services" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag">Services</span>
+                <strong>Services</strong>
+                <span>Ontdek aanvullende diensten en praktische oplossingen via onze gespecialiseerde partners.</span>
+                <span class="card-link">Bekijk services</span>
+              </span>
+            </a>
+
+            <a class="home-entry-card fade-in" href="https://www.bidfood.nl/webshop/assortiment/non-food/_/N-fcinf4Z1rc100h/categoryId-115" target="_blank" rel="noreferrer">
+              <img src="assets/images/assortment.png" alt="Non Food-assortiment voor professionele horeca" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag blue">Assortiment</span>
+                <strong>Assortiment</strong>
+                <span>Bekijk welke Non Food-producten direct beschikbaar zijn via Bidfood.nl.</span>
+                <span class="card-link">Bekijk assortiment</span>
+              </span>
+            </a>
+
+            <a class="home-entry-card fade-in" href="pages/nieuw.html">
+              <img src="assets/images/new.png" alt="Nieuwe onderwerpen en actuele non-food inspiratie" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag sky">Uitgelicht</span>
+                <strong>Uitgelicht</strong>
+                <span>Nieuwe producten, aanbiedingen en actuele onderwerpen die je niet wilt missen.</span>
+                <span class="card-link">Bekijk uitgelicht</span>
+              </span>
+            </a>
+
+            <a class="home-entry-card fade-in" href="pages/contact.html">
+              <img src="assets/images/showroom.png" alt="Advies en showroombezoek voor horeca non-food" loading="lazy" decoding="async">
+              <span class="home-entry-body">
+                <span class="tag">Advies</span>
+                <strong>Advies</strong>
+                <span>Onze specialisten helpen je graag verder met advies, prijzen of een showroombezoek.</span>
+                <span class="card-link">Neem contact op</span>
+              </span>
+            </a>
           </div>
         </div>
       </section>
 
-      <section class="section">
+      <section class="section surface" id="waarom-nonfoodhub">
         <div class="container">
-          <div class="section-heading fade-in">
-            <p class="kicker">Inspiratie ontdekken</p>
-            <h2>Begin bij kennis en toepassing</h2>
-            <p class="lead">Lees inspiratieartikelen en beweeg daarna door naar passende leveranciers en collecties.</p>
-          </div>
-          <div class="grid grid-3" data-home-article-grid aria-live="polite">
-            <article class="contact-card fade-in">
-              <h3>Inspiratie laden</h3>
-              <p>Kennisbankartikelen worden geladen.</p>
-            </article>
-          </div>
-          <div class="section-actions">
-            <a class="btn btn-secondary" href="pages/inspiratie.html">Alle inspiratie bekijken</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section surface">
-        <div class="container">
-          <div class="section-heading fade-in">
-            <p class="kicker">Leveranciers ontdekken</p>
-            <h2>Van idee naar leverancier</h2>
-            <p class="lead">Bekijk geselecteerde leveranciers en gebruik hun detailpagina's om gekoppelde brochures of artikelen te vinden.</p>
-          </div>
-          <div class="grid grid-3" data-home-supplier-grid aria-live="polite">
-            <article class="contact-card fade-in">
-              <h3>Leveranciers laden</h3>
-              <p>Leveranciers worden geladen.</p>
-            </article>
-          </div>
-          <div class="section-actions">
-            <a class="btn btn-secondary" href="pages/leveranciers.html">Alle leveranciers bekijken</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="container">
-          <div class="section-heading fade-in">
-            <p class="kicker">Collecties en brochures bekijken</p>
-            <h2>Verder kijken in beschikbare collecties</h2>
-            <p class="lead">Open beschikbare brochures en collecties. Een downloadactie verschijnt alleen wanneer het bestand beschikbaar is.</p>
-          </div>
-          <div class="grid grid-3" data-home-brochure-grid aria-live="polite">
-            <article class="contact-card fade-in">
-              <h3>Brochures laden</h3>
-              <p>Brochures worden geladen.</p>
-            </article>
-          </div>
-          <div class="section-actions">
-            <a class="btn btn-secondary" href="pages/brochures-catalogi.html">Alle brochures bekijken</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section surface">
-        <div class="container">
-          <div class="split">
+          <div class="split home-story">
             <div class="fade-in">
-              <p class="kicker">Ontdekroute</p>
-              <h2>Van inspiratie naar persoonlijk advies</h2>
-              <p class="lead">De homepage verbindt inspiratieartikelen, leveranciers en brochures tot een logische route voor orientatie en vervolgstappen.</p>
-              <ul class="check-list">
-                <li>Begin bij inspiratie voor toepassing en context.</li>
-                <li>Bekijk gekoppelde leveranciers en collecties.</li>
-                <li>Neem contact op wanneer je advies of productinformatie nodig hebt.</li>
-              </ul>
+              <p class="kicker">Waarom NonFoodHub</p>
+              <h2>Meer dan alleen een webshop</h2>
+              <p class="lead">Veel horecaondernemers kennen Bidfood als leverancier van foodproducten en een zorgvuldig samengesteld Non Food-assortiment.</p>
+              <p>Maar wist je dat er daarnaast een veel groter aanbod beschikbaar is?</p>
+              <p>Van servies en glaswerk tot buffetpresentatie, personalisatie, complete collecties en specialistisch advies.</p>
+              <p>NonFoodHub helpt je deze mogelijkheden eenvoudig te ontdekken.</p>
               <div class="section-actions">
-                <a class="btn btn-primary" href="pages/brochures-catalogi.html">Bekijk brochures</a>
-                <a class="btn btn-secondary" href="pages/contact.html">Neem contact op</a>
+                <a class="btn btn-secondary" href="#waarom-nonfoodhub">Meer informatie over NonFoodHub</a>
               </div>
             </div>
             <div class="split-media fade-in">
-              <img src="assets/images/blog-tableware.png" alt="Servies en presentatie in horeca setting" loading="lazy" decoding="async">
+              <img src="assets/images/supplier-stylepoint.jpg" alt="Gedekte horecatafel met servies en glaswerk" loading="lazy" decoding="async">
             </div>
           </div>
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" id="inspiratie-themas">
         <div class="container">
-          <div class="intro-panel fade-in">
-            <div>
-              <p class="kicker">Contact en advies</p>
-              <h2>Persoonlijk non-food advies</h2>
-              <p class="lead">Op zoek naar advies over servies, glaswerk, presentatie of complete tafelconcepten? Het non-food team denkt graag met je mee.</p>
-            </div>
-            <div class="section-actions">
-              <a class="btn btn-primary" href="https://wa.me/31135812712" target="_blank" rel="noreferrer">Start WhatsApp</a>
-              <a class="btn btn-secondary" href="mailto:nonfood@bidfood.nl?subject=Productinfo%20Non-Food%20-%20Vraag">E-mail productinfo</a>
-            </div>
+          <div class="section-heading fade-in">
+            <p class="kicker">Inspiratie</p>
+            <h2>Laat je inspireren</h2>
+            <p class="lead">Of je nu op zoek bent naar een nieuwe serviescollectie, ideeën voor jouw terras of manieren om jouw presentatie naar een hoger niveau te tillen: laat je inspireren door praktijksituaties, trends en vakkennis uit de horeca.</p>
+          </div>
+
+          <div class="home-theme-grid">
+            <a class="home-theme-card fade-in" href="pages/inspiratie.html#terras-outdoor-inspiratie">
+              <img src="assets/images/blog-terrace.png" alt="Terras en outdoor horeca-inspiratie" loading="lazy" decoding="async">
+              <span class="home-theme-body">
+                <strong>Terras & Outdoor</strong>
+                <span class="card-link">Bekijk inspiratie</span>
+              </span>
+            </a>
+
+            <a class="home-theme-card fade-in" href="pages/inspiratie.html">
+              <img src="assets/images/blog-buffet.png" alt="Buffetpresentatie en horeca-opstelling" loading="lazy" decoding="async">
+              <span class="home-theme-body">
+                <strong>Buffet & Presentatie</strong>
+                <span class="card-link">Bekijk inspiratie</span>
+              </span>
+            </a>
+
+            <a class="home-theme-card fade-in" href="pages/inspiratie.html#professioneel-tafelconcept-hospitality">
+              <img src="assets/images/blog-tableware.png" alt="Glaswerk, servies en tafelpresentatie" loading="lazy" decoding="async">
+              <span class="home-theme-body">
+                <strong>Glaswerk & Servies</strong>
+                <span class="card-link">Bekijk inspiratie</span>
+              </span>
+            </a>
+          </div>
+
+          <div class="section-actions">
+            <a class="btn btn-secondary" href="pages/inspiratie.html">Bekijk alle inspiratie</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section surface" id="assortiment">
+        <div class="container">
+          <div class="section-heading fade-in">
+            <p class="kicker">Assortiment en collecties</p>
+            <h2>Ontdek het volledige assortiment</h2>
+            <p class="lead">Een deel van ons Non Food-assortiment is direct verkrijgbaar via de Bidfood-webshop.</p>
+            <p class="lead">Maar wist je dat er daarnaast nog veel meer mogelijk is?</p>
+            <p class="lead">Ontdek complete collecties, download brochures en bekijk wat er buiten het standaard webshopassortiment beschikbaar is.</p>
+          </div>
+
+          <div class="home-route-grid">
+            <a class="home-route-card fade-in" href="https://www.bidfood.nl/webshop/assortiment/non-food/_/N-fcinf4Z1rc100h/categoryId-115" target="_blank" rel="noreferrer">
+              <span class="tag blue">Direct online</span>
+              <strong>Direct beschikbaar via Bidfood</strong>
+              <span>Bekijk het huidige Non Food-assortiment dat direct online te bestellen is.</span>
+              <span class="btn btn-secondary">Bekijk assortiment</span>
+            </a>
+
+            <a class="home-route-card fade-in" href="pages/brochures-catalogi.html">
+              <span class="tag">Collecties</span>
+              <strong>Complete collecties</strong>
+              <span>Ontdek het uitgebreide aanbod via onze collecties en brochures.</span>
+              <span class="btn btn-primary">Bekijk collecties</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="hulp-en-advies">
+        <div class="container">
+          <div class="section-heading fade-in">
+            <p class="kicker">Contact</p>
+            <h2>Wij helpen je graag verder</h2>
+            <p class="lead">Je hoeft niet vooraf te weten welke medewerker je nodig hebt. Kies de route die past bij jouw vraag; wij zorgen dat je goed verder wordt geholpen.</p>
+          </div>
+
+          <div class="home-contact-grid">
+            <article class="home-contact-card fade-in">
+              <h3>Non Food binnendienst</h3>
+              <p>Voor korte vragen, prijsaanvragen, bestellen en beschikbaarheid.</p>
+              <ul class="footer-links">
+                <li><a href="tel:+31135812712">Bel 013-5812712</a></li>
+                <li><a href="https://wa.me/31135812712" target="_blank" rel="noreferrer">Stuur een WhatsApp</a></li>
+                <li><a href="mailto:nonfood@bidfood.nl?subject=Vraag%20aan%20Non%20Food%20binnendienst">E-mail de binnendienst</a></li>
+              </ul>
+            </article>
+
+            <article class="home-contact-card fade-in">
+              <h3>Specialist</h3>
+              <p>Voor grotere projecten, conceptadvies, volledige inrichting, locatiebezoek en showroomafspraken.</p>
+              <div class="section-actions">
+                <a class="btn btn-secondary" href="pages/contact.html">Bekijk specialisten</a>
+              </div>
+            </article>
+
+            <article class="home-contact-card fade-in">
+              <h3>Virtuele showroom</h3>
+              <p>Kun je niet direct langskomen? Bekijk alvast digitaal onze showroom en doe inspiratie op.</p>
+              <div class="section-actions">
+                <a class="btn btn-secondary" href="pages/virtuele-showroom.html">Start virtuele tour</a>
+              </div>
+            </article>
           </div>
         </div>
       </section>
