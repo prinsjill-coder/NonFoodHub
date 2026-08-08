@@ -74,7 +74,7 @@
     `;
   }
 
-  if (selectedHashSlug()) {
+  if (selectedHashSlug() && !selectedHashSlug().startsWith("categorie-")) {
     body.classList.add("is-detail-route");
   }
 
@@ -625,6 +625,375 @@
     return supplier ? `<a class="tag sky" href="${supplierPageLink(supplier)}">Van ${escapeHtml(supplier.name)}</a>` : "";
   }
 
+  const COLLECTION_PRODUCT_CATEGORIES = [
+    "Servies",
+    "Kleding & textiel",
+    "Keukengerei",
+    "Glaswerk",
+    "Bestek",
+    "Bar & restaurantmateriaal",
+    "Buffet & serveergerei",
+    "Keukenapparatuur",
+    "Keukeninrichting",
+    "Kantoorartikelen",
+    "BBQ's & Kamado's",
+    "Overig"
+  ];
+
+  const COLLECTION_CATEGORY_ALIASES = [
+    ["servies", "Servies"],
+    ["tafelpresentatie", "Servies"],
+    ["kleding", "Kleding & textiel"],
+    ["textiel", "Kleding & textiel"],
+    ["keukengerei", "Keukengerei"],
+    ["glaswerk", "Glaswerk"],
+    ["bestek", "Bestek"],
+    ["bar", "Bar & restaurantmateriaal"],
+    ["restaurantmateriaal", "Bar & restaurantmateriaal"],
+    ["buffet", "Buffet & serveergerei"],
+    ["serveergerei", "Buffet & serveergerei"],
+    ["presentatie", "Buffet & serveergerei"],
+    ["keukenapparatuur", "Keukenapparatuur"],
+    ["keukeninrichting", "Keukeninrichting"],
+    ["kantoorartikelen", "Kantoorartikelen"],
+    ["bbq", "BBQ's & Kamado's"],
+    ["kamado", "BBQ's & Kamado's"]
+  ];
+
+  function normalizePublicSearch(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  }
+
+  function collectionCategoryToken(category) {
+    return normalizePublicSearch(category).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function collectionCategoryFromHash(slug) {
+    if (!slug?.startsWith("categorie-")) return "";
+    const token = slug.replace(/^categorie-/, "");
+    return COLLECTION_PRODUCT_CATEGORIES.find((category) => collectionCategoryToken(category) === token) || "";
+  }
+
+  function collectionCategoryLink(category) {
+    return `${href("pages/brochures-catalogi.html")}#categorie-${collectionCategoryToken(category)}`;
+  }
+
+  function collectionProductCategories(values) {
+    const haystack = normalizePublicSearch(values.filter(Boolean).join(" "));
+    const matched = [];
+    COLLECTION_CATEGORY_ALIASES.forEach(([needle, category]) => {
+      if (haystack.includes(needle) && !matched.includes(category)) matched.push(category);
+    });
+
+    return matched.length ? matched : ["Overig"];
+  }
+
+  function collectionName(supplier) {
+    const name = supplier?.name || "Non-Food";
+    return `${name} Collection`;
+  }
+
+  function collectionIntro(collection) {
+    const categories = collection.categories.slice(0, 3).join(", ").toLowerCase();
+    const supplierSummary = collection.supplier?.description || collection.supplier?.summary || "";
+
+    return [
+      collection.summary || supplierSummary || `Een collectie voor professionele horeca met aandacht voor ${categories || "presentatie"}.`,
+      `${collection.name} helpt je om sfeer, gebruiksgemak en productkeuze als een samenhangend geheel te bekijken.`,
+      "Gebruik de brochures om het volledige aanbod te bekijken en neem contact op wanneer je advies, prijzen of beschikbaarheid wilt bespreken."
+    ];
+  }
+
+  function collectionUsps(collection) {
+    const haystack = normalizePublicSearch([
+      collection.name,
+      collection.summary,
+      collection.supplier?.description,
+      ...collection.categories
+    ].join(" "));
+    const usps = [];
+
+    if (haystack.includes("professionele") || haystack.includes("hospitality") || haystack.includes("horeca")) {
+      usps.push(["Professionele kwaliteit", "Geselecteerd voor dagelijks gebruik in horeca en hospitality."]);
+    }
+    if (haystack.includes("servies") || haystack.includes("tafelpresentatie")) {
+      usps.push(["Tafelconcepten", "Geschikt om servies, bestek en presentatie visueel op elkaar af te stemmen."]);
+    }
+    if (haystack.includes("buffet")) {
+      usps.push(["Buffetpresentatie", "Past bij presentaties waarin overzicht, routing en uitstraling samenkomen."]);
+    }
+    if (haystack.includes("bestek")) {
+      usps.push(["Bestekselectie", "Relevant voor restaurants, hotels en catering die een herkenbare tafelsetting zoeken."]);
+    }
+
+    return usps.slice(0, 4);
+  }
+
+  function brochureYear(brochure) {
+    const titleYear = String(brochure?.title || "").match(/\b(20\d{2})\b/);
+    return titleYear ? titleYear[1] : "";
+  }
+
+  function collectionBrochureCountLabel(collection) {
+    const count = collection.brochures.length;
+    return `${count} ${count === 1 ? "brochure" : "brochures"} beschikbaar`;
+  }
+
+  function collectionMoodImage(collection) {
+    return href("assets/images/supplier-bowls.jpeg");
+  }
+
+  function collectionSearchText(collection) {
+    return normalizePublicSearch([
+      collection.name,
+      collection.brand,
+      collection.summary,
+      collection.supplier?.summary,
+      collection.supplier?.description,
+      ...collection.categories,
+      ...collection.rawCategories,
+      ...collection.brochures.map((brochure) => `${brochure.title} ${brochure.summary}`)
+    ].join(" "));
+  }
+
+  function collectionMatchesToken(collection, token, group) {
+    const haystack = collection.searchText;
+    if (group === "availability") {
+      if (token === "brochure") return collection.brochures.some((brochure) => brochure.downloadUrl);
+      if (token === "bidfood-webshop") return true;
+    }
+    if (group === "material") {
+      if (token === "porselein") return haystack.includes("servies") || haystack.includes("porselein");
+      if (token === "glas") return haystack.includes("glas");
+      if (token === "hout") return haystack.includes("hout");
+      if (token === "melamine") return haystack.includes("melamine");
+      if (token === "rvs") return haystack.includes("rvs") || haystack.includes("bestek") || haystack.includes("keukengerei");
+      if (token === "kunststof") return haystack.includes("kunststof");
+    }
+    if (group === "theme") {
+      if (token === "fine-dining") return haystack.includes("tafel") || haystack.includes("servies") || haystack.includes("bestek");
+      if (token === "hotel") return haystack.includes("hotel") || haystack.includes("hospitality");
+      if (token === "terras") return haystack.includes("terras") || haystack.includes("outdoor");
+      if (token === "buffet") return haystack.includes("buffet");
+      if (token === "bar") return haystack.includes("bar") || haystack.includes("glaswerk");
+    }
+
+    return false;
+  }
+
+  function buildPublicCollections(brochures, suppliersById) {
+    const brochuresBySupplier = new Map();
+    brochures.forEach((brochure) => {
+      const current = brochuresBySupplier.get(brochure.supplierId) || [];
+      current.push(brochure);
+      brochuresBySupplier.set(brochure.supplierId, current);
+    });
+
+    return Array.from(brochuresBySupplier.entries())
+      .map(([supplierId, supplierBrochures]) => {
+        const supplier = suppliersById.get(supplierId);
+        if (!supplier) return null;
+        const rawCategories = [
+          ...supplierCategories(supplier),
+          ...supplierBrochures.flatMap(brochureCategories)
+        ];
+        const categories = collectionProductCategories(rawCategories);
+        const name = collectionName(supplier);
+        const summary = supplier.description || supplier.summary || supplierBrochures[0]?.summary || "";
+        const collection = {
+          id: supplier.id,
+          slug: supplier.slug,
+          name,
+          brand: supplier.name,
+          summary,
+          supplier,
+          logo: supplier.logo ? href(supplier.logo) : "",
+          image: publicSupplierImage(supplier),
+          brochures: supplierBrochures,
+          categories,
+          rawCategories
+        };
+        collection.searchText = collectionSearchText(collection);
+        return collection;
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.name.localeCompare(right.name, "nl"));
+  }
+
+  function collectionBySlug(collections, brochures, slug) {
+    if (!slug) return null;
+    const direct = itemBySlug(collections, slug);
+    if (direct) return direct;
+    const brochure = brochures.find((item) => item.slug === slug);
+    return brochure ? collections.find((collection) => collection.id === brochure.supplierId) : null;
+  }
+
+  function renderCollectionCategoryLinks(collection) {
+    return collection.categories
+      .map((category) => `<a class="tag" href="${collectionCategoryLink(category)}">${escapeHtml(category)}</a>`)
+      .join("");
+  }
+
+  function renderCollectionCategoryTags(collection) {
+    return collection.categories
+      .map((category) => `<span class="tag">${escapeHtml(category)}</span>`)
+      .join("");
+  }
+
+  function renderCollectionCard(collection) {
+    return `
+      <a class="collection-card fade-in" href="#${hashSlug(collection.slug)}">
+        <span class="collection-card-media">
+          <img src="${escapeHtml(collectionMoodImage(collection))}" alt="${escapeHtml(`${collection.name} in horecaomgeving`)}" loading="lazy" decoding="async">
+        </span>
+        <span class="collection-card-body">
+          ${collection.logo ? `<span class="collection-logo"><img src="${escapeHtml(collection.logo)}" alt="Logo ${escapeHtml(collection.brand)}" loading="lazy" decoding="async"></span>` : ""}
+          <strong>${escapeHtml(collection.name)}</strong>
+          <span class="collection-card-summary">${escapeHtml(collection.summary)}</span>
+          <span class="collection-card-tags">${renderCollectionCategoryTags(collection)}</span>
+          <span class="collection-card-info"><span aria-hidden="true">📘</span> ${escapeHtml(collectionBrochureCountLabel(collection))}</span>
+          <span class="collection-card-info"><span aria-hidden="true">🛒</span> Deels direct verkrijgbaar via de webshop van Bidfood.</span>
+          <span class="card-link">Bekijk brochures</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function renderCollectionBrochureCard(brochure) {
+    const year = brochureYear(brochure);
+    const downloadAction = brochure.downloadUrl
+      ? `<a class="btn btn-primary" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
+      : `<p class="detail-status">PDF nog niet beschikbaar. Neem contact op wanneer je deze brochure wilt bespreken.</p>`;
+
+    return `
+      <article class="collection-brochure-card fade-in">
+        <img src="${escapeHtml(publicBrochureImage(brochure))}" alt="${escapeHtml(brochure.title)}" loading="lazy" decoding="async">
+        <div>
+          <div class="card-meta">
+            ${year ? `<span class="tag">${escapeHtml(year)}</span>` : ""}
+            ${renderBrochureCategoryTags(brochure)}
+          </div>
+          <h3>${escapeHtml(brochure.title)}</h3>
+          <p>${escapeHtml(brochure.summary)}</p>
+          <div class="section-actions">${downloadAction}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderCollectionUsps(collection) {
+    const usps = collectionUsps(collection);
+    if (!usps.length) return "";
+
+    return `
+      <section class="collection-detail-block">
+        <div class="collection-usp-grid">
+          ${usps.map(([title, text]) => `
+            <article class="collection-usp-card">
+              <h3>${escapeHtml(title)}</h3>
+              <p>${escapeHtml(text)}</p>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderCollectionRelatedArticles(collection) {
+    const articles = relatedArticles(collection.supplier);
+    if (!articles.length) return "";
+
+    return `
+      <section class="collection-detail-block">
+        <div class="section-heading">
+          <p class="kicker">Gerelateerde inspiratie</p>
+          <h2>Verder lezen over toepassing en presentatie</h2>
+        </div>
+        <div class="grid grid-3">${articles.map(renderSupplierRelatedArticleCard).join("")}</div>
+      </section>
+    `;
+  }
+
+  function renderCollectionDetail(collection) {
+    const paragraphs = collectionIntro(collection).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+
+    return `
+      <article id="${escapeHtml(collection.slug)}" class="collection-detail fade-in">
+        ${renderDetailBreadcrumb([
+          { label: "Home", href: href("index.html") },
+          { label: "Collecties", href: href("pages/brochures-catalogi.html") },
+          { label: collection.name }
+        ])}
+        <div class="collection-detail-visual">
+          <img src="${escapeHtml(collectionMoodImage(collection))}" alt="${escapeHtml(`${collection.name} voor professionele horeca`)}" loading="lazy" decoding="async">
+        </div>
+
+        <section class="collection-detail-block collection-intro-block">
+          <div class="collection-intro-heading">
+            <h2>${escapeHtml(collection.name)}</h2>
+            ${collection.logo ? `<span class="collection-logo collection-logo-large"><img src="${escapeHtml(collection.logo)}" alt="Logo ${escapeHtml(collection.brand)}" loading="lazy" decoding="async"></span>` : ""}
+            <div class="card-meta">${renderCollectionCategoryLinks(collection)}</div>
+          </div>
+          <div class="collection-intro-copy">
+            ${paragraphs}
+          </div>
+        </section>
+
+        ${renderCollectionUsps(collection)}
+
+        <section class="collection-detail-block" id="${escapeHtml(collection.slug)}-brochures">
+          <div class="section-heading">
+            <p class="kicker">Brochures</p>
+            <h2>Beschikbare brochures</h2>
+          </div>
+          <div class="collection-brochure-grid">
+            ${collection.brochures.map(renderCollectionBrochureCard).join("")}
+          </div>
+        </section>
+
+        <section class="collection-detail-block collection-webshop-block">
+          <div class="section-heading">
+            <h2>Ook direct verkrijgbaar via de webshop</h2>
+            <div class="collection-webshop-intro">
+              <p>Een deel van deze collectie is direct online te bestellen via de webshop van Bidfood.</p>
+              <p>Voor het volledige aanbod bekijk je de brochures hierboven.</p>
+            </div>
+          </div>
+          <div class="collection-route-grid is-single">
+            <article class="collection-route-card collection-webshop-card">
+              <div class="collection-webshop-copy">
+                <h3>Direct verkrijgbaar via de webshop</h3>
+                <p>Bekijk een selectie uit deze collectie die direct online beschikbaar is via de webshop van Bidfood.</p>
+                <a class="btn btn-secondary" href="${escapeHtml(assortmentUrl)}" target="_blank" rel="noreferrer">Bekijk assortiment</a>
+              </div>
+              <div class="collection-webshop-media">
+                <img src="${escapeHtml(collectionMoodImage(collection))}" alt="${escapeHtml(`${collection.name} in horecaomgeving`)}" loading="lazy" decoding="async">
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="collection-detail-block collection-contact-panel">
+          <div>
+            <p class="kicker">Prijs aanvragen</p>
+            <h2>Interesse in deze collectie?</h2>
+            <p>Neem contact op voor advies, prijzen of beschikbaarheid. Een contactformulier volgt later.</p>
+          </div>
+          <div class="section-actions">
+            <a class="btn btn-primary" href="https://wa.me/31135812712" target="_blank" rel="noreferrer">WhatsApp</a>
+            <a class="btn btn-secondary" href="mailto:nonfood@bidfood.nl?subject=Interesse%20in%20${encodeURIComponent(collection.name)}">Mail</a>
+            <a class="btn btn-secondary" href="tel:+31135812712">Telefoon</a>
+          </div>
+        </section>
+
+        ${renderCollectionRelatedArticles(collection)}
+      </article>
+    `;
+  }
+
   function renderPublicBrochureCard(brochure, suppliersById = new Map(), options = {}) {
     const downloadAction = brochure.downloadUrl
       ? `<a class="card-link" href="${escapeHtml(href(brochure.downloadUrl))}" download>Download brochure</a>`
@@ -878,6 +1247,12 @@
     const introSection = document.querySelector("[data-public-brochure-intro]");
     const overviewSection = document.querySelector("[data-public-brochure-overview]");
     const detailSection = document.querySelector("[data-public-brochure-detail-section]");
+    const categoryChips = document.querySelector("[data-collection-category-chips]");
+    const searchShell = document.querySelector("[data-collection-search-shell]");
+    const searchToggle = document.querySelector("[data-collection-search-toggle]");
+    const searchInput = document.querySelector("[data-collection-search]");
+    const refineInputs = Array.from(document.querySelectorAll("[data-collection-refine]"));
+    const clearButton = document.querySelector("[data-collection-clear]");
     if (!grid) return;
 
     try {
@@ -893,22 +1268,167 @@
       const brochures = Array.isArray(brochureData.items) ? brochureData.items : [];
       const suppliers = Array.isArray(supplierData.items) ? supplierData.items : [];
       const suppliersById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
+      const collections = buildPublicCollections(brochures, suppliersById);
+      const state = {
+        category: "",
+        search: "",
+        material: new Set(),
+        theme: new Set(),
+        availability: new Set()
+      };
+      let collectionSearchOpen = false;
+
+      function selectedRefines(group) {
+        return Array.from(state[group] || []);
+      }
+
+      function setCollectionSearchOpen(isOpen) {
+        collectionSearchOpen = Boolean(isOpen);
+        searchShell?.classList.toggle("is-open", collectionSearchOpen);
+        searchToggle?.setAttribute("aria-expanded", String(collectionSearchOpen));
+        if (!searchInput) return;
+
+        searchInput.tabIndex = collectionSearchOpen ? 0 : -1;
+        searchInput.setAttribute("aria-hidden", String(!collectionSearchOpen));
+        if (collectionSearchOpen) {
+          window.setTimeout(() => searchInput.focus(), 20);
+        } else {
+          searchInput.blur();
+        }
+      }
+
+      function hasActiveCollectionFilters() {
+        return Boolean(
+          state.category ||
+          state.search ||
+          state.material.size ||
+          state.theme.size ||
+          state.availability.size
+        );
+      }
+
+      function matchesCollectionFilters(collection) {
+        if (state.category && !collection.categories.includes(state.category)) return false;
+        if (state.search && !collection.searchText.includes(normalizePublicSearch(state.search))) return false;
+
+        return ["material", "theme", "availability"].every((group) => {
+          const tokens = selectedRefines(group);
+          return !tokens.length || tokens.some((token) => collectionMatchesToken(collection, token, group));
+        });
+      }
+
+      function updateCollectionControls() {
+        categoryChips?.querySelectorAll("[data-collection-category]").forEach((button) => {
+          const isActive = button.dataset.collectionCategory === state.category;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+
+        refineInputs.forEach((input) => {
+          input.checked = state[input.dataset.collectionRefine]?.has(input.value) || false;
+        });
+
+        if (searchInput && searchInput.value !== state.search) searchInput.value = state.search;
+        searchShell?.classList.toggle("is-active", Boolean(state.search));
+        if (clearButton) clearButton.hidden = !hasActiveCollectionFilters();
+      }
+
+      function renderCollectionOverview() {
+        const filteredCollections = collections.filter(matchesCollectionFilters);
+        updateCollectionControls();
+        grid.innerHTML = filteredCollections.length
+          ? filteredCollections.map(renderCollectionCard).join("")
+          : `
+            <article class="contact-card collection-empty-state fade-in">
+              <h3>Geen collecties gevonden</h3>
+              <p>Pas je zoekterm of selectie aan om meer collecties te bekijken.</p>
+              <button class="btn btn-secondary" type="button" data-collection-empty-clear>Wis selectie</button>
+            </article>
+          `;
+        grid.querySelector("[data-collection-empty-clear]")?.addEventListener("click", clearCollectionFilters);
+        setupAnimations();
+      }
+
+      function clearCollectionFilters() {
+        state.category = "";
+        state.search = "";
+        state.material.clear();
+        state.theme.clear();
+        state.availability.clear();
+        if (window.location.hash.startsWith("#categorie-")) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+        renderCollectionOverview();
+      }
+
+      categoryChips?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-collection-category]");
+        if (!button) return;
+        state.category = state.category === button.dataset.collectionCategory ? "" : button.dataset.collectionCategory;
+        renderCollectionOverview();
+      });
+
+      searchInput?.addEventListener("input", () => {
+        state.search = searchInput.value;
+        renderCollectionOverview();
+      });
+
+      searchToggle?.addEventListener("click", () => {
+        setCollectionSearchOpen(!collectionSearchOpen);
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!collectionSearchOpen || !searchShell || searchShell.contains(event.target)) return;
+        setCollectionSearchOpen(false);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && collectionSearchOpen) {
+          setCollectionSearchOpen(false);
+        }
+      });
+
+      refineInputs.forEach((input) => {
+        input.addEventListener("change", () => {
+          const group = input.dataset.collectionRefine;
+          if (!state[group]) return;
+          if (input.checked) state[group].add(input.value);
+          else state[group].delete(input.value);
+          renderCollectionOverview();
+        });
+      });
+
+      clearButton?.addEventListener("click", clearCollectionFilters);
 
       function renderBrochureState() {
         const selectedSlug = selectedHashSlug();
-        const selectedBrochure = itemBySlug(brochures, selectedSlug);
+        const selectedCategory = collectionCategoryFromHash(selectedSlug);
+        const selectedCollection = selectedCategory ? null : collectionBySlug(collections, brochures, selectedSlug);
 
-        if (!brochures.length) {
+        if (!collections.length) {
           toggleElement(overviewSection, false);
           toggleElement(detailSection, true);
           grid.innerHTML = `
             <article class="contact-card fade-in">
-              <h3>Geen brochures beschikbaar</h3>
-              <p>Er zijn nog geen brochures beschikbaar.</p>
+              <h3>Geen collecties beschikbaar</h3>
+              <p>Er zijn nog geen collecties beschikbaar.</p>
             </article>
           `;
           if (detailMount) detailMount.innerHTML = "";
           setupAnimations();
+          return;
+        }
+
+        if (selectedCategory) {
+          body.classList.remove("is-detail-route");
+          state.category = selectedCategory;
+          updateDocumentTitle("Collecties");
+          toggleElement(introSection, false);
+          toggleElement(overviewSection, false);
+          toggleElement(detailSection, true);
+          if (detailMount) detailMount.innerHTML = "";
+          renderCollectionOverview();
+          window.requestAnimationFrame(() => grid.scrollIntoView({ block: "start" }));
           return;
         }
 
@@ -918,29 +1438,28 @@
           toggleElement(overviewSection, true);
           toggleElement(detailSection, false);
           if (detailMount) {
-            detailMount.innerHTML = selectedBrochure
-              ? renderPublicBrochureDetail(selectedBrochure, suppliersById)
+            detailMount.innerHTML = selectedCollection
+              ? renderCollectionDetail(selectedCollection)
               : renderDetailEmptyState(
-                  "Brochure niet gevonden",
-                  "Deze brochure is niet beschikbaar.",
+                  "Collectie niet gevonden",
+                  "Deze collectie is niet beschikbaar.",
                   href("pages/brochures-catalogi.html"),
-                  "Terug naar brochures"
+                  "Terug naar collecties"
                 );
           }
-          updateDocumentTitle(selectedBrochure?.title || "Brochure niet gevonden");
+          updateDocumentTitle(selectedCollection?.name || "Collectie niet gevonden");
           setupAnimations();
           scrollToHashTarget();
           return;
         }
 
         body.classList.remove("is-detail-route");
-        updateDocumentTitle("Brochures en catalogi");
+        updateDocumentTitle("Collecties");
         toggleElement(introSection, false);
         toggleElement(overviewSection, false);
         toggleElement(detailSection, true);
-        grid.innerHTML = brochures.map((brochure) => renderPublicBrochureCard(brochure, suppliersById)).join("");
         if (detailMount) detailMount.innerHTML = "";
-        setupAnimations();
+        renderCollectionOverview();
       }
 
       renderBrochureState();

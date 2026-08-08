@@ -459,9 +459,33 @@ export async function runPublicContentChecks() {
     assert.match(pageHtml, /data-public-brochure-grid/);
     assert.match(pageHtml, /data-public-brochure-detail-section/);
     assert.match(pageHtml, /data-public-brochure-detail/);
+    assert.match(pageHtml, /<h1>Collecties<\/h1>/);
+    assert.match(pageHtml, /Zoek een collectie\.\.\./);
+    assert.match(pageHtml, /data-collection-search-toggle/);
+    assert.match(pageHtml, /data-collection-search-shell/);
+    assert.match(pageHtml, /data-collection-category="Servies"/);
+    assert.match(pageHtml, /data-collection-refine="material"/);
+    assert.match(pageHtml, /data-collection-refine="theme"/);
+    assert.match(pageHtml, /data-collection-refine="availability"/);
     assert.match(publicJs, /data\/public\/brochures\.json/);
+    assert.match(publicJs, /data\/public\/suppliers\.json/);
+    assert.match(publicJs, /buildPublicCollections/);
+    assert.match(publicJs, /renderCollectionCard/);
+    assert.match(publicJs, /renderCollectionDetail/);
     assert.match(publicJs, /renderBrochureState/);
-    assert.match(publicJs, /renderPublicBrochureDetail/);
+    assert.match(publicJs, /collectionCategoryFromHash/);
+    assert.match(publicJs, /setCollectionSearchOpen/);
+    assert.match(publicJs, /grid\.scrollIntoView/);
+    assert.match(publicJs, /Ook direct verkrijgbaar via de webshop/);
+    assert.match(publicJs, /Voor het volledige aanbod bekijk je de brochures hierboven/);
+    assert.match(publicJs, /collection-route-grid is-single/);
+    assert.match(publicJs, /collection-webshop-card/);
+    assert.match(publicJs, /collection-webshop-media/);
+    assert.match(publicJs, /Bekijk een selectie uit deze collectie/);
+    assert.doesNotMatch(publicJs, /Waarom deze collectie/);
+    assert.doesNotMatch(publicJs, /Direct verkrijgbaar via Bidfood/);
+    assert.doesNotMatch(publicJs, /<span class="tag blue">Direct verkrijgbaar/);
+    assert.doesNotMatch(publicJs, /Bekijk het volledige aanbod via de beschikbare brochures/);
     assert.doesNotMatch(publicJs, /data\/brochures\.json/);
     assert.doesNotMatch(pageHtml, /data\/brochures\.json/);
   });
@@ -473,7 +497,7 @@ export async function runPublicContentChecks() {
     assert.match(publicJs, /renderDetailBreadcrumb/);
     assert.match(publicJs, /Terug naar inspiratie/);
     assert.match(publicJs, /Terug naar leveranciers/);
-    assert.match(publicJs, /Terug naar brochures/);
+    assert.match(publicJs, /Terug naar collecties/);
     assert.match(publicJs, /updateDocumentTitle/);
     assert.match(publicJs, /body\.classList\.add\("is-detail-route"\)/);
     assert.match(publicJs, /window\.addEventListener\("hashchange"/);
@@ -491,8 +515,9 @@ export async function runPublicContentChecks() {
     const publicShell = publicHtmlFiles().map(readText).join("\n");
 
     assert.match(publicShell, /aria-current="page"/);
-    assert.match(brochurePageHtml, /role="group" aria-label="Filter brochures op categorie"/);
-    assert.match(brochurePageHtml, /aria-pressed="true"/);
+    assert.match(brochurePageHtml, /role="group" aria-label="Kies productcategorie"/);
+    assert.match(brochurePageHtml, /aria-pressed="false"/);
+    assert.match(brochurePageHtml, /aria-controls="collection-search"/);
     assert.match(publicJs, /aria-current="page"/);
     assert.match(publicJs, /aria-controls="mobile-navigation"/);
     assert.match(publicJs, /aria-hidden="true"/);
@@ -500,10 +525,18 @@ export async function runPublicContentChecks() {
     assert.match(publicJs, /setSearchExpanded/);
     assert.match(publicJs, /aria-pressed/);
     assert.match(publicJs, /aria-expanded/);
+    assert.match(publicJs, /normalizePublicSearch/);
     assert.match(publicCss, /\.mobile-panel a:focus-visible/);
     assert.match(publicCss, /body\.nav-open \.mobile-panel/);
     assert.match(publicCss, /visibility: hidden/);
     assert.match(publicCss, /pointer-events: none/);
+    assert.match(publicCss, /\.collection-card:focus-visible/);
+    assert.match(publicCss, /\.collection-category-chips/);
+    assert.match(publicCss, /\.collection-primary-controls/);
+    assert.match(publicCss, /\.collection-search\.is-open input/);
+    assert.match(publicCss, /\.collection-route-grid\.is-single/);
+    assert.match(publicCss, /\.collection-webshop-card/);
+    assert.match(publicCss, /\.collection-webshop-media img/);
   });
 
   await runCheck("publieke leveranciersdetailpagina koppelt relaties via bestaande websitepagina's", () => {
@@ -556,6 +589,8 @@ export async function runPublicContentChecks() {
     assert.match(publicSpec, /data-public-supplier-extra/);
     assert.match(publicSpec, /data-public-brochure-intro/);
     assert.match(publicSpec, /data-public-brochure-overview/);
+    assert.match(publicSpec, /collection-card/);
+    assert.match(publicSpec, /Zoek een collectie/);
     assert.match(publicSpec, /toHaveCSS\("color", "rgb\(255, 255, 255\)"\)/);
     assert.match(publicSpec, /overzicht en detail blijven gescheiden/);
     assert.match(publicSpec, /waitForLoadState\("networkidle", \{ timeout: 3000 \}\)/);
@@ -615,7 +650,7 @@ export async function runPublicContentChecks() {
     [
       ["pages/inspiratie.html", "../images/inspiration.png", "assets/images/inspiration.png"],
       ["pages/leveranciers.html", "../images/assortment.png", "assets/images/assortment.png"],
-      ["pages/brochures-catalogi.html", "../images/brochures.png", "assets/images/brochures.png"],
+      ["pages/brochures-catalogi.html", "../images/supplier-bowls.jpeg", "assets/images/supplier-bowls.jpeg"],
       ["pages/virtuele-showroom.html", "../images/showroom.png", "assets/images/showroom.png"],
       ["pages/terras-outdoor.html", "../images/blog-terrace.png", "assets/images/blog-terrace.png"],
       ["pages/nieuw.html", "../images/new.png", "assets/images/new.png"],

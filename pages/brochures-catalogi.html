@@ -3,31 +3,79 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Brochures en catalogi van non-foodleveranciers, met routes naar leveranciers en persoonlijk advies.">
-    <title>Brochures en catalogi | Non-Food Hub</title>
+    <meta name="description" content="Collecties, brochures en inspiratie voor professionele horeca non-food.">
+    <title>Collecties | Non-Food Hub</title>
     <link rel="icon" href="../assets/images/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../assets/css/styles.css">
   </head>
   <body data-page="brochures" data-base="..">
     <div data-site-header></div>
     <main>
-      <section class="page-hero has-image" style="--page-image: url('../images/brochures.png');">
+      <section class="page-hero has-image" style="--page-image: url('../images/supplier-bowls.jpeg');">
         <div class="container">
-          <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span aria-current="page">Brochures en catalogi</span></div>
-          <h1>Brochures en catalogi</h1>
-          <p>Bekijk beschikbare brochures en catalogi van non-foodleveranciers. Een downloadactie verschijnt alleen wanneer het bestand beschikbaar is.</p>
+          <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span aria-current="page">Collecties</span></div>
+          <h1>Collecties</h1>
+          <p>Ontdek complete collecties, download brochures en laat je inspireren door het uitgebreide aanbod voor de professionele horeca.</p>
         </div>
       </section>
 
-      <section class="section" data-public-brochure-intro>
+      <section class="section collections-control-section" data-public-brochure-intro>
         <div class="container">
-          <div class="intro-panel fade-in">
-            <div>
-              <p class="kicker">Catalogusoverzicht</p>
-              <h2>Leverancierscollecties op een plek</h2>
-              <p class="lead">Gebruik de brochurepagina om beschikbare collecties en productinformatie te verkennen. Voor aanvullend advies kun je contact opnemen met het non-foodteam.</p>
+          <div class="collection-controls fade-in">
+            <div class="collection-primary-controls">
+              <h2 class="sr-only">Productcategorieen</h2>
+              <div class="collection-category-chips" data-collection-category-chips role="group" aria-label="Kies productcategorie">
+                <button class="filter-button" type="button" data-collection-category="Servies" aria-pressed="false">Servies</button>
+                <button class="filter-button" type="button" data-collection-category="Kleding & textiel" aria-pressed="false">Kleding & textiel</button>
+                <button class="filter-button" type="button" data-collection-category="Keukengerei" aria-pressed="false">Keukengerei</button>
+                <button class="filter-button" type="button" data-collection-category="Glaswerk" aria-pressed="false">Glaswerk</button>
+                <button class="filter-button" type="button" data-collection-category="Bestek" aria-pressed="false">Bestek</button>
+                <button class="filter-button" type="button" data-collection-category="Bar & restaurantmateriaal" aria-pressed="false">Bar & restaurantmateriaal</button>
+                <button class="filter-button" type="button" data-collection-category="Buffet & serveergerei" aria-pressed="false">Buffet & serveergerei</button>
+                <button class="filter-button" type="button" data-collection-category="Keukenapparatuur" aria-pressed="false">Keukenapparatuur</button>
+                <button class="filter-button" type="button" data-collection-category="Keukeninrichting" aria-pressed="false">Keukeninrichting</button>
+                <button class="filter-button" type="button" data-collection-category="Kantoorartikelen" aria-pressed="false">Kantoorartikelen</button>
+                <button class="filter-button" type="button" data-collection-category="BBQ's & Kamado's" aria-pressed="false">BBQ's & Kamado's</button>
+                <button class="filter-button" type="button" data-collection-category="Overig" aria-pressed="false">Overig</button>
+              </div>
+
+              <div class="collection-search" data-collection-search-shell>
+                <button class="icon-button collection-search-toggle" type="button" aria-label="Collecties zoeken" aria-controls="collection-search" aria-expanded="false" data-collection-search-toggle>
+                  <span class="icon-search" aria-hidden="true"></span>
+                </button>
+                <label class="sr-only" for="collection-search">Zoeken</label>
+                <input id="collection-search" type="search" placeholder="Zoek een collectie..." autocomplete="off" tabindex="-1" aria-hidden="true" data-collection-search>
+              </div>
             </div>
-            <a class="btn btn-primary" href="mailto:nonfood@bidfood.nl?subject=Brochure%20of%20catalogus%20Non-Food">Vraag catalogusadvies</a>
+
+            <div class="collection-refine-grid" aria-label="Verfijn collecties">
+              <fieldset class="collection-refine-block">
+                <legend>Materiaal</legend>
+                <label><input type="checkbox" value="porselein" data-collection-refine="material"> Porselein</label>
+                <label><input type="checkbox" value="glas" data-collection-refine="material"> Glas</label>
+                <label><input type="checkbox" value="hout" data-collection-refine="material"> Hout</label>
+                <label><input type="checkbox" value="melamine" data-collection-refine="material"> Melamine</label>
+                <label><input type="checkbox" value="rvs" data-collection-refine="material"> RVS</label>
+                <label><input type="checkbox" value="kunststof" data-collection-refine="material"> Kunststof</label>
+              </fieldset>
+
+              <fieldset class="collection-refine-block">
+                <legend>Thema</legend>
+                <label><input type="checkbox" value="fine-dining" data-collection-refine="theme"> Fine dining</label>
+                <label><input type="checkbox" value="hotel" data-collection-refine="theme"> Hotel</label>
+                <label><input type="checkbox" value="terras" data-collection-refine="theme"> Terras</label>
+                <label><input type="checkbox" value="buffet" data-collection-refine="theme"> Buffet</label>
+                <label><input type="checkbox" value="bar" data-collection-refine="theme"> Bar</label>
+              </fieldset>
+
+              <fieldset class="collection-refine-block">
+                <legend>Beschikbaarheid</legend>
+                <label><input type="checkbox" value="brochure" data-collection-refine="availability"> Brochure beschikbaar</label>
+                <label><input type="checkbox" value="bidfood-webshop" data-collection-refine="availability"> Deels direct verkrijgbaar via de webshop van Bidfood</label>
+              </fieldset>
+            </div>
+
+            <button class="btn btn-secondary collection-clear" type="button" data-collection-clear hidden>Wis selectie</button>
           </div>
         </div>
       </section>
@@ -35,26 +83,14 @@
       <section class="section surface" data-public-brochure-overview>
         <div class="container">
           <div class="section-heading fade-in">
-            <p class="kicker">Filter</p>
-            <h2>Brochures per categorie</h2>
-          </div>
-          <div class="filter-bar fade-in" data-filter-bar="#brochure-grid" role="group" aria-label="Filter brochures op categorie">
-            <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">Alle</button>
-            <button class="filter-button" type="button" data-filter="servies">Servies</button>
-            <button class="filter-button" type="button" data-filter="bestek">Bestek</button>
-            <button class="filter-button" type="button" data-filter="glaswerk">Glaswerk</button>
-            <button class="filter-button" type="button" data-filter="buffet">Buffet</button>
-            <button class="filter-button" type="button" data-filter="keukengerei">Keukengerei</button>
-            <button class="filter-button" type="button" data-filter="kleding">Kleding</button>
-            <button class="filter-button" type="button" data-filter="keukenapparatuur">Keukenapparatuur</button>
-            <button class="filter-button" type="button" data-filter="bar">Bar</button>
-            <button class="filter-button" type="button" data-filter="overig">Overig</button>
+            <p class="kicker">Collecties</p>
+            <h2>Laat je inspireren door complete collecties</h2>
           </div>
 
-          <div class="grid grid-3" id="brochure-grid" data-public-brochure-grid aria-live="polite">
+          <div class="collection-grid" id="brochure-grid" data-public-brochure-grid aria-live="polite">
             <article class="contact-card fade-in">
-              <h3>Brochures laden</h3>
-              <p>Brochures worden geladen.</p>
+              <h3>Collecties laden</h3>
+              <p>Collecties worden geladen.</p>
             </article>
           </div>
         </div>

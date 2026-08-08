@@ -158,15 +158,15 @@ test("publieke demo-flow loopt van homepage naar artikel, leverancier en brochur
   await expect(page).toHaveURL(/pages\/brochures-catalogi\.html#amefa-for-professionals-2026$/);
   await expect(page.locator("[data-public-brochure-intro]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText(amefaBrochureTitle);
-  await expect(page).toHaveTitle(`${amefaBrochureTitle} | Non-Food Hub`);
+  await expect(page.locator("[data-public-brochure-detail] h2").first()).toHaveText("Amefa Collection");
+  await expect(page).toHaveTitle("Amefa Collection | Non-Food Hub");
   await expect(page.locator("[data-public-brochure-detail]").getByText("PDF nog niet beschikbaar")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Terug naar brochures/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Collecties" }).first()).toBeVisible();
   await expectCleanPage(page, errors);
 
-  await page.getByRole("link", { name: /Terug naar brochures/i }).click();
+  await page.getByRole("link", { name: "Collecties" }).first().click();
   await expect(page).toHaveURL(/pages\/brochures-catalogi\.html$/);
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(2);
   await expectCleanPage(page, errors);
 });
 
@@ -204,20 +204,49 @@ test("overzicht en detail blijven gescheiden bij directe publieke URLs", async (
   await expect(page.locator("[data-public-brochure-intro]")).toBeVisible();
   await expect(page.locator("[data-public-brochure-overview]")).toBeVisible();
   await expect(page.locator("[data-public-brochure-detail-section]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
-  const churchillBrochureCard = page.locator("[data-public-brochure-grid] .resource-card", {
-    hasText: "Churchill Combined Brochure 2026"
+  await expect(page.getByRole("heading", { name: "Collecties", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Collecties zoeken" })).toBeVisible();
+  await expect(page.getByPlaceholder("Zoek een collectie...")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator("[data-collection-category]")).toHaveCount(12);
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(2);
+  const churchillCollectionCard = page.locator("[data-public-brochure-grid] .collection-card", {
+    hasText: "Churchill Collection"
   });
-  await expect(churchillBrochureCard.getByText("Bestek", { exact: true })).toBeVisible();
-  await expect(churchillBrochureCard.getByText("Buffet & presentatie", { exact: true })).toBeVisible();
-  await expect(churchillBrochureCard.getByText("Servies", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Alle" })).toHaveAttribute("aria-pressed", "true");
+  await expect(churchillCollectionCard.getByText("Bestek", { exact: true })).toBeVisible();
+  await expect(churchillCollectionCard.getByText("Buffet & serveergerei", { exact: true })).toBeVisible();
+  await expect(churchillCollectionCard.getByText("Servies", { exact: true })).toBeVisible();
+  await expect(churchillCollectionCard.getByText("🛒 Deels direct verkrijgbaar via de webshop van Bidfood.")).toBeVisible();
   await expectCleanPage(page, errors);
 
   await page.goto("/pages/brochures-catalogi.html#amefa-for-professionals-2026");
   await expect(page.locator("[data-public-brochure-intro]")).toBeHidden();
   await expect(page.locator("[data-public-brochure-overview]")).toBeHidden();
-  await expect(page.locator("[data-public-brochure-detail] h2")).toHaveText(amefaBrochureTitle);
+  await expect(page.locator("[data-public-brochure-detail] h2").first()).toHaveText("Amefa Collection");
+  await expect(page.locator(".collection-detail-visual img")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Beschikbare brochures" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ook direct verkrijgbaar via de webshop" })).toBeVisible();
+  await expect(page.getByText("Voor het volledige aanbod bekijk je de brochures hierboven.")).toBeVisible();
+  await expect(page.locator(".collection-route-grid .collection-route-card")).toHaveCount(1);
+  await expect(page.locator(".collection-route-grid .tag")).toHaveCount(0);
+  await expect(page.locator(".collection-route-grid .collection-route-card")).not.toContainText("Complete collectie");
+  await expect(page.locator(".collection-route-grid .collection-route-card")).toContainText(
+    "Bekijk een selectie uit deze collectie die direct online beschikbaar is via de webshop van Bidfood."
+  );
+  await expect(page.locator(".collection-webshop-media img")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Bekijk assortiment" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Interesse in deze collectie?" })).toBeVisible();
+  const detailOrder = await page.locator("[data-public-brochure-detail]").evaluate((detail) => {
+    const brochureTop = detail.querySelector("#amefa-brochures")?.getBoundingClientRect().top ?? 0;
+    const webshopTop = [...detail.querySelectorAll("h2")]
+      .find((heading) => heading.textContent.trim() === "Ook direct verkrijgbaar via de webshop")
+      ?.getBoundingClientRect().top ?? 0;
+    const contactTop = [...detail.querySelectorAll("h2")]
+      .find((heading) => heading.textContent.trim() === "Interesse in deze collectie?")
+      ?.getBoundingClientRect().top ?? 0;
+    return { brochureTop, webshopTop, contactTop };
+  });
+  expect(detailOrder.brochureTop).toBeLessThan(detailOrder.webshopTop);
+  expect(detailOrder.webshopTop).toBeLessThan(detailOrder.contactTop);
   await expectCleanPage(page, errors);
 });
 
@@ -270,13 +299,48 @@ test("publieke navigatie, filters en focusstates blijven toegankelijk", async ({
   await expectCleanPage(page, errors);
 
   await page.goto("/pages/brochures-catalogi.html");
-  const allFilter = page.getByRole("button", { name: "Alle" });
-  const serviesFilter = page.getByRole("button", { name: "Servies" });
+  const serviesFilter = page.locator('[data-collection-category="Servies"]');
+  const bestekFilter = page.locator('[data-collection-category="Bestek"]');
+  const collectionSearchToggle = page.getByRole("button", { name: "Collecties zoeken" });
+  const searchInput = page.getByPlaceholder("Zoek een collectie...");
 
-  await expect(allFilter).toHaveAttribute("aria-pressed", "true");
+  await expect(serviesFilter).toHaveAttribute("aria-pressed", "false");
   await serviesFilter.click();
   await expect(serviesFilter).toHaveAttribute("aria-pressed", "true");
-  await expect(allFilter).toHaveAttribute("aria-pressed", "false");
+  await bestekFilter.click();
+  await expect(serviesFilter).toHaveAttribute("aria-pressed", "false");
+  await expect(bestekFilter).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(2);
+  await expect(collectionSearchToggle).toHaveAttribute("aria-expanded", "false");
+  await collectionSearchToggle.click();
+  await expect(collectionSearchToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(searchInput).toHaveAttribute("aria-hidden", "false");
+  await searchInput.fill("Churchill");
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(1);
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toContainText("Churchill Collection");
+  await page.mouse.click(10, 10);
+  await expect(collectionSearchToggle).toHaveAttribute("aria-expanded", "false");
+  await collectionSearchToggle.click();
+  await page.keyboard.press("Escape");
+  await expect(collectionSearchToggle).toHaveAttribute("aria-expanded", "false");
+  await page.locator('[data-collection-refine="availability"][value="brochure"]').check();
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(1);
+  await page.locator("[data-collection-clear]").click();
+  await expect(searchInput).toHaveValue("");
+  await expect(serviesFilter).toHaveAttribute("aria-pressed", "false");
+  await expect(bestekFilter).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(2);
+  await page.goto("/pages/brochures-catalogi.html#churchill");
+  await page.getByRole("link", { name: "Servies" }).first().click();
+  await expect(page).toHaveURL(/pages\/brochures-catalogi\.html#categorie-servies$/);
+  await expect(serviesFilter).toHaveAttribute("aria-pressed", "true");
+  await page.waitForFunction(() => {
+    const grid = document.querySelector("[data-public-brochure-grid]");
+    return grid && Math.abs(grid.getBoundingClientRect().top) <= 140;
+  });
+  const gridTop = await page.locator("[data-public-brochure-grid]").evaluate((grid) => Math.round(grid.getBoundingClientRect().top));
+  expect(gridTop).toBeGreaterThanOrEqual(0);
+  expect(gridTop).toBeLessThanOrEqual(140);
   await expectCleanPage(page, errors);
 });
 

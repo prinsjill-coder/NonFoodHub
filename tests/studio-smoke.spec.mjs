@@ -1164,8 +1164,8 @@ test("Studio brochurebeheer ondersteunt de handmatige bewerkflow", async ({ page
 
   await page.goto("/pages/brochures-catalogi.html");
   await expect(page.locator("[data-public-brochure-grid]")).not.toContainText("RC1E praktijkbrochure");
-  await expect(page.locator("[data-public-brochure-grid] .resource-card")).toHaveCount(2);
-  await expect(page.getByRole("link", { name: "Download brochure" })).toHaveCount(1);
+  await expect(page.locator("[data-public-brochure-grid] .collection-card")).toHaveCount(2);
+  await expect(page.getByRole("link", { name: "Bekijk brochures" })).toHaveCount(2);
 
   await expectCleanStudioPage(page, errors);
 });
